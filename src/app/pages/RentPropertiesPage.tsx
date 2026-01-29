@@ -11,11 +11,16 @@ import {
   Map as MapIcon,
   Bookmark,
 } from 'lucide-react';
+import { Header } from '@/app/components/Header';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { supabase } from '@/lib/supabase';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 
-export function PropertyListingPage() {
+interface RentPropertiesPageProps {
+  onNavigate?: (page: 'home' | 'buy' | 'rent') => void;
+}
+
+export function RentPropertiesPage({ onNavigate }: RentPropertiesPageProps) {
   const [showMap, setShowMap] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [properties, setProperties] = useState<Property[]>([]);
@@ -23,14 +28,14 @@ export function PropertyListingPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchBuyProperties() {
+    async function fetchRentProperties() {
       setLoading(true);
       setError(null);
-      console.log('🔍 Fetching buy properties from Supabase...');
+      console.log('🔍 Fetching rent properties from Supabase...');
       const { data, error: err } = await supabase
         .from('properties')
         .select('*')
-        .eq('type', 'buy');
+        .eq('type', 'rent');
       console.log('📦 Supabase response:', { data, error: err });
       if (err) {
         console.error('❌ Supabase error:', err);
@@ -43,7 +48,7 @@ export function PropertyListingPage() {
       }
       setLoading(false);
     }
-    fetchBuyProperties();
+    fetchRentProperties();
   }, []);
 
   const toggleFavorite = (id: number) => {
@@ -57,11 +62,16 @@ export function PropertyListingPage() {
   };
 
   const formatPrice = (price: number) => {
-    return `¥${(price / 1000000).toFixed(1)}M`;
+    if (price >= 100000) {
+      return `¥${(price / 10000).toFixed(0)}万`;
+    }
+    return `¥${price.toLocaleString()}`;
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header onNavigate={onNavigate} />
+      
       {/* Sticky Filter Bar */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-[1600px] mx-auto px-6 py-4">
@@ -100,9 +110,9 @@ export function PropertyListingPage() {
               <ChevronDown className="w-3.5 h-3.5" />
             </button>
 
-            {/* Price */}
+            {/* Monthly Rent */}
             <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
-              Price
+              Monthly Rent
               <ChevronDown className="w-3.5 h-3.5" />
             </button>
 
@@ -139,9 +149,9 @@ export function PropertyListingPage() {
             <div className="mb-6 flex items-start justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-1">
-                  Properties for sale
+                  Properties for rent
                 </h1>
-                <p className="text-gray-600">2,117 results</p>
+                <p className="text-gray-600">1,523 results</p>
               </div>
 
               <div className="flex items-center gap-4">
@@ -233,7 +243,7 @@ export function PropertyListingPage() {
                       </p>
 
                       <div className="text-3xl font-bold text-white mb-4">
-                        {formatPrice(property.price)}
+                        {formatPrice(property.price)}/月
                       </div>
 
                       {/* Attributes */}
@@ -285,11 +295,11 @@ export function PropertyListingPage() {
               <div className="absolute inset-0 opacity-10">
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                   <defs>
-                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <pattern id="grid-rent" width="40" height="40" patternUnits="userSpaceOnUse">
                       <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#999" strokeWidth="0.5"/>
                     </pattern>
                   </defs>
-                  <rect width="100%" height="100%" fill="url(#grid)" />
+                  <rect width="100%" height="100%" fill="url(#grid-rent)" />
                 </svg>
               </div>
 
@@ -298,25 +308,25 @@ export function PropertyListingPage() {
                 {/* Price Markers */}
                 <div className="absolute top-[15%] right-[25%]">
                   <div className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-lg">
-                    ¥53,100,000
+                    ¥18万/月
                   </div>
                 </div>
 
                 <div className="absolute top-[25%] right-[20%]">
                   <div className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-lg">
-                    ¥72,500,000
+                    ¥22万/月
                   </div>
                 </div>
 
                 <div className="absolute top-[45%] left-[30%]">
                   <div className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-lg">
-                    ¥235,000,000
+                    ¥16.5万/月
                   </div>
                 </div>
 
                 <div className="absolute bottom-[35%] left-[25%]">
                   <div className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-lg">
-                    ¥141,900,000
+                    ¥32万/月
                   </div>
                 </div>
 
@@ -358,7 +368,7 @@ export function PropertyListingPage() {
                 </svg>
               </div>
 
-              {/* Coming Soon Overlay (optional - can remove if you want full map look) */}
+              {/* Coming Soon Overlay */}
               <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md">
                 <p className="text-xs font-medium text-gray-600">Interactive map coming soon</p>
               </div>

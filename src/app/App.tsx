@@ -8,6 +8,7 @@ import { FeaturedPropertiesCarousel } from '@/app/components/FeaturedPropertiesC
 import { Header } from '@/app/components/Header';
 import { TokyoWardsSection } from '@/app/components/TokyoWardsSection';
 import { BuyPropertiesPage } from '@/app/pages/BuyPropertiesPage';
+import { RentPropertiesPage } from '@/app/pages/RentPropertiesPage';
 
 export default function App() {
   const [scrollY, setScrollY] = useState(0);
@@ -30,7 +31,7 @@ export default function App() {
   }
 
   if (currentPage === 'rent') {
-    return <BuyPropertiesPage onNavigate={handleNavigate} />;
+    return <RentPropertiesPage onNavigate={handleNavigate} />;
   }
 
   return (

@@ -1,93 +1,42 @@
 import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
-import { useRef, useState } from 'react';
-
-interface Property {
-  id: number;
-  title: string;
-  location: string;
-  price: string;
-  type: 'Rent' | 'Buy' | 'Investment';
-  image: string;
-  beds: number;
-  baths: number;
-  size: string;
-}
-
-const properties: Property[] = [
-  {
-    id: 1,
-    title: 'Shibuya Premium Apartment',
-    location: 'Shibuya, Tokyo',
-    price: '¥89,000,000',
-    type: 'Buy',
-    image: 'https://images.unsplash.com/photo-1589572368687-c093a494522a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBUb2t5byUyMGFwYXJ0bWVudCUyMGludGVyaW9yfGVufDF8fHx8MTc2OTU2ODgxMXww&ixlib=rb-4.1.0&q=80&w=1080',
-    beds: 2,
-    baths: 2,
-    size: '85㎡',
-  },
-  {
-    id: 2,
-    title: 'Roppongi Luxury Penthouse',
-    location: 'Roppongi, Tokyo',
-    price: '¥165,000,000',
-    type: 'Investment',
-    image: 'https://images.unsplash.com/photo-1768711610981-7e106038ddcc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxUb2t5byUyMGNpdHklMjBza3lsaW5lJTIwdmlldyUyMGFwYXJ0bWVudHxlbnwxfHx8fDE3Njk1Njg4MTR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    beds: 3,
-    baths: 3,
-    size: '120㎡',
-  },
-  {
-    id: 3,
-    title: 'Setagaya Modern House',
-    location: 'Setagaya, Tokyo',
-    price: '¥350,000/mo',
-    type: 'Rent',
-    image: 'https://images.unsplash.com/photo-1635834098903-1c1288d9a73a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxKYXBhbmVzZSUyMG1vZGVybiUyMGhvdXNlJTIwZXh0ZXJpb3J8ZW58MXx8fHwxNzY5NTY4ODEyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    beds: 4,
-    baths: 2,
-    size: '145㎡',
-  },
-  {
-    id: 4,
-    title: 'Meguro Stylish Condo',
-    location: 'Meguro, Tokyo',
-    price: '¥72,000,000',
-    type: 'Buy',
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    beds: 2,
-    baths: 1,
-    size: '68㎡',
-  },
-  {
-    id: 5,
-    title: 'Ginza Executive Suite',
-    location: 'Ginza, Tokyo',
-    price: '¥280,000/mo',
-    type: 'Rent',
-    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    beds: 1,
-    baths: 1,
-    size: '55㎡',
-  },
-  {
-    id: 6,
-    title: 'Shinjuku Investment Tower',
-    location: 'Shinjuku, Tokyo',
-    price: '¥125,000,000',
-    type: 'Investment',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    beds: 3,
-    baths: 2,
-    size: '95㎡',
-  },
-];
+import { useRef, useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import {
+  type FeaturedProperty,
+  type SupabasePropertyRow,
+  mapSupabaseRowToFeaturedProperty,
+} from '@/lib/properties';
 
 export function FeaturedPropertiesCarousel() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
+  const [properties, setProperties] = useState<FeaturedProperty[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchFeaturedProperties() {
+      setLoading(true);
+      console.log('🔍 Fetching featured properties from Supabase...');
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('is_featured', true);
+      console.log('📦 Supabase response:', { data, error });
+      if (!error && data?.length) {
+        const mapped = data.map((row) => mapSupabaseRowToFeaturedProperty(row as SupabasePropertyRow));
+        console.log('✅ Mapped featured properties:', mapped);
+        setProperties(mapped);
+      } else {
+        console.log('⚠️ No featured properties found');
+        setProperties([]);
+      }
+      setLoading(false);
+    }
+    fetchFeaturedProperties();
+  }, []);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -174,7 +123,17 @@ export function FeaturedPropertiesCarousel() {
               msOverflowStyle: 'none',
             }}
           >
-            {properties.map((property, index) => (
+            {loading && (
+              <div className="flex-shrink-0 w-[340px] md:w-[380px] flex items-center justify-center py-12 text-gray-500">
+                読み込み中...
+              </div>
+            )}
+            {!loading && properties.length === 0 && (
+              <div className="flex-shrink-0 w-full flex items-center justify-center py-12 text-gray-500">
+                おすすめ物件はありません
+              </div>
+            )}
+            {!loading && properties.map((property, index) => (
               <motion.div
                 key={property.id}
                 className="flex-shrink-0 w-[340px] md:w-[380px] snap-start group/card cursor-pointer"

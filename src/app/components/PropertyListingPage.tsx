@@ -26,20 +26,16 @@ export function PropertyListingPage() {
     async function fetchBuyProperties() {
       setLoading(true);
       setError(null);
-      console.log('🔍 Fetching buy properties from Supabase...');
       const { data, error: err } = await supabase
-        .from('properties')
+        .from('Properties')
         .select('*')
         .eq('type', 'buy');
-      console.log('📦 Supabase response:', { data, error: err });
+      if (import.meta.env.DEV) console.log('[Buy] Supabase', { data, error: err });
       if (err) {
-        console.error('❌ Supabase error:', err);
         setError(err.message);
         setProperties([]);
       } else {
-        const mapped = (data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow));
-        console.log('✅ Mapped properties:', mapped);
-        setProperties(mapped);
+        setProperties((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
       }
       setLoading(false);
     }
@@ -169,6 +165,11 @@ export function PropertyListingPage() {
               )}
               {error && (
                 <div className="py-16 text-center text-red-600">エラー: {error}</div>
+              )}
+              {!loading && !error && properties.length === 0 && (
+                <div className="py-16 text-center text-gray-500">
+                  物件がありません。Supabase の properties テーブルに type=buy のデータを追加してください。
+                </div>
               )}
               {!loading && !error && properties.map((property, index) => (
                 <motion.div

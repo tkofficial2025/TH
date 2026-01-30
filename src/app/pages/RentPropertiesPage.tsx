@@ -31,20 +31,16 @@ export function RentPropertiesPage({ onNavigate }: RentPropertiesPageProps) {
     async function fetchRentProperties() {
       setLoading(true);
       setError(null);
-      console.log('🔍 Fetching rent properties from Supabase...');
       const { data, error: err } = await supabase
-        .from('properties')
+        .from('Properties')
         .select('*')
         .eq('type', 'rent');
-      console.log('📦 Supabase response:', { data, error: err });
+      if (import.meta.env.DEV) console.log('[Rent] Supabase', { data, error: err });
       if (err) {
-        console.error('❌ Supabase error:', err);
         setError(err.message);
         setProperties([]);
       } else {
-        const mapped = (data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow));
-        console.log('✅ Mapped properties:', mapped);
-        setProperties(mapped);
+        setProperties((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
       }
       setLoading(false);
     }
@@ -179,6 +175,11 @@ export function RentPropertiesPage({ onNavigate }: RentPropertiesPageProps) {
               )}
               {error && (
                 <div className="py-16 text-center text-red-600">エラー: {error}</div>
+              )}
+              {!loading && !error && properties.length === 0 && (
+                <div className="py-16 text-center text-gray-500">
+                  物件がありません。Supabase の properties テーブルに type=rent のデータを追加してください。
+                </div>
               )}
               {!loading && !error && properties.map((property, index) => (
                 <motion.div

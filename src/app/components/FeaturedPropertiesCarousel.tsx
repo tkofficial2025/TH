@@ -19,18 +19,14 @@ export function FeaturedPropertiesCarousel() {
   useEffect(() => {
     async function fetchFeaturedProperties() {
       setLoading(true);
-      console.log('🔍 Fetching featured properties from Supabase...');
       const { data, error } = await supabase
-        .from('properties')
+        .from('Properties')
         .select('*')
         .eq('is_featured', true);
-      console.log('📦 Supabase response:', { data, error });
+      if (import.meta.env.DEV) console.log('[Featured] Supabase', { data, error });
       if (!error && data?.length) {
-        const mapped = data.map((row) => mapSupabaseRowToFeaturedProperty(row as SupabasePropertyRow));
-        console.log('✅ Mapped featured properties:', mapped);
-        setProperties(mapped);
+        setProperties(data.map((row) => mapSupabaseRowToFeaturedProperty(row as SupabasePropertyRow)));
       } else {
-        console.log('⚠️ No featured properties found');
         setProperties([]);
       }
       setLoading(false);
@@ -216,7 +212,7 @@ export function FeaturedPropertiesCarousel() {
         </motion.a>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }

@@ -31,10 +31,12 @@ export function RentPropertiesPage({ onNavigate }: RentPropertiesPageProps) {
     async function fetchRentProperties() {
       setLoading(true);
       setError(null);
-      const { data, error: err } = await supabase
-        .from('Properties')
-        .select('*')
-        .eq('type', 'rent');
+      const { data: raw, error: err } = await supabase
+        .from('properties')
+        .select('*');
+      const data = Array.isArray(raw)
+        ? raw.filter((row: { type?: string }) => String(row?.type ?? '').toLowerCase() === 'rent')
+        : raw;
       if (import.meta.env.DEV) console.log('[Rent] Supabase', { data, error: err });
       if (err) {
         setError(err.message);

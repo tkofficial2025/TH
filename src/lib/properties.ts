@@ -36,23 +36,41 @@ export interface Property {
   isNew?: boolean;
 }
 
+/** 行オブジェクトから値を取得（snake_case / camelCase 両対応） */
+function get(row: Record<string, unknown>, ...keys: string[]): unknown {
+  for (const k of keys) {
+    const v = row[k];
+    if (v !== undefined && v !== null) return v;
+  }
+  return undefined;
+}
+
+/** "5分" や 5 を数値に変換 */
+function toNumber(v: unknown): number {
+  if (typeof v === 'number' && !Number.isNaN(v)) return v;
+  const s = String(v ?? '').replace(/\D/g, '');
+  const n = parseInt(s, 10);
+  return Number.isNaN(n) ? 0 : n;
+}
+
 /**
- * Supabase の行をフロント用の Property に変換
+ * Supabase の行をフロント用の Property に変換（DB のカラム名の揺れに対応）
  */
-export function mapSupabaseRowToProperty(row: SupabasePropertyRow): Property {
+export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<string, unknown>): Property {
+  const r = row as Record<string, unknown>;
   return {
-    id: row.id,
-    title: row.title,
-    address: row.address,
-    price: Number(row.price),
-    beds: Number(row.beds),
-    size: Number(row.size),
-    layout: row.layout,
-    image: row.image ?? '',
-    station: row.station,
-    walkingMinutes: Number(row.walking_minutes),
-    isFeatured: row.is_featured ?? false,
-    isNew: row.is_new ?? false,
+    id: Number(get(r, 'id') ?? 0),
+    title: String(get(r, 'title') ?? ''),
+    address: String(get(r, 'address') ?? ''),
+    price: Number(get(r, 'price') ?? 0),
+    beds: Number(get(r, 'beds') ?? 0),
+    size: Number(get(r, 'size') ?? 0),
+    layout: String(get(r, 'layout') ?? ''),
+    image: String(get(r, 'image') ?? ''),
+    station: String(get(r, 'station') ?? ''),
+    walkingMinutes: toNumber(get(r, 'walking_minutes', 'walkingMinutes')),
+    isFeatured: Boolean(get(r, 'is_featured', 'isFeatured') ?? false),
+    isNew: Boolean(get(r, 'is_new', 'isNew') ?? false),
   };
 }
 
@@ -72,23 +90,23 @@ export interface FeaturedProperty {
 }
 
 /**
- * Supabase の行をカルーセル用の FeaturedProperty に変換
+ * Supabase の行をカルーセル用の FeaturedProperty に変換（DB のカラム名の揺れに対応）
  */
-export function mapSupabaseRowToFeaturedProperty(row: SupabasePropertyRow): FeaturedProperty {
-  const type = row.type === 'rent' ? 'Rent' : 'Buy';
-  const priceStr =
-    row.type === 'rent'
-      ? `¥${Number(row.price).toLocaleString()}/mo`
-      : `¥${Number(row.price).toLocaleString()}`;
+export function mapSupabaseRowToFeaturedProperty(row: SupabasePropertyRow | Record<string, unknown>): FeaturedProperty {
+  const r = row as Record<string, unknown>;
+  const typeVal = String(get(r, 'type') ?? 'rent').toLowerCase();
+  const type = typeVal === 'rent' ? 'Rent' : 'Buy';
+  const price = Number(get(r, 'price') ?? 0);
+  const priceStr = typeVal === 'rent' ? `¥${price.toLocaleString()}/mo` : `¥${price.toLocaleString()}`;
   return {
-    id: row.id,
-    title: row.title,
-    location: row.address,
+    id: Number(get(r, 'id') ?? 0),
+    title: String(get(r, 'title') ?? ''),
+    location: String(get(r, 'address') ?? ''),
     price: priceStr,
     type,
-    image: row.image ?? '',
-    beds: Number(row.beds),
+    image: String(get(r, 'image') ?? ''),
+    beds: Number(get(r, 'beds') ?? 0),
     baths: 1,
-    size: `${Number(row.size)}㎡`,
+    size: `${Number(get(r, 'size') ?? 0)}㎡`,
   };
 }

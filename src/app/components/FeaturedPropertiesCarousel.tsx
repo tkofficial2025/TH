@@ -20,7 +20,7 @@ export function FeaturedPropertiesCarousel() {
     async function fetchFeaturedProperties() {
       setLoading(true);
       const { data, error } = await supabase
-        .from('Properties')
+        .from('properties')
         .select('*')
         .eq('is_featured', true);
       if (import.meta.env.DEV) console.log('[Featured] Supabase', { data, error });

@@ -26,10 +26,12 @@ export function PropertyListingPage() {
     async function fetchBuyProperties() {
       setLoading(true);
       setError(null);
-      const { data, error: err } = await supabase
-        .from('Properties')
-        .select('*')
-        .eq('type', 'buy');
+      const { data: raw, error: err } = await supabase
+        .from('properties')
+        .select('*');
+      const data = Array.isArray(raw)
+        ? raw.filter((row: { type?: string }) => String(row?.type ?? '').toLowerCase() === 'buy')
+        : raw;
       if (import.meta.env.DEV) console.log('[Buy] Supabase', { data, error: err });
       if (err) {
         setError(err.message);

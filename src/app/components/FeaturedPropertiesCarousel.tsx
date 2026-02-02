@@ -9,7 +9,11 @@ import {
   mapSupabaseRowToFeaturedProperty,
 } from '@/lib/properties';
 
-export function FeaturedPropertiesCarousel() {
+export interface FeaturedPropertiesCarouselProps {
+  onSelectProperty?: (id: number, source: 'rent' | 'buy') => void;
+}
+
+export function FeaturedPropertiesCarousel({ onSelectProperty }: FeaturedPropertiesCarouselProps = {}) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -132,6 +136,10 @@ export function FeaturedPropertiesCarousel() {
             {!loading && properties.map((property, index) => (
               <motion.div
                 key={property.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelectProperty?.(property.id, property.type === 'Rent' ? 'rent' : 'buy')}
+                onKeyDown={(e) => e.key === 'Enter' && onSelectProperty?.(property.id, property.type === 'Rent' ? 'rent' : 'buy')}
                 className="flex-shrink-0 w-[340px] md:w-[380px] snap-start group/card cursor-pointer"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}

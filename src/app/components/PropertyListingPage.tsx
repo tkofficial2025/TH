@@ -13,9 +13,15 @@ import {
 } from 'lucide-react';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { supabase } from '@/lib/supabase';
+import { wardFilterOr } from '@/lib/wards';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 
-export function PropertyListingPage() {
+interface PropertyListingPageProps {
+  selectedWard?: string | null;
+  onSelectProperty?: (id: number) => void;
+}
+
+export function PropertyListingPage({ selectedWard, onSelectProperty }: PropertyListingPageProps = {}) {
   const [showMap, setShowMap] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [properties, setProperties] = useState<Property[]>([]);
@@ -26,13 +32,12 @@ export function PropertyListingPage() {
     async function fetchBuyProperties() {
       setLoading(true);
       setError(null);
-      const { data: raw, error: err } = await supabase
-        .from('properties')
-        .select('*');
-      const data = Array.isArray(raw)
-        ? raw.filter((row: { type?: string }) => String(row?.type ?? '').toLowerCase() === 'buy')
-        : raw;
-      if (import.meta.env.DEV) console.log('[Buy] Supabase', { data, error: err });
+      let query = supabase.from('properties').select('*').eq('type', 'buy');
+      const wardOr = selectedWard ? wardFilterOr(selectedWard) : '';
+      if (wardOr) query = query.or(wardOr);
+      const { data: raw, error: err } = await query;
+      const data = Array.isArray(raw) ? raw : [];
+      if (import.meta.env.DEV) console.log('[Buy] Supabase', { data, error: err, selectedWard });
       if (err) {
         setError(err.message);
         setProperties([]);
@@ -42,7 +47,7 @@ export function PropertyListingPage() {
       setLoading(false);
     }
     fetchBuyProperties();
-  }, []);
+  }, [selectedWard]);
 
   const toggleFavorite = (id: number) => {
     const newFavorites = new Set(favorites);
@@ -137,9 +142,9 @@ export function PropertyListingPage() {
             <div className="mb-6 flex items-start justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-1">
-                  Properties for sale
+                  {selectedWard ? `Properties for sale in ${selectedWard}` : 'Properties for sale'}
                 </h1>
-                <p className="text-gray-600">2,117 results</p>
+                <p className="text-gray-600">{properties.length} results</p>
               </div>
 
               <div className="flex items-center gap-4">
@@ -176,6 +181,10 @@ export function PropertyListingPage() {
               {!loading && !error && properties.map((property, index) => (
                 <motion.div
                   key={property.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onSelectProperty?.(property.id)}
+                  onKeyDown={(e) => e.key === 'Enter' && onSelectProperty?.(property.id)}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}

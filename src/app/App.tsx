@@ -9,10 +9,14 @@ import { Header } from '@/app/components/Header';
 import { TokyoWardsSection } from '@/app/components/TokyoWardsSection';
 import { BuyPropertiesPage } from '@/app/pages/BuyPropertiesPage';
 import { RentPropertiesPage } from '@/app/pages/RentPropertiesPage';
+import { PropertyDetailPage } from '@/app/pages/PropertyDetailPage';
 
 export default function App() {
   const [scrollY, setScrollY] = useState(0);
   const [currentPage, setCurrentPage] = useState<'home' | 'buy' | 'rent'>('home');
+  const [selectedWard, setSelectedWard] = useState<string | null>(null);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+  const [detailSource, setDetailSource] = useState<'rent' | 'buy'>('rent');
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -21,17 +25,54 @@ export default function App() {
   }, []);
 
   const handleNavigate = (page: 'home' | 'buy' | 'rent') => {
+    if (page === 'home') setSelectedWard(null);
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleWardClick = (wardName: string, page: 'rent' | 'buy') => {
+    setSelectedWard(wardName);
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectProperty = (id: number, source: 'rent' | 'buy') => {
+    setSelectedPropertyId(id);
+    setDetailSource(source);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 物件詳細を表示中
+  if (selectedPropertyId != null) {
+    return (
+      <PropertyDetailPage
+        propertyId={selectedPropertyId}
+        source={detailSource}
+        onNavigate={handleNavigate}
+        onBack={() => setSelectedPropertyId(null)}
+      />
+    );
+  }
+
   // Simple page routing
   if (currentPage === 'buy') {
-    return <BuyPropertiesPage onNavigate={handleNavigate} />;
+    return (
+      <BuyPropertiesPage
+        onNavigate={handleNavigate}
+        selectedWard={selectedWard}
+        onSelectProperty={(id) => handleSelectProperty(id, 'buy')}
+      />
+    );
   }
 
   if (currentPage === 'rent') {
-    return <RentPropertiesPage onNavigate={handleNavigate} />;
+    return (
+      <RentPropertiesPage
+        onNavigate={handleNavigate}
+        selectedWard={selectedWard}
+        onSelectProperty={(id) => handleSelectProperty(id, 'rent')}
+      />
+    );
   }
 
   return (
@@ -133,10 +174,10 @@ export default function App() {
       </section>
 
       {/* Featured Properties Carousel */}
-      <FeaturedPropertiesCarousel />
+      <FeaturedPropertiesCarousel onSelectProperty={handleSelectProperty} />
 
       {/* Tokyo Wards Section */}
-      <TokyoWardsSection />
+      <TokyoWardsSection onWardClick={handleWardClick} />
 
       {/* Trust Indicators */}
       <section className="py-20 bg-gray-50 border-y border-gray-100">

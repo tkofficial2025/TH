@@ -14,13 +14,16 @@ import {
 import { Header } from '@/app/components/Header';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { supabase } from '@/lib/supabase';
+import { wardFilterOr } from '@/lib/wards';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 
 interface RentPropertiesPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent') => void;
+  selectedWard?: string | null;
+  onSelectProperty?: (id: number) => void;
 }
 
-export function RentPropertiesPage({ onNavigate }: RentPropertiesPageProps) {
+export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty }: RentPropertiesPageProps) {
   const [showMap, setShowMap] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [properties, setProperties] = useState<Property[]>([]);
@@ -31,13 +34,12 @@ export function RentPropertiesPage({ onNavigate }: RentPropertiesPageProps) {
     async function fetchRentProperties() {
       setLoading(true);
       setError(null);
-      const { data: raw, error: err } = await supabase
-        .from('properties')
-        .select('*');
-      const data = Array.isArray(raw)
-        ? raw.filter((row: { type?: string }) => String(row?.type ?? '').toLowerCase() === 'rent')
-        : raw;
-      if (import.meta.env.DEV) console.log('[Rent] Supabase', { data, error: err });
+      let query = supabase.from('properties').select('*').eq('type', 'rent');
+      const wardOr = selectedWard ? wardFilterOr(selectedWard) : '';
+      if (wardOr) query = query.or(wardOr);
+      const { data: raw, error: err } = await query;
+      const data = Array.isArray(raw) ? raw : [];
+      if (import.meta.env.DEV) console.log('[Rent] Supabase', { data, error: err, selectedWard });
       if (err) {
         setError(err.message);
         setProperties([]);
@@ -47,7 +49,7 @@ export function RentPropertiesPage({ onNavigate }: RentPropertiesPageProps) {
       setLoading(false);
     }
     fetchRentProperties();
-  }, []);
+  }, [selectedWard]);
 
   const toggleFavorite = (id: number) => {
     const newFavorites = new Set(favorites);
@@ -147,9 +149,9 @@ export function RentPropertiesPage({ onNavigate }: RentPropertiesPageProps) {
             <div className="mb-6 flex items-start justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-1">
-                  Properties for rent
+                  {selectedWard ? `Properties for rent in ${selectedWard}` : 'Properties for rent'}
                 </h1>
-                <p className="text-gray-600">1,523 results</p>
+                <p className="text-gray-600">{properties.length} results</p>
               </div>
 
               <div className="flex items-center gap-4">
@@ -186,6 +188,10 @@ export function RentPropertiesPage({ onNavigate }: RentPropertiesPageProps) {
               {!loading && !error && properties.map((property, index) => (
                 <motion.div
                   key={property.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onSelectProperty?.(property.id)}
+                  onKeyDown={(e) => e.key === 'Enter' && onSelectProperty?.(property.id)}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}

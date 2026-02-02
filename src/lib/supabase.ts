@@ -1,16 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
+import { supabaseUrl as configUrl, supabaseAnonKey as configKey } from './supabase-config';
 
-// Vite は .env の VITE_* を import.meta.env に注入する。直接参照する
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// 1. .env の VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY を優先
+// 2. なければ supabase-config.ts を使う
+const envUrl = (import.meta.env.VITE_SUPABASE_URL as string)?.trim();
+const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string)?.trim();
+const supabaseUrl = (envUrl || configUrl || '').trim();
+const supabaseAnonKey = (envKey || configKey || '').trim();
 
 const envMissing = !supabaseUrl || !supabaseAnonKey;
+const source = envUrl ? '.env' : configUrl ? 'supabase-config.ts' : 'なし';
 if (import.meta.env.DEV) {
-  console.log('[Supabase] 環境変数', { VITE_SUPABASE_URL: !!supabaseUrl, VITE_SUPABASE_ANON_KEY: !!supabaseAnonKey });
+  console.log('[Supabase] 読み込み', { あり: !envMissing, 参照: source });
 }
 if (envMissing) {
   console.warn(
-    'Supabase の環境変数が設定されていません。.env に VITE_SUPABASE_URL と VITE_SUPABASE_ANON_KEY を追加してください。'
+    'Supabase の設定がありません。.env に VITE_SUPABASE_URL と VITE_SUPABASE_ANON_KEY を入れるか、src/lib/supabase-config.ts に値を入れてください。'
   );
 }
 
@@ -21,7 +26,7 @@ const dummySupabase = {
       eq: () =>
         Promise.resolve({
           data: [],
-          error: { message: 'Supabase の環境変数が未設定です。.env に VITE_SUPABASE_URL と VITE_SUPABASE_ANON_KEY を追加してください。' },
+          error: { message: 'Supabase の設定が未設定です。.env に VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY を入れてください。' },
         }),
     }),
   }),

@@ -8,6 +8,7 @@ import {
   type SupabasePropertyRow,
   mapSupabaseRowToFeaturedProperty,
 } from '@/lib/properties';
+import { useCurrency } from '@/app/contexts/CurrencyContext';
 
 export interface FeaturedPropertiesCarouselProps {
   onSelectProperty?: (id: number, source: 'rent' | 'buy') => void;
@@ -19,6 +20,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty }: FeaturedPropert
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [properties, setProperties] = useState<FeaturedProperty[]>([]);
   const [loading, setLoading] = useState(true);
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     async function fetchFeaturedProperties() {
@@ -187,17 +189,9 @@ export function FeaturedPropertiesCarousel({ onSelectProperty }: FeaturedPropert
 
                     {/* Price */}
                     <div className="flex items-baseline justify-between">
-                      <span className="text-2xl font-bold text-gray-900">{property.price}</span>
-                      {property.type === 'Buy' && (
-                        <span className="text-sm text-gray-500">
-                          ~${(parseInt(property.price.replace(/[¥,]/g, '')) / 150000).toFixed(0)}k USD
-                        </span>
-                      )}
-                      {property.type === 'Rent' && (
-                        <span className="text-sm text-gray-500">
-                          ~${(parseInt(property.price.replace(/[¥,/mo]/g, '')) / 150).toFixed(1)}k USD
-                        </span>
-                      )}
+                      <span className="text-2xl font-bold text-gray-900">
+                        {formatPrice(property.priceYen, property.type === 'Rent' ? 'rent' : 'buy')}
+                      </span>
                     </div>
                   </div>
                 </div>

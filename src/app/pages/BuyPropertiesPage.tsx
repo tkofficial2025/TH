@@ -10,7 +10,7 @@ interface BuyPropertiesPageProps {
 export function BuyPropertiesPage({ onNavigate, selectedWard, onSelectProperty }: BuyPropertiesPageProps) {
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onNavigate={onNavigate} />
+      <Header onNavigate={onNavigate} currentPage="buy" />
       <PropertyListingPage selectedWard={selectedWard} onSelectProperty={onSelectProperty} />
     </div>
   );

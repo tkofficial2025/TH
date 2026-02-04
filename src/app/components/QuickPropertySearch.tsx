@@ -1,6 +1,9 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { AREA_OPTIONS } from '@/lib/wards';
+
+const AREA_DROPDOWN_MAX_HEIGHT = 380;
 
 interface DropdownOption {
   value: string;
@@ -10,12 +13,8 @@ interface DropdownOption {
 const propertyTypes = ['rent', 'buy'] as const;
 type PropertyType = typeof propertyTypes[number];
 
-const areas: DropdownOption[] = [
-  { value: 'tokyo', label: 'Tokyo' },
-  { value: 'osaka', label: 'Osaka' },
-  { value: 'yokohama', label: 'Yokohama' },
-  { value: 'kyoto', label: 'Kyoto' },
-];
+/** Area: 東京23区＋23区外（QuickPropertySearch 用・複数選択） */
+const areas: DropdownOption[] = AREA_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }));
 
 const buyBudgets: DropdownOption[] = [
   { value: '0-50m', label: 'Under ¥50M' },
@@ -38,6 +37,7 @@ const bedrooms: DropdownOption[] = [
   { value: '1br', label: '1 BR' },
   { value: '2br', label: '2 BR' },
   { value: '3br+', label: '3 BR+' },
+  { value: '4br+', label: '4 BR+' },
 ];
 
 interface DropdownProps {
@@ -115,17 +115,122 @@ function Dropdown({ label, options, value, onChange, placeholder }: DropdownProp
   );
 }
 
+/** Area 用: 複数選択・チェックボックス・スクロール可能 */
+interface AreaMultiSelectProps {
+  selectedAreas: Set<string>;
+  onChange: (selected: Set<string>) => void;
+}
+
+function AreaMultiSelect({ selectedAreas, onChange }: AreaMultiSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [areaSearch, setAreaSearch] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) setAreaSearch('');
+  }, [isOpen]);
+
+  const toggle = (value: string) => {
+    const next = new Set(selectedAreas);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
+    onChange(next);
+  };
+
+  const searchLower = areaSearch.trim().toLowerCase();
+  const filteredAreas = searchLower
+    ? areas.filter((a) => a.label.toLowerCase().includes(searchLower))
+    : areas;
+
+  const count = selectedAreas.size;
+  const displayText = count === 0 ? 'Select area' : count === 1 ? areas.find((a) => a.value === [...selectedAreas][0])?.label ?? '1 area' : `${count} areas`;
+
+  return (
+    <div className="relative flex-1 min-w-[140px]" ref={dropdownRef}>
+      <button
+        type="button"
+        className="w-full px-4 py-3 text-left flex items-center justify-between gap-2 hover:bg-gray-50 transition-colors rounded-lg group"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex-1 min-w-0">
+          <div className="text-xs text-gray-500 mb-0.5">Area</div>
+          <div className="text-sm text-gray-900 font-medium truncate">{displayText}</div>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 z-50 flex flex-col overflow-hidden"
+            style={{ maxHeight: AREA_DROPDOWN_MAX_HEIGHT }}
+          >
+            <div className="flex-shrink-0 px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">
+              Tokyo 23 wards + Outer 23 wards
+            </div>
+            <div className="flex-shrink-0 p-2 border-b border-gray-100">
+              <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+                <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <input
+                  type="text"
+                  value={areaSearch}
+                  onChange={(e) => setAreaSearch(e.target.value)}
+                  placeholder="Search area..."
+                  className="flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-gray-900 placeholder:text-gray-400"
+                />
+              </div>
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain py-1">
+              {filteredAreas.length === 0 ? (
+                <div className="px-4 py-3 text-sm text-gray-500">No matching area</div>
+              ) : (
+                filteredAreas.map((option) => (
+                  <label
+                    key={option.value}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm text-gray-700 border-b border-gray-50 last:border-b-0"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedAreas.has(option.value)}
+                      onChange={() => toggle(option.value)}
+                      className="w-4 h-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F] flex-shrink-0"
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function QuickPropertySearch() {
   const [propertyType, setPropertyType] = useState<PropertyType>('rent');
-  const [area, setArea] = useState('');
+  const [selectedAreas, setSelectedAreas] = useState<Set<string>>(new Set());
   const [budget, setBudget] = useState('');
   const [bedroomCount, setBedroomCount] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   
   // Advanced filters
-  const [moveInDate, setMoveInDate] = useState('');
-  const [propertySize, setPropertySize] = useState('');
-  const [furnished, setFurnished] = useState(false);
+  const [propertySizeMin, setPropertySizeMin] = useState('');
+  const [propertySizeMax, setPropertySizeMax] = useState('');
   const [petFriendly, setPetFriendly] = useState(false);
   const [foreignFriendly, setForeignFriendly] = useState(false);
 
@@ -140,12 +245,11 @@ export function QuickPropertySearch() {
   const handleSearch = () => {
     console.log('Search params:', {
       propertyType,
-      area,
+      selectedAreas: [...selectedAreas],
       budget,
       bedroomCount,
-      moveInDate,
-      propertySize,
-      furnished,
+      propertySizeMin: propertySizeMin ? `${propertySizeMin} m²` : undefined,
+      propertySizeMax: propertySizeMax ? `${propertySizeMax} m²` : undefined,
       petFriendly,
       foreignFriendly,
     });
@@ -194,8 +298,8 @@ export function QuickPropertySearch() {
         </div>
       </div>
 
-      {/* Main Search Bar */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+      {/* Main Search Bar（overflow-visible で Selected Area ドロップダウンが切れないように） */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-visible">
         <AnimatePresence mode="wait">
           <motion.div
             key={propertyType}
@@ -205,13 +309,7 @@ export function QuickPropertySearch() {
             transition={{ duration: 0.3 }}
             className="flex flex-col lg:flex-row items-stretch divide-y lg:divide-y-0 lg:divide-x divide-gray-100"
           >
-            <Dropdown
-              label="Area"
-              options={areas}
-              value={area}
-              onChange={setArea}
-              placeholder="Select area"
-            />
+            <AreaMultiSelect selectedAreas={selectedAreas} onChange={setSelectedAreas} />
             
             <Dropdown
               label="Bedrooms"
@@ -267,54 +365,41 @@ export function QuickPropertySearch() {
               className="overflow-hidden border-t border-gray-100"
             >
               <div className="p-6 bg-white grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Move-in Date (for rent and short-term) */}
-                {(propertyType === 'rent') && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Move-in Date
-                    </label>
-                    <input
-                      type="date"
-                      value={moveInDate}
-                      onChange={(e) => setMoveInDate(e.target.value)}
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C1121F]/20 focus:border-[#C1121F] transition-colors"
-                    />
-                  </div>
-                )}
-
-                {/* Property Size */}
-                <div>
+                {/* Property Size (m²) — 広さの範囲を手動で指定 */}
+                <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Property Size (㎡)
+                    Property Size (m²)
                   </label>
-                  <input
-                    type="number"
-                    value={propertySize}
-                    onChange={(e) => setPropertySize(e.target.value)}
-                    placeholder="e.g. 60"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C1121F]/20 focus:border-[#C1121F] transition-colors"
-                  />
-                </div>
-
-                {/* Furnished Toggle (for rent and short-term) */}
-                {(propertyType === 'rent') && (
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">Furnished</span>
-                    <button
-                      type="button"
-                      onClick={() => setFurnished(!furnished)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        furnished ? 'bg-[#C1121F]' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          furnished ? 'translate-x-6' : 'translate-x-1'
-                        }`}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+                      <span className="text-sm text-gray-500 whitespace-nowrap">From</span>
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={propertySizeMin}
+                        onChange={(e) => setPropertySizeMin(e.target.value)}
+                        placeholder="e.g. 30"
+                        className="flex-1 min-w-0 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C1121F]/20 focus:border-[#C1121F] transition-colors"
                       />
-                    </button>
+                      <span className="text-sm text-gray-500">m²</span>
+                    </div>
+                    <span className="text-gray-400">–</span>
+                    <div className="flex items-center gap-2 flex-1 min-w-[120px]">
+                      <span className="text-sm text-gray-500 whitespace-nowrap">To</span>
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={propertySizeMax}
+                        onChange={(e) => setPropertySizeMax(e.target.value)}
+                        placeholder="e.g. 80"
+                        className="flex-1 min-w-0 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C1121F]/20 focus:border-[#C1121F] transition-colors"
+                      />
+                      <span className="text-sm text-gray-500">m²</span>
+                    </div>
                   </div>
-                )}
+                </div>
 
                 {/* Pet-friendly Toggle (for rent and short-term) */}
                 {(propertyType === 'rent') && (

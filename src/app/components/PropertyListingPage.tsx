@@ -12,9 +12,11 @@ import {
   Bookmark,
 } from 'lucide-react';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
+import { SelectedAreaFilter } from '@/app/components/SelectedAreaFilter';
 import { supabase } from '@/lib/supabase';
-import { wardFilterOr } from '@/lib/wards';
+import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
+import { useCurrency } from '@/app/contexts/CurrencyContext';
 
 interface PropertyListingPageProps {
   selectedWard?: string | null;
@@ -24,30 +26,35 @@ interface PropertyListingPageProps {
 export function PropertyListingPage({ selectedWard, onSelectProperty }: PropertyListingPageProps = {}) {
   const [showMap, setShowMap] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedAreas, setSelectedAreas] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     async function fetchBuyProperties() {
       setLoading(true);
       setError(null);
-      let query = supabase.from('properties').select('*').eq('type', 'buy');
-      const wardOr = selectedWard ? wardFilterOr(selectedWard) : '';
-      if (wardOr) query = query.or(wardOr);
-      const { data: raw, error: err } = await query;
+      const { data: raw, error: err } = await supabase.from('properties').select('*').eq('type', 'buy');
       const data = Array.isArray(raw) ? raw : [];
-      if (import.meta.env.DEV) console.log('[Buy] Supabase', { data, error: err, selectedWard });
+      if (import.meta.env.DEV) console.log('[Buy] Supabase', { data, error: err });
       if (err) {
         setError(err.message);
-        setProperties([]);
+        setAllProperties([]);
       } else {
-        setProperties((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
+        setAllProperties((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
       }
       setLoading(false);
     }
     fetchBuyProperties();
-  }, [selectedWard]);
+  }, []);
+
+  const properties =
+    selectedAreas.size > 0
+      ? filterPropertiesByAreas(allProperties, selectedAreas)
+      : selectedWard
+        ? allProperties.filter((p) => addressMatchesWard(p.address, selectedWard))
+        : allProperties;
 
   const toggleFavorite = (id: number) => {
     const newFavorites = new Set(favorites);
@@ -57,10 +64,6 @@ export function PropertyListingPage({ selectedWard, onSelectProperty }: Property
       newFavorites.add(id);
     }
     setFavorites(newFavorites);
-  };
-
-  const formatPrice = (price: number) => {
-    return `¥${(price / 1000000).toFixed(1)}M`;
   };
 
   return (
@@ -85,11 +88,8 @@ export function PropertyListingPage({ selectedWard, onSelectProperty }: Property
               <ChevronDown className="w-3.5 h-3.5" />
             </button>
 
-            {/* Wards */}
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
-              Wards
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
+            {/* Selected Area: 23区＋23区外チェックボックス */}
+            <SelectedAreaFilter selectedAreas={selectedAreas} onChange={setSelectedAreas} />
 
             {/* Train station */}
             <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
@@ -245,7 +245,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty }: Property
                       </p>
 
                       <div className="text-3xl font-bold text-white mb-4">
-                        {formatPrice(property.price)}
+                        {formatPrice(property.price, 'buy')}
                       </div>
 
                       {/* Attributes */}
@@ -292,7 +292,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty }: Property
 
           {/* Right Column - Map Placeholder */}
           <div className="hidden lg:block">
-            <div className="sticky top-24 h-[calc(100vh-120px)] bg-[#E8E5DD] rounded-2xl overflow-hidden shadow-md relative">
+            <div className="sticky top-[4.5rem] h-[calc(100vh-5.5rem)] bg-[#E8E5DD] rounded-2xl overflow-hidden shadow-md relative">
               {/* Map Grid Lines - subtle background pattern */}
               <div className="absolute inset-0 opacity-10">
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">

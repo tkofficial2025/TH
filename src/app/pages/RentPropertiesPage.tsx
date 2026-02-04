@@ -12,10 +12,12 @@ import {
   Bookmark,
 } from 'lucide-react';
 import { Header } from '@/app/components/Header';
+import { SelectedAreaFilter } from '@/app/components/SelectedAreaFilter';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { supabase } from '@/lib/supabase';
-import { wardFilterOr } from '@/lib/wards';
+import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
+import { useCurrency } from '@/app/contexts/CurrencyContext';
 
 interface RentPropertiesPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent') => void;
@@ -26,30 +28,36 @@ interface RentPropertiesPageProps {
 export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty }: RentPropertiesPageProps) {
   const [showMap, setShowMap] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedAreas, setSelectedAreas] = useState<Set<string>>(new Set());
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     async function fetchRentProperties() {
       setLoading(true);
       setError(null);
-      let query = supabase.from('properties').select('*').eq('type', 'rent');
-      const wardOr = selectedWard ? wardFilterOr(selectedWard) : '';
-      if (wardOr) query = query.or(wardOr);
-      const { data: raw, error: err } = await query;
+      const { data: raw, error: err } = await supabase.from('properties').select('*').eq('type', 'rent');
       const data = Array.isArray(raw) ? raw : [];
-      if (import.meta.env.DEV) console.log('[Rent] Supabase', { data, error: err, selectedWard });
+      if (import.meta.env.DEV) console.log('[Rent] Supabase', { data, error: err });
       if (err) {
         setError(err.message);
-        setProperties([]);
+        setAllProperties([]);
       } else {
-        setProperties((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
+        setAllProperties((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
       }
       setLoading(false);
     }
     fetchRentProperties();
-  }, [selectedWard]);
+  }, []);
+
+  const properties =
+    selectedAreas.size > 0
+      ? filterPropertiesByAreas(allProperties, selectedAreas)
+      : selectedWard
+        ? allProperties.filter((p) => addressMatchesWard(p.address, selectedWard))
+        : allProperties;
 
   const toggleFavorite = (id: number) => {
     const newFavorites = new Set(favorites);
@@ -61,16 +69,9 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty 
     setFavorites(newFavorites);
   };
 
-  const formatPrice = (price: number) => {
-    if (price >= 100000) {
-      return `¥${(price / 10000).toFixed(0)}万`;
-    }
-    return `¥${price.toLocaleString()}`;
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onNavigate={onNavigate} />
+      <Header onNavigate={onNavigate} currentPage="rent" />
       
       {/* Sticky Filter Bar */}
       <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
@@ -92,11 +93,8 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty 
               <ChevronDown className="w-3.5 h-3.5" />
             </button>
 
-            {/* Wards */}
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
-              Wards
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
+            {/* Selected Area: 23区＋23区外チェックボックス */}
+            <SelectedAreaFilter selectedAreas={selectedAreas} onChange={setSelectedAreas} />
 
             {/* Train station */}
             <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
@@ -252,7 +250,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty 
                       </p>
 
                       <div className="text-3xl font-bold text-white mb-4">
-                        {formatPrice(property.price)}/月
+                        {formatPrice(property.price, 'rent')}
                       </div>
 
                       {/* Attributes */}
@@ -299,7 +297,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty 
 
           {/* Right Column - Map Placeholder */}
           <div className="hidden lg:block">
-            <div className="sticky top-24 h-[calc(100vh-120px)] bg-[#E8E5DD] rounded-2xl overflow-hidden shadow-md relative">
+            <div className="sticky top-[4.5rem] h-[calc(100vh-5.5rem)] bg-[#E8E5DD] rounded-2xl overflow-hidden shadow-md relative">
               {/* Map Grid Lines - subtle background pattern */}
               <div className="absolute inset-0 opacity-10">
                 <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">

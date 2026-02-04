@@ -1,19 +1,37 @@
-import { useState } from 'react';
-import { Building2, ChevronDown, User, Menu, X } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { ChevronDown, User, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useCurrency } from '@/app/contexts/CurrencyContext';
 
 interface HeaderProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent') => void;
+  /** 今いるページ（指定するとメニューのアクティブ表示と連動） */
+  currentPage?: 'home' | 'buy' | 'rent';
 }
 
-export function Header({ onNavigate }: HeaderProps) {
-  const [activeNav, setActiveNav] = useState('Home');
+export function Header({ onNavigate, currentPage }: HeaderProps) {
+  const [activeNav, setActiveNav] = useState<'Home' | 'Buy' | 'Rent' | 'Blog' | 'About'>('Home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const currencyRef = useRef<HTMLDivElement>(null);
+  const { currency, setCurrency, rateDate } = useCurrency();
 
-  const handleNavClick = (itemName: string, href: string) => {
-    setActiveNav(itemName);
-    
-    // Handle navigation to different pages
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (currencyRef.current && !currencyRef.current.contains(e.target as Node)) setCurrencyOpen(false);
+    }
+    if (currencyOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [currencyOpen]);
+
+  const activeNavName = currentPage === 'home' ? 'Home' : currentPage === 'buy' ? 'Buy' : currentPage === 'rent' ? 'Rent' : activeNav;
+
+  const handleNavClick = (e: React.MouseEvent, itemName: string, href: string) => {
+    e.preventDefault();
+    setActiveNav(itemName as 'Home' | 'Buy' | 'Rent' | 'Blog' | 'About');
+
     if (itemName === 'Buy' && onNavigate) {
       onNavigate('buy');
     } else if (itemName === 'Rent' && onNavigate) {
@@ -21,11 +39,8 @@ export function Header({ onNavigate }: HeaderProps) {
     } else if (itemName === 'Home' && onNavigate) {
       onNavigate('home');
     } else if (href.startsWith('#') && href.length > 1) {
-      // Handle hash navigation for same page (only if href is more than just '#')
       const element = document.querySelector(href);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
+      if (element) element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -42,11 +57,18 @@ export function Header({ onNavigate }: HeaderProps) {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
-            {/* Logo */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Building2 className="w-7 h-7 text-[#C1121F]" />
+            {/* Logo - クリックでトップに戻る */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveNav('Home');
+                onNavigate?.('home');
+              }}
+              className="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity"
+            >
+              <img src="/tk.jpg" alt="Tokyo Housing" className="h-8 w-auto object-contain" />
               <span className="text-xl font-semibold text-gray-900">Tokyo Housing</span>
-            </div>
+            </button>
 
             {/* Desktop Navigation - Pill Container */}
             <nav className="hidden lg:flex items-center bg-gray-100 rounded-full px-2 py-2">
@@ -54,12 +76,12 @@ export function Header({ onNavigate }: HeaderProps) {
                 <a
                   key={item.name}
                   href={item.href}
-                  onClick={() => handleNavClick(item.name, item.href)}
+                  onClick={(e) => handleNavClick(e, item.name, item.href)}
                   className={`
                     relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200
-                    flex items-center gap-1
+                    flex items-center gap-1 cursor-pointer
                     ${
-                      activeNav === item.name
+                      activeNavName === item.name
                         ? 'bg-gray-900 text-white'
                         : 'text-gray-700 hover:text-gray-900 hover:bg-gray-200/50'
                     }
@@ -82,10 +104,46 @@ export function Header({ onNavigate }: HeaderProps) {
               </button>
 
               {/* Currency Selector */}
-              <button className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors">
-                ¥
-                <ChevronDown className="w-3.5 h-3.5 opacity-70" />
-              </button>
+              <div className="relative" ref={currencyRef}>
+                <button
+                  type="button"
+                  onClick={() => setCurrencyOpen((o) => !o)}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  {currency === 'JPY' ? '¥' : '$'}
+                  <ChevronDown className={`w-3.5 h-3.5 opacity-70 transition-transform ${currencyOpen ? 'rotate-180' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {currencyOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="absolute right-0 top-full mt-1 py-1 min-w-[120px] bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => { setCurrency('JPY'); setCurrencyOpen(false); }}
+                        className={`w-full px-4 py-2 text-left text-sm font-medium ${currency === 'JPY' ? 'bg-gray-100 text-[#C1121F]' : 'text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        ¥ JPY
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setCurrency('USD'); setCurrencyOpen(false); }}
+                        className={`w-full px-4 py-2 text-left text-sm font-medium ${currency === 'USD' ? 'bg-gray-100 text-[#C1121F]' : 'text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        $ USD
+                      </button>
+                      {rateDate && (
+                        <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-100">
+                          Rate: {rateDate}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Divider */}
               <div className="w-px h-6 bg-gray-200 mx-1" />
@@ -125,7 +183,7 @@ export function Header({ onNavigate }: HeaderProps) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="fixed top-20 left-0 right-0 z-40 bg-white border-b border-gray-100 lg:hidden overflow-hidden"
+            className="fixed top-14 left-0 right-0 z-40 bg-white border-b border-gray-100 lg:hidden overflow-hidden"
           >
             <div className="px-6 py-6 space-y-1">
               {/* Mobile Navigation */}
@@ -134,15 +192,15 @@ export function Header({ onNavigate }: HeaderProps) {
                   <a
                     key={item.name}
                     href={item.href}
-                    onClick={() => {
-                      handleNavClick(item.name, item.href);
+                    onClick={(e) => {
+                      handleNavClick(e, item.name, item.href);
                       setMobileMenuOpen(false);
                     }}
                     className={`
                       block px-5 py-3 rounded-xl text-sm font-medium transition-all duration-200
-                      flex items-center justify-between
+                      flex items-center justify-between cursor-pointer
                       ${
-                        activeNav === item.name
+                        activeNavName === item.name
                           ? 'bg-gray-900 text-white'
                           : 'text-gray-700 hover:bg-gray-200/50'
                       }
@@ -162,10 +220,22 @@ export function Header({ onNavigate }: HeaderProps) {
                   EN
                   <ChevronDown className="w-3.5 h-3.5 opacity-70" />
                 </button>
-                <button className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-50 rounded-xl">
-                  ¥
-                  <ChevronDown className="w-3.5 h-3.5 opacity-70" />
-                </button>
+                <div className="flex-1 flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setCurrency('JPY')}
+                    className={`flex-1 flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-medium rounded-xl ${currency === 'JPY' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
+                  >
+                    ¥
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrency('USD')}
+                    className={`flex-1 flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-medium rounded-xl ${currency === 'USD' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
+                  >
+                    $
+                  </button>
+                </div>
               </div>
 
               {/* Mobile CTAs */}

@@ -81,7 +81,10 @@ export interface FeaturedProperty {
   id: number;
   title: string;
   location: string;
+  /** 表示用文字列（レガシー） */
   price: string;
+  /** 円建て価格（通貨変換用） */
+  priceYen: number;
   type: 'Rent' | 'Buy' | 'Investment';
   image: string;
   beds: number;
@@ -103,6 +106,7 @@ export function mapSupabaseRowToFeaturedProperty(row: SupabasePropertyRow | Reco
     title: String(get(r, 'title') ?? ''),
     location: String(get(r, 'address') ?? ''),
     price: priceStr,
+    priceYen: price,
     type,
     image: String(get(r, 'image') ?? ''),
     beds: Number(get(r, 'beds') ?? 0),

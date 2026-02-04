@@ -26,6 +26,7 @@ export default function App() {
 
   const handleNavigate = (page: 'home' | 'buy' | 'rent') => {
     if (page === 'home') setSelectedWard(null);
+    setSelectedPropertyId(null); // どのページに飛んでも詳細を閉じる
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -78,45 +79,22 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <Header onNavigate={handleNavigate} />
+      <Header onNavigate={handleNavigate} currentPage="home" />
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        {/* Animated Background */}
-        <div className="absolute inset-0 z-0">
-          <div 
-            className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100"
+      {/* Hero Section（overflow-visible で Selected Area ドロップダウンが切れないように） */}
+      <section className="relative min-h-screen flex items-center justify-center pt-14">
+        {/* Background: tokyo.jpg（この中だけ overflow-hidden で背景の scale をクリップ） */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
-              transform: `translateY(${scrollY * 0.5}px)`,
-            }}
-          />
-          <motion.div
-            className="absolute top-0 right-0 w-[800px] h-[800px] bg-[#C1121F]/5 rounded-full blur-3xl"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.div
-            className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gray-200/50 rounded-full blur-3xl"
-            animate={{
-              scale: [1.2, 1, 1.2],
-              opacity: [0.2, 0.4, 0.2],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut"
+              backgroundImage: 'url(/tokyo.jpg)',
+              transform: `translateY(${scrollY * 0.3}px) scale(1.05)`,
             }}
           />
         </div>
 
-        {/* Hero Content */}
+        {/* Hero Content（文字だけ影で見やすく） */}
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-32 pb-48">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div
@@ -124,14 +102,18 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <h1 className="text-6xl lg:text-7xl font-bold text-gray-900 mb-6 tracking-tight">
+              <h1
+                className="text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight"
+                style={{ textShadow: '0 6px 12px rgba(0,0,0,0.5)' }}
+              >
                 Your Gateway to <br />
-                <span className="text-[#C1121F]">Japanese Real Estate</span>
+                <span className="text-[#C1121F]" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>Japanese Real Estate</span>
               </h1>
             </motion.div>
             
             <motion.p
-              className="text-xl lg:text-2xl text-gray-600 mb-12 leading-relaxed"
+              className="text-xl lg:text-2xl text-white/95 mb-12 leading-relaxed"
+              style={{ textShadow: '0 6px 12px rgba(0,0,0,0.6)' }}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}

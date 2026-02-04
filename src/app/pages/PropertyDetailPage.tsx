@@ -19,6 +19,7 @@ import { Header } from '@/app/components/Header';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { supabase } from '@/lib/supabase';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
+import { useCurrency } from '@/app/contexts/CurrencyContext';
 
 interface PropertyDetailPageProps {
   propertyId: number;
@@ -69,7 +70,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
   if (error || !property) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Header onNavigate={onNavigate} />
+        <Header onNavigate={onNavigate} currentPage={source} />
         <div className="max-w-4xl mx-auto px-6 py-16 text-center">
           <p className="text-red-600 mb-4">{error || '物件が見つかりません'}</p>
           <button
@@ -86,13 +87,11 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
 
   const breadcrumbLabel = source === 'rent' ? 'Rent' : 'Buy';
   const priceLabel = source === 'rent' ? 'Monthly rent' : 'Price';
-  const priceDisplay = source === 'rent'
-    ? `¥${property.price.toLocaleString()}/mo`
-    : `¥${(property.price / 1000000).toFixed(1)}M`;
+  const priceDisplay = formatPrice(property.price, source);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onNavigate={onNavigate} />
+      <Header onNavigate={onNavigate} currentPage={source} />
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Breadcrumbs */}
@@ -264,7 +263,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
 
           {/* Right Column - Sticky */}
           <div className="lg:col-span-1">
-            <div className="lg:sticky lg:top-24 space-y-6">
+            <div className="lg:sticky lg:top-[4.5rem] space-y-6">
               {/* Estimated Initial Move-In Cost */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <button

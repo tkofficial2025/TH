@@ -3,10 +3,12 @@ import { ChevronDown, User, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 
+type NavPage = 'home' | 'buy' | 'rent' | 'consultation';
+
 interface HeaderProps {
-  onNavigate?: (page: 'home' | 'buy' | 'rent') => void;
+  onNavigate?: (page: NavPage) => void;
   /** 今いるページ（指定するとメニューのアクティブ表示と連動） */
-  currentPage?: 'home' | 'buy' | 'rent';
+  currentPage?: NavPage;
 }
 
 export function Header({ onNavigate, currentPage }: HeaderProps) {
@@ -26,7 +28,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
     }
   }, [currencyOpen]);
 
-  const activeNavName = currentPage === 'home' ? 'Home' : currentPage === 'buy' ? 'Buy' : currentPage === 'rent' ? 'Rent' : activeNav;
+  const activeNavName = currentPage === 'home' ? 'Home' : currentPage === 'buy' ? 'Buy' : currentPage === 'rent' ? 'Rent' : currentPage === 'consultation' ? 'Consultation' : activeNav;
 
   const handleNavClick = (e: React.MouseEvent, itemName: string, href: string) => {
     e.preventDefault();
@@ -240,7 +242,14 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
 
               {/* Mobile CTAs */}
               <div className="space-y-3 pt-4">
-                <button className="w-full px-5 py-3 text-sm font-semibold text-[#C1121F] border-2 border-[#C1121F] rounded-xl hover:bg-[#C1121F] hover:text-white transition-all duration-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onNavigate?.('consultation');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full px-5 py-3 text-sm font-semibold text-[#C1121F] border-2 border-[#C1121F] rounded-xl hover:bg-[#C1121F] hover:text-white transition-all duration-200"
+                >
                   Free Consultation
                 </button>
                 <button className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 border border-gray-300 rounded-xl">

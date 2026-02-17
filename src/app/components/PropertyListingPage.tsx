@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import {
   Search,
@@ -17,19 +17,23 @@ import { supabase } from '@/lib/supabase';
 import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { filterPropertiesByHeroParams, type HeroSearchParams } from '@/lib/searchFilters';
 
 interface PropertyListingPageProps {
   selectedWard?: string | null;
   onSelectProperty?: (id: number) => void;
+  initialSearchParams?: HeroSearchParams;
 }
 
-export function PropertyListingPage({ selectedWard, onSelectProperty }: PropertyListingPageProps = {}) {
+export function PropertyListingPage({ selectedWard, onSelectProperty, initialSearchParams }: PropertyListingPageProps = {}) {
+  const { formatPrice } = useCurrency();
   const [showMap, setShowMap] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAreas, setSelectedAreas] = useState<Set<string>>(new Set());
+  const hasAppliedInitialSearch = useRef(false);
 
   useEffect(() => {
     async function fetchBuyProperties() {
@@ -49,12 +53,24 @@ export function PropertyListingPage({ selectedWard, onSelectProperty }: Property
     fetchBuyProperties();
   }, []);
 
+  useEffect(() => {
+    if (initialSearchParams?.selectedAreas?.length && !hasAppliedInitialSearch.current) {
+      setSelectedAreas(new Set(initialSearchParams.selectedAreas));
+      hasAppliedInitialSearch.current = true;
+    }
+  }, [initialSearchParams]);
+
+  const baseList =
+    initialSearchParams && initialSearchParams.propertyType === 'buy'
+      ? filterPropertiesByHeroParams(allProperties, initialSearchParams, 'buy')
+      : allProperties;
+
   const properties =
     selectedAreas.size > 0
-      ? filterPropertiesByAreas(allProperties, selectedAreas)
+      ? filterPropertiesByAreas(baseList, selectedAreas)
       : selectedWard
-        ? allProperties.filter((p) => addressMatchesWard(p.address, selectedWard))
-        : allProperties;
+        ? baseList.filter((p) => addressMatchesWard(p.address, selectedWard))
+        : baseList;
 
   const toggleFavorite = (id: number) => {
     const newFavorites = new Set(favorites);

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Search, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { AREA_OPTIONS } from '@/lib/wards';
+import type { HeroSearchParams } from '@/lib/searchFilters';
 
 const AREA_DROPDOWN_MAX_HEIGHT = 380;
 
@@ -36,7 +37,7 @@ const bedrooms: DropdownOption[] = [
   { value: 'studio', label: 'Studio' },
   { value: '1br', label: '1 BR' },
   { value: '2br', label: '2 BR' },
-  { value: '3br+', label: '3 BR+' },
+  { value: '3br', label: '3 BR' },
   { value: '4br+', label: '4 BR+' },
 ];
 
@@ -221,7 +222,11 @@ function AreaMultiSelect({ selectedAreas, onChange }: AreaMultiSelectProps) {
   );
 }
 
-export function QuickPropertySearch() {
+interface QuickPropertySearchProps {
+  onSearch?: (params: HeroSearchParams) => void;
+}
+
+export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {}) {
   const [propertyType, setPropertyType] = useState<PropertyType>('rent');
   const [selectedAreas, setSelectedAreas] = useState<Set<string>>(new Set());
   const [budget, setBudget] = useState('');
@@ -243,17 +248,15 @@ export function QuickPropertySearch() {
     'Monthly Rent';
 
   const handleSearch = () => {
-    console.log('Search params:', {
+    const params: HeroSearchParams = {
       propertyType,
       selectedAreas: [...selectedAreas],
       budget,
       bedroomCount,
-      propertySizeMin: propertySizeMin ? `${propertySizeMin} m²` : undefined,
-      propertySizeMax: propertySizeMax ? `${propertySizeMax} m²` : undefined,
-      petFriendly,
-      foreignFriendly,
-    });
-    // Handle search logic here
+      sizeMin: propertySizeMin ? Number(propertySizeMin) || undefined : undefined,
+      sizeMax: propertySizeMax ? Number(propertySizeMax) || undefined : undefined,
+    };
+    onSearch?.(params);
   };
 
   return (

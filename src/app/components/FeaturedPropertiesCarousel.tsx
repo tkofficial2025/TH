@@ -71,7 +71,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty }: FeaturedPropert
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">Featured Properties</h2>
-            <p className="text-lg text-gray-600">Handpicked homes and investment opportunities in Japan</p>
+            <p className="text-lg text-gray-600">Handpicked homes for rent and sale in Japan</p>
           </motion.div>
 
           <motion.a
@@ -162,12 +162,10 @@ export function FeaturedPropertiesCarousel({ onSelectProperty }: FeaturedPropert
                       className={`absolute top-4 left-4 px-3 py-1.5 rounded-lg text-sm font-semibold ${
                         property.type === 'Buy'
                           ? 'bg-[#C1121F] text-white'
-                          : property.type === 'Investment'
-                          ? 'bg-gray-900 text-white'
                           : 'bg-white text-gray-900'
                       }`}
                     >
-                      {property.type === 'Rent' ? 'For Rent' : property.type === 'Buy' ? 'For Sale' : 'Investment'}
+                      {property.type === 'Rent' ? 'For Rent' : 'For Sale'}
                     </div>
                   </div>
 

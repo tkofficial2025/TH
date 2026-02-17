@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import {
   Search,
@@ -18,20 +18,23 @@ import { supabase } from '@/lib/supabase';
 import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { filterPropertiesByHeroParams, type HeroSearchParams } from '@/lib/searchFilters';
 
 interface RentPropertiesPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent') => void;
   selectedWard?: string | null;
   onSelectProperty?: (id: number) => void;
+  initialSearchParams?: HeroSearchParams;
 }
 
-export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty }: RentPropertiesPageProps) {
+export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty, initialSearchParams }: RentPropertiesPageProps) {
   const [showMap, setShowMap] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAreas, setSelectedAreas] = useState<Set<string>>(new Set());
+  const hasAppliedInitialSearch = useRef(false);
   const { formatPrice } = useCurrency();
 
   useEffect(() => {
@@ -52,12 +55,24 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty 
     fetchRentProperties();
   }, []);
 
+  useEffect(() => {
+    if (initialSearchParams?.selectedAreas?.length && !hasAppliedInitialSearch.current) {
+      setSelectedAreas(new Set(initialSearchParams.selectedAreas));
+      hasAppliedInitialSearch.current = true;
+    }
+  }, [initialSearchParams]);
+
+  const baseList =
+    initialSearchParams && initialSearchParams.propertyType === 'rent'
+      ? filterPropertiesByHeroParams(allProperties, initialSearchParams, 'rent')
+      : allProperties;
+
   const properties =
     selectedAreas.size > 0
-      ? filterPropertiesByAreas(allProperties, selectedAreas)
+      ? filterPropertiesByAreas(baseList, selectedAreas)
       : selectedWard
-        ? allProperties.filter((p) => addressMatchesWard(p.address, selectedWard))
-        : allProperties;
+        ? baseList.filter((p) => addressMatchesWard(p.address, selectedWard))
+        : baseList;
 
   const toggleFavorite = (id: number) => {
     const newFavorites = new Set(favorites);

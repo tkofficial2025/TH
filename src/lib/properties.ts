@@ -16,6 +16,20 @@ export interface SupabasePropertyRow {
   is_featured: boolean | null;
   is_new: boolean | null;
   created_at?: string;
+  // 追加項目（Supabase で登録可能）
+  pet_friendly?: boolean | null;
+  foreign_friendly?: boolean | null;
+  floor?: number | null;
+  balcony?: boolean | null;
+  bicycle_parking?: boolean | null;
+  delivery_box?: boolean | null;
+  elevator?: boolean | null;
+  south_facing?: boolean | null;
+  images?: string[] | null;
+  management_fee?: number | null;
+  deposit?: number | null;
+  key_money?: number | null;
+  initial_fees_credit_card?: boolean | null;
 }
 
 /**
@@ -34,6 +48,19 @@ export interface Property {
   walkingMinutes: number;
   isFeatured?: boolean;
   isNew?: boolean;
+  petFriendly?: boolean;
+  foreignFriendly?: boolean;
+  floor?: number;
+  balcony?: boolean;
+  bicycleParking?: boolean;
+  deliveryBox?: boolean;
+  elevator?: boolean;
+  southFacing?: boolean;
+  images?: string[];
+  managementFee?: number;
+  deposit?: number;
+  keyMoney?: number;
+  initialFeesCreditCard?: boolean;
 }
 
 /** 行オブジェクトから値を取得（snake_case / camelCase 両対応） */
@@ -56,8 +83,21 @@ function toNumber(v: unknown): number {
 /**
  * Supabase の行をフロント用の Property に変換（DB のカラム名の揺れに対応）
  */
+function toBool(v: unknown): boolean {
+  if (v === true || v === 'true' || v === 1) return true;
+  return false;
+}
+
+function toOptionalNumber(v: unknown): number | undefined {
+  if (v === undefined || v === null) return undefined;
+  const n = Number(v);
+  return Number.isNaN(n) ? undefined : n;
+}
+
 export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<string, unknown>): Property {
   const r = row as Record<string, unknown>;
+  const imagesRaw = get(r, 'images');
+  const images = Array.isArray(imagesRaw) ? (imagesRaw as unknown[]).map((x) => String(x ?? '')).filter(Boolean) : [];
   return {
     id: Number(get(r, 'id') ?? 0),
     title: String(get(r, 'title') ?? ''),
@@ -71,6 +111,19 @@ export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<strin
     walkingMinutes: toNumber(get(r, 'walking_minutes', 'walkingMinutes')),
     isFeatured: Boolean(get(r, 'is_featured', 'isFeatured') ?? false),
     isNew: Boolean(get(r, 'is_new', 'isNew') ?? false),
+    petFriendly: toBool(get(r, 'pet_friendly', 'petFriendly')),
+    foreignFriendly: toBool(get(r, 'foreign_friendly', 'foreignFriendly')),
+    floor: toOptionalNumber(get(r, 'floor')),
+    balcony: toBool(get(r, 'balcony')),
+    bicycleParking: toBool(get(r, 'bicycle_parking', 'bicycleParking')),
+    deliveryBox: toBool(get(r, 'delivery_box', 'deliveryBox')),
+    elevator: toBool(get(r, 'elevator')),
+    southFacing: toBool(get(r, 'south_facing', 'southFacing')),
+    images: images.length > 0 ? images : undefined,
+    managementFee: toOptionalNumber(get(r, 'management_fee', 'managementFee')),
+    deposit: toOptionalNumber(get(r, 'deposit')),
+    keyMoney: toOptionalNumber(get(r, 'key_money', 'keyMoney')),
+    initialFeesCreditCard: toBool(get(r, 'initial_fees_credit_card', 'initialFeesCreditCard')),
   };
 }
 
@@ -85,7 +138,7 @@ export interface FeaturedProperty {
   price: string;
   /** 円建て価格（通貨変換用） */
   priceYen: number;
-  type: 'Rent' | 'Buy' | 'Investment';
+  type: 'Rent' | 'Buy';
   image: string;
   beds: number;
   baths: number;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Building2, Shield, Globe, CheckCircle2, TrendingUp, Home, MapPin } from 'lucide-react';
+import { Building2, Shield, Globe, CheckCircle2, Home, MapPin } from 'lucide-react';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { MobileMenu } from '@/app/components/MobileMenu';
 import { QuickPropertySearch } from '@/app/components/QuickPropertySearch';
@@ -10,11 +10,16 @@ import { TokyoWardsSection } from '@/app/components/TokyoWardsSection';
 import { BuyPropertiesPage } from '@/app/pages/BuyPropertiesPage';
 import { RentPropertiesPage } from '@/app/pages/RentPropertiesPage';
 import { PropertyDetailPage } from '@/app/pages/PropertyDetailPage';
+import { ConsultationPage } from '@/app/pages/ConsultationPage';
+import type { HeroSearchParams } from '@/lib/searchFilters';
+
+type Page = 'home' | 'buy' | 'rent' | 'consultation';
 
 export default function App() {
   const [scrollY, setScrollY] = useState(0);
   const [currentPage, setCurrentPage] = useState<'home' | 'buy' | 'rent'>('home');
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
+  const [heroSearchParams, setHeroSearchParams] = useState<HeroSearchParams | null>(null);
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
   const [detailSource, setDetailSource] = useState<'rent' | 'buy'>('rent');
 
@@ -24,10 +29,21 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleNavigate = (page: 'home' | 'buy' | 'rent') => {
-    if (page === 'home') setSelectedWard(null);
-    setSelectedPropertyId(null); // どのページに飛んでも詳細を閉じる
+  const handleNavigate = (page: Page) => {
+    if (page === 'home') {
+      setSelectedWard(null);
+      setHeroSearchParams(null);
+    }
+    setSelectedPropertyId(null);
     setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleHeroSearch = (params: HeroSearchParams) => {
+    setHeroSearchParams(params);
+    setSelectedWard(null);
+    setSelectedPropertyId(null);
+    setCurrentPage(params.propertyType);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -55,13 +71,13 @@ export default function App() {
     );
   }
 
-  // Simple page routing
   if (currentPage === 'buy') {
     return (
       <BuyPropertiesPage
         onNavigate={handleNavigate}
         selectedWard={selectedWard}
         onSelectProperty={(id) => handleSelectProperty(id, 'buy')}
+        initialSearchParams={heroSearchParams?.propertyType === 'buy' ? heroSearchParams : undefined}
       />
     );
   }
@@ -72,8 +88,13 @@ export default function App() {
         onNavigate={handleNavigate}
         selectedWard={selectedWard}
         onSelectProperty={(id) => handleSelectProperty(id, 'rent')}
+        initialSearchParams={heroSearchParams?.propertyType === 'rent' ? heroSearchParams : undefined}
       />
     );
+  }
+
+  if (currentPage === 'consultation') {
+    return <ConsultationPage onNavigate={handleNavigate} />;
   }
 
   return (
@@ -118,7 +139,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Buy, Invest, and Live in Japan with Confidence
+              Buy and Live in Japan with Confidence
             </motion.p>
 
             <motion.div
@@ -127,14 +148,18 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              <button className="px-8 py-4 bg-[#C1121F] text-white rounded-xl font-semibold hover:bg-[#A00F1A] transition-all hover:scale-105 hover:shadow-xl shadow-lg">
+              <button
+                type="button"
+                onClick={() => handleNavigate('consultation')}
+                className="px-8 py-4 bg-[#C1121F] text-white rounded-xl font-semibold hover:bg-[#A00F1A] transition-all hover:scale-105 hover:shadow-xl shadow-lg"
+              >
                 Book Free Consultation
               </button>
             </motion.div>
 
             {/* Quick Property Search Module */}
             <div className="mt-8">
-              <QuickPropertySearch />
+              <QuickPropertySearch onSearch={handleHeroSearch} />
             </div>
           </div>
         </div>
@@ -204,7 +229,7 @@ export default function App() {
                 <CheckCircle2 className="w-8 h-8 text-[#C1121F]" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Foreign-Friendly</h3>
-              <p className="text-gray-600">Specialized in serving international buyers and investors</p>
+              <p className="text-gray-600">Specialized in serving international buyers and renters</p>
             </motion.div>
           </div>
         </div>
@@ -251,37 +276,6 @@ export default function App() {
                 <li className="flex items-start gap-2 text-gray-600">
                   <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
                   <span>Negotiation and contract support</span>
-                </li>
-              </ul>
-            </motion.div>
-
-            <motion.div
-              className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              whileHover={{ y: -8 }}
-            >
-              <div className="w-14 h-14 bg-[#C1121F]/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-[#C1121F] transition-colors">
-                <TrendingUp className="w-7 h-7 text-[#C1121F] group-hover:text-white transition-colors" />
-              </div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-4">Invest in Real Estate</h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Build wealth through Japanese real estate. Access high-yield investment opportunities with our expert guidance.
-              </p>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-2 text-gray-600">
-                  <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
-                  <span>Investment property analysis</span>
-                </li>
-                <li className="flex items-start gap-2 text-gray-600">
-                  <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
-                  <span>ROI projections and market insights</span>
-                </li>
-                <li className="flex items-start gap-2 text-gray-600">
-                  <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
-                  <span>Property management services</span>
                 </li>
               </ul>
             </motion.div>
@@ -405,10 +399,18 @@ export default function App() {
               Schedule a free consultation with our expert team. We'll guide you through every step of finding your perfect property in Japan.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button className="px-8 py-4 bg-white text-[#C1121F] rounded-xl font-semibold hover:bg-gray-100 transition-all hover:scale-105 shadow-xl">
+              <button
+                type="button"
+                onClick={() => handleNavigate('consultation')}
+                className="px-8 py-4 bg-white text-[#C1121F] rounded-xl font-semibold hover:bg-gray-100 transition-all hover:scale-105 shadow-xl"
+              >
                 Book Free Consultation
               </button>
-              <button className="px-8 py-4 bg-transparent text-white border-2 border-white rounded-xl font-semibold hover:bg-white hover:text-[#C1121F] transition-all hover:scale-105">
+              <button
+                type="button"
+                onClick={() => handleNavigate('buy')}
+                className="px-8 py-4 bg-transparent text-white border-2 border-white rounded-xl font-semibold hover:bg-white hover:text-[#C1121F] transition-all hover:scale-105"
+              >
                 Browse Properties
               </button>
             </div>
@@ -426,7 +428,7 @@ export default function App() {
                 <span className="text-2xl font-semibold">Tokyo Housing</span>
               </div>
               <p className="text-gray-400 leading-relaxed mb-6">
-                Your trusted partner for buying, investing, and living in Japan. We provide English-first real estate services to international clients.
+                Your trusted partner for buying and renting in Japan. We provide English-first real estate services to international clients.
               </p>
               <div className="flex gap-4">
                 <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#C1121F] transition-colors">
@@ -442,7 +444,6 @@ export default function App() {
               <h4 className="font-semibold mb-4">Services</h4>
               <ul className="space-y-2">
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Buy Property</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Invest in Real Estate</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Rent & Live</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Property Management</a></li>
               </ul>

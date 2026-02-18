@@ -104,10 +104,11 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     (priceYen, type) => {
       if (currency === 'JPY') {
         if (type === 'rent') {
-          if (priceYen >= 100000) return `¥${(priceYen / 10000).toFixed(0)}万/mo`;
+          if (priceYen >= 100000) return `¥${(priceYen / 1000).toFixed(0)}k/mo`;
           return `¥${priceYen.toLocaleString()}/mo`;
         }
-        return `¥${(priceYen / 1000000).toFixed(1)}M`;
+        if (priceYen >= 1000000) return `¥${(priceYen / 1000000).toFixed(1)}M`;
+        return `¥${priceYen.toLocaleString()}`;
       }
       const usd = priceYen / jpyPerUsd;
       if (type === 'rent') {

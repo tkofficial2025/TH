@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { SelectedAreaFilter } from '@/app/components/SelectedAreaFilter';
+import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { supabase } from '@/lib/supabase';
 import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
@@ -287,7 +288,12 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
 
                       {/* Station Tag */}
                       <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
-                        <MapPin className="w-3.5 h-3.5 text-white" />
+                        <StationLineLogo 
+                          stationName={property.station} 
+                          size={16} 
+                          className="flex-shrink-0" 
+                        />
+                        <MapPin className="w-3.5 h-3.5 text-white flex-shrink-0" />
                         <span className="text-xs font-medium text-white">
                           {property.station} • {property.walkingMinutes} min walk
                         </span>

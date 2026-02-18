@@ -143,6 +143,8 @@ export interface FeaturedProperty {
   beds: number;
   baths: number;
   size: string;
+  station?: string;
+  walkingMinutes?: number;
 }
 
 /**
@@ -165,5 +167,7 @@ export function mapSupabaseRowToFeaturedProperty(row: SupabasePropertyRow | Reco
     beds: Number(get(r, 'beds') ?? 0),
     baths: 1,
     size: `${Number(get(r, 'size') ?? 0)}㎡`,
+    station: String(get(r, 'station') ?? ''),
+    walkingMinutes: toNumber(get(r, 'walking_minutes', 'walkingMinutes')),
   };
 }

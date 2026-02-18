@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, MapPin } from 'lucide-react';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
+import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { useRef, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import {
@@ -186,11 +187,27 @@ export function FeaturedPropertiesCarousel({ onSelectProperty }: FeaturedPropert
                     </div>
 
                     {/* Price */}
-                    <div className="flex items-baseline justify-between">
+                    <div className="flex items-baseline justify-between mb-4 pb-4 border-b border-gray-100">
                       <span className="text-2xl font-bold text-gray-900">
                         {formatPrice(property.priceYen, property.type === 'Rent' ? 'rent' : 'buy')}
                       </span>
                     </div>
+
+                    {/* Station Info */}
+                    {property.station && (
+                      <div className="flex items-center gap-2">
+                        <StationLineLogo 
+                          stationName={property.station} 
+                          size={18} 
+                          className="flex-shrink-0" 
+                        />
+                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-sm text-gray-600">
+                          {property.station}
+                          {property.walkingMinutes && ` • ${property.walkingMinutes} min walk`}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>

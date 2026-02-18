@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Calendar, Mail, MessageSquare, Phone, User, Building2, ChevronDown, Search } from 'lucide-react';
+import { Calendar, Mail, MessageSquare, Phone, User, Building2, ChevronDown, Search, Video } from 'lucide-react';
 import { Header } from '@/app/components/Header';
 
 interface ConsultationPageProps {
@@ -50,6 +50,7 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
   const [interest, setInterest] = useState<Interest>('rent');
   const [message, setMessage] = useState('');
   const [preferredDate, setPreferredDate] = useState('');
+  const [preferOnlineMeeting, setPreferOnlineMeeting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const isOther = phoneCountry === OTHER_DIAL;
@@ -296,6 +297,29 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
                     onChange={(e) => setPreferredDate(e.target.value)}
                     className="flex-1 min-w-0 py-3 pr-4 border-0 focus:ring-0 focus:outline-none bg-transparent"
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Meeting preference
+                </label>
+                <div className="flex items-center gap-3 border border-gray-200 rounded-xl p-4 hover:border-[#C1121F]/50 transition-colors cursor-pointer" onClick={() => setPreferOnlineMeeting(!preferOnlineMeeting)}>
+                  <div className="flex-shrink-0">
+                    <Video className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <div className="flex-1 flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="preferOnlineMeeting"
+                      checked={preferOnlineMeeting}
+                      onChange={(e) => setPreferOnlineMeeting(e.target.checked)}
+                      className="w-5 h-5 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F] focus:ring-2 cursor-pointer"
+                    />
+                    <label htmlFor="preferOnlineMeeting" className="text-gray-700 cursor-pointer flex-1">
+                      I prefer online meeting
+                    </label>
+                  </div>
                 </div>
               </div>
 

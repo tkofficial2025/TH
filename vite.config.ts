@@ -20,6 +20,6 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'motion'],
+    include: ['react', 'react-dom', 'motion', 'leaflet', 'react-leaflet'],
   },
 })

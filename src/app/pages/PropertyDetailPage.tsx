@@ -18,6 +18,7 @@ import {
 import { Header } from '@/app/components/Header';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
+import { PropertyMap } from '@/app/components/PropertyMap';
 import { supabase } from '@/lib/supabase';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
@@ -290,6 +291,18 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                   <span className="text-xs font-medium">VISA</span>
                   <span className="text-xs font-medium">AMEX</span>
                 </div>
+              </div>
+            )}
+
+            {/* Map */}
+            {property.address && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Location</h3>
+                <PropertyMap 
+                  address={property.address} 
+                  title={property.title}
+                  height="400px"
+                />
               </div>
             )}
           </div>

@@ -11,13 +11,14 @@ import { BuyPropertiesPage } from '@/app/pages/BuyPropertiesPage';
 import { RentPropertiesPage } from '@/app/pages/RentPropertiesPage';
 import { PropertyDetailPage } from '@/app/pages/PropertyDetailPage';
 import { ConsultationPage } from '@/app/pages/ConsultationPage';
+import { MapSearchPage } from '@/app/pages/MapSearchPage';
 import type { HeroSearchParams } from '@/lib/searchFilters';
 
-type Page = 'home' | 'buy' | 'rent' | 'consultation';
+type Page = 'home' | 'buy' | 'rent' | 'consultation' | 'map';
 
 export default function App() {
   const [scrollY, setScrollY] = useState(0);
-  const [currentPage, setCurrentPage] = useState<'home' | 'buy' | 'rent'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'buy' | 'rent' | 'map' | 'consultation'>('home');
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
   const [heroSearchParams, setHeroSearchParams] = useState<HeroSearchParams | null>(null);
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
@@ -59,6 +60,12 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleNavigateToMap = () => {
+    setSelectedPropertyId(null);
+    setCurrentPage('map');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // 物件詳細を表示中
   if (selectedPropertyId != null) {
     return (
@@ -89,6 +96,16 @@ export default function App() {
         selectedWard={selectedWard}
         onSelectProperty={(id) => handleSelectProperty(id, 'rent')}
         initialSearchParams={heroSearchParams?.propertyType === 'rent' ? heroSearchParams : undefined}
+      />
+    );
+  }
+
+  if (currentPage === 'map') {
+    return (
+      <MapSearchPage
+        onNavigate={handleNavigate}
+        selectedWard={selectedWard}
+        onSelectProperty={handleSelectProperty}
       />
     );
   }
@@ -161,6 +178,24 @@ export default function App() {
             <div className="mt-8">
               <QuickPropertySearch onSearch={handleHeroSearch} />
             </div>
+
+            {/* Search Properties by Map Button */}
+            <motion.div
+              className="mt-8 flex justify-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <button
+                type="button"
+                onClick={handleNavigateToMap}
+                className="flex items-center gap-2 px-6 py-3 bg-white/90 backdrop-blur-sm text-gray-900 rounded-xl font-semibold hover:bg-white transition-all hover:scale-105 hover:shadow-xl shadow-lg border border-white/20"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}
+              >
+                <MapPin className="w-5 h-5" />
+                Search Properties by Map
+              </button>
+            </motion.div>
           </div>
         </div>
 

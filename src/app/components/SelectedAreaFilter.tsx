@@ -53,19 +53,19 @@ export function SelectedAreaFilter({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all w-full ${
           count > 0
             ? 'bg-gray-900 text-white hover:bg-gray-800'
             : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100 text-gray-700'
         }`}
       >
-        {buttonLabel}
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className="flex-1 text-left truncate">{buttonLabel}</span>
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
         <div
-          className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-50 flex flex-col overflow-hidden"
+          className="absolute top-full left-0 mt-2 w-full max-w-[280px] bg-white border border-gray-200 rounded-xl shadow-lg z-50 flex flex-col overflow-hidden"
           style={{ maxHeight: AREA_PANEL_MAX_HEIGHT }}
         >
           <div className="flex-shrink-0 px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">

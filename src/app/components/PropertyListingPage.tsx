@@ -14,6 +14,7 @@ import {
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { SelectedAreaFilter } from '@/app/components/SelectedAreaFilter';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
+import { PropertiesMapView } from '@/app/components/PropertiesMapView';
 import { supabase } from '@/lib/supabase';
 import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
@@ -152,7 +153,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
 
       {/* Main Content */}
       <div className="max-w-[1600px] mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr,400px] gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr,400px] gap-6 md:gap-8">
           {/* Left Column - Listings */}
           <div>
             {/* Header */}
@@ -168,10 +169,10 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                 {/* Show Map Toggle */}
                 <button
                   onClick={() => setShowMap(!showMap)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors lg:hidden"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors md:hidden"
                 >
                   <MapIcon className="w-4 h-4" />
-                  Show map
+                  {showMap ? 'Hide map' : 'Show map'}
                 </button>
 
                 {/* Sort Dropdown */}
@@ -182,20 +183,29 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               </div>
             </div>
 
-            {/* Listings Container */}
-            <div className="space-y-4">
-              {loading && (
-                <div className="py-16 text-center text-gray-500">読み込み中...</div>
-              )}
-              {error && (
-                <div className="py-16 text-center text-red-600">エラー: {error}</div>
-              )}
-              {!loading && !error && properties.length === 0 && (
-                <div className="py-16 text-center text-gray-500">
-                  物件がありません。Supabase の properties テーブルに type=buy のデータを追加してください。
-                </div>
-              )}
-              {!loading && !error && properties.map((property, index) => (
+            {/* Listings Container or Map */}
+            {showMap ? (
+              <div className="md:hidden mb-6">
+                <PropertiesMapView
+                  properties={properties}
+                  onPropertyClick={onSelectProperty}
+                  height="500px"
+                />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {loading && (
+                  <div className="py-16 text-center text-gray-500">読み込み中...</div>
+                )}
+                {error && (
+                  <div className="py-16 text-center text-red-600">エラー: {error}</div>
+                )}
+                {!loading && !error && properties.length === 0 && (
+                  <div className="py-16 text-center text-gray-500">
+                    物件がありません。Supabase の properties テーブルに type=buy のデータを追加してください。
+                  </div>
+                )}
+                {!loading && !error && properties.map((property, index) => (
                 <motion.div
                   key={property.id}
                   role="button"
@@ -302,7 +312,8 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                   </div>
                 </motion.div>
               ))}
-            </div>
+              </div>
+            )}
 
             {/* Load More */}
             <div className="mt-8 text-center">
@@ -312,90 +323,14 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
             </div>
           </div>
 
-          {/* Right Column - Map Placeholder */}
-          <div className="hidden lg:block">
-            <div className="sticky top-[4.5rem] h-[calc(100vh-5.5rem)] bg-[#E8E5DD] rounded-2xl overflow-hidden shadow-md relative">
-              {/* Map Grid Lines - subtle background pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#999" strokeWidth="0.5"/>
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#grid)" />
-                </svg>
-              </div>
-
-              {/* Map Content - Property Markers */}
-              <div className="absolute inset-0 p-8">
-                {/* Price Markers */}
-                <div className="absolute top-[15%] right-[25%]">
-                  <div className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-lg">
-                    ¥53,100,000
-                  </div>
-                </div>
-
-                <div className="absolute top-[25%] right-[20%]">
-                  <div className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-lg">
-                    ¥72,500,000
-                  </div>
-                </div>
-
-                <div className="absolute top-[45%] left-[30%]">
-                  <div className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-lg">
-                    ¥235,000,000
-                  </div>
-                </div>
-
-                <div className="absolute bottom-[35%] left-[25%]">
-                  <div className="bg-gray-900 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-lg">
-                    ¥141,900,000
-                  </div>
-                </div>
-
-                {/* Cluster Markers */}
-                <div className="absolute top-[20%] left-[35%] flex items-center justify-center w-10 h-10 bg-[#FF6B35] text-white rounded-full font-bold text-sm shadow-lg border-2 border-white">
-                  3
-                </div>
-
-                <div className="absolute top-[22%] left-[45%] flex items-center justify-center w-9 h-9 bg-[#FF6B35] text-white rounded-full font-bold text-sm shadow-lg border-2 border-white">
-                  2
-                </div>
-
-                <div className="absolute top-[35%] right-[28%] flex items-center justify-center w-11 h-11 bg-[#FF6B35] text-white rounded-full font-bold text-sm shadow-lg border-2 border-white">
-                  7
-                </div>
-
-                <div className="absolute top-[40%] left-[50%] flex items-center justify-center w-9 h-9 bg-[#FF6B35] text-white rounded-full font-bold text-sm shadow-lg border-2 border-white">
-                  2
-                </div>
-
-                <div className="absolute bottom-[30%] right-[35%] flex items-center justify-center w-10 h-10 bg-[#FF6B35] text-white rounded-full font-bold text-sm shadow-lg border-2 border-white">
-                  5
-                </div>
-
-                <div className="absolute top-[55%] left-[35%] flex items-center justify-center w-12 h-12 bg-[#FF6B35] text-white rounded-full font-bold shadow-lg border-2 border-white">
-                  12
-                </div>
-
-                <div className="absolute bottom-[25%] left-[45%] flex items-center justify-center w-9 h-9 bg-[#FF6B35] text-white rounded-full font-bold text-sm shadow-lg border-2 border-white">
-                  3
-                </div>
-
-                {/* Road-like lines */}
-                <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M 0 150 Q 200 180 400 150" stroke="#999" strokeWidth="2" fill="none" />
-                  <path d="M 100 0 L 120 300" stroke="#999" strokeWidth="1.5" fill="none" />
-                  <path d="M 250 50 L 280 400" stroke="#999" strokeWidth="2" fill="none" />
-                  <path d="M 50 250 Q 200 240 350 260" stroke="#999" strokeWidth="1.5" fill="none" />
-                </svg>
-              </div>
-
-              {/* Coming Soon Overlay (optional - can remove if you want full map look) */}
-              <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-md">
-                <p className="text-xs font-medium text-gray-600">Interactive map coming soon</p>
-              </div>
+          {/* Right Column - Map */}
+          <div className="hidden md:block">
+            <div className="sticky top-[4.5rem] h-[calc(100vh-5.5rem)] min-h-[600px]">
+              <PropertiesMapView
+                properties={properties}
+                onPropertyClick={onSelectProperty}
+                height="100%"
+              />
             </div>
           </div>
         </div>

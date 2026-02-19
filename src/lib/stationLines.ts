@@ -511,7 +511,7 @@ export function getStationLines(stationName: string): LineInfo[] {
       color: '#9B7D4E', // 茶色
       abbreviation: 'F',
       company: 'Tokyo Metro',
-      logoPath: '/station-logos/tokyo-metro-f.jpg',
+      logoPath: '/station-logos/tokyo-metro-f.png',
       lineCode: 'tokyo-metro-f',
     });
   }
@@ -1133,7 +1133,7 @@ export function getAllRailwayLines(): LineInfo[] {
       color: '#9B7D4E',
       abbreviation: 'F',
       company: 'Tokyo Metro',
-      logoPath: '/station-logos/tokyo-metro-f.jpg',
+      logoPath: '/station-logos/tokyo-metro-f.png',
       lineCode: 'tokyo-metro-f',
     },
     // 都営地下鉄

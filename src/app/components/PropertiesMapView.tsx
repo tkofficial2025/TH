@@ -1,11 +1,13 @@
 import { useEffect, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import Supercluster from 'supercluster';
 import { geocodeAddresses, type Coordinates } from '@/lib/geocoding';
 import { type Property } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
+import { StationLineLogo } from '@/app/components/StationLineLogo';
 
 // Leafletのデフォルトアイコンの問題を修正
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -166,35 +168,75 @@ function ClusterUpdater({
             popupAnchor: [0, -10],
           });
 
+          // ホバー用のTooltip（HTML文字列）
+          const imageHtml = property.image 
+            ? `<img src="${property.image}" alt="${property.title}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; flex-shrink: 0;" onerror="this.style.display='none';" />`
+            : '';
+          const tooltipHtml = `
+            <div style="min-width: 280px; max-width: 400px; padding: 10px; box-sizing: border-box; word-wrap: break-word; overflow-wrap: break-word;">
+              <div style="display: flex; gap: 12px; align-items: flex-start;">
+                ${imageHtml ? `<div style="flex-shrink: 0;">${imageHtml}</div>` : ''}
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px; line-height: 1.4; word-wrap: break-word;">
+                    ${property.title}
+                  </div>
+                  <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px; line-height: 1.4; word-wrap: break-word;">
+                    ${property.address}
+                  </div>
+                  <div style="font-size: 14px; font-weight: 600; color: #C1121F; margin-bottom: 4px;">
+                    ${priceText}
+                  </div>
+                  <div style="font-size: 12px; color: #6b7280; line-height: 1.4; word-wrap: break-word;">
+                    ${property.beds} bed • ${property.size} m²${property.station ? ` • ${property.station}` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
           return (
             <Marker
               key={`property-${property.id}`}
               position={[lat, lng]}
               icon={customIcon}
               eventHandlers={{
-                click: () => onPropertyClick?.(property.id),
+                click: () => {
+                  // 新しいタブで物件詳細を開く
+                  const url = `${window.location.origin}${window.location.pathname}?property=${property.id}&source=${property.type === 'rent' ? 'rent' : 'buy'}`;
+                  window.open(url, '_blank');
+                },
               }}
             >
+              <Tooltip permanent={false} direction="top" offset={[0, -10]}>
+                <div dangerouslySetInnerHTML={{ __html: tooltipHtml }} />
+              </Tooltip>
               <Popup>
-                <div className="min-w-[200px]">
-                  <h3 className="font-semibold text-sm mb-1">{property.title}</h3>
-                  <p className="text-xs text-gray-600 mb-2">{property.address}</p>
+                <div className="min-w-[250px] max-w-[300px]">
+                  <h3 className="font-semibold text-sm mb-1 line-clamp-2">{property.title}</h3>
+                  <p className="text-xs text-gray-600 mb-2 line-clamp-1">{property.address}</p>
                   <p className="text-sm font-semibold text-[#C1121F] mb-2">
                     {priceText}
                   </p>
-                  <div className="flex gap-2 text-xs text-gray-500">
+                  <div className="flex gap-2 text-xs text-gray-500 mb-2">
                     <span>{property.beds} bed</span>
                     <span>•</span>
                     <span>{property.size} m²</span>
+                    {property.station && (
+                      <>
+                        <span>•</span>
+                        <span>{property.station}</span>
+                      </>
+                    )}
                   </div>
-                  {onPropertyClick && (
-                    <button
-                      onClick={() => onPropertyClick(property.id)}
-                      className="mt-2 w-full px-3 py-1.5 bg-[#C1121F] text-white text-xs font-medium rounded hover:bg-[#A00F1A] transition-colors"
-                    >
-                      詳細を見る
-                    </button>
-                  )}
+                  <button
+                    onClick={() => {
+                      const url = `${window.location.origin}${window.location.pathname}?property=${property.id}&source=${property.type === 'rent' ? 'rent' : 'buy'}`;
+                      window.open(url, '_blank');
+                    }}
+                    className="w-full px-3 py-1.5 bg-[#C1121F] text-white text-xs font-medium rounded hover:bg-[#A00F1A] transition-colors"
+                  >
+                    詳細を見る（新しいタブ）
+                  </button>
                 </div>
               </Popup>
             </Marker>
@@ -216,23 +258,34 @@ export function PropertiesMapView({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // propertiesのID配列をメモ化（依存配列の最適化）
+  const propertyIds = useMemo(() => properties.map(p => p.id).sort().join(','), [properties]);
+
   useEffect(() => {
+    let cancelled = false;
+
     async function loadCoordinates() {
       if (properties.length === 0) {
-        setPropertyCoordinates(new Map());
-        setLoading(false);
-        setError(null);
+        if (!cancelled) {
+          setPropertyCoordinates(new Map());
+          setLoading(false);
+          setError(null);
+        }
         return;
       }
 
-      setLoading(true);
-      setError(null);
+      if (!cancelled) {
+        setLoading(true);
+        setError(null);
+      }
 
       // 住所の配列を作成
       const addresses = properties.map(p => p.address);
       
       // ジオコーディング（レート制限を考慮して順次実行）
       const coordinates = await geocodeAddresses(addresses);
+      
+      if (cancelled) return;
       
       // プロパティIDと座標のマップを作成
       const coordMap = new Map<number, Coordinates>();
@@ -243,12 +296,18 @@ export function PropertiesMapView({
         }
       });
       
-      setPropertyCoordinates(coordMap);
-      setLoading(false);
+      if (!cancelled) {
+        setPropertyCoordinates(coordMap);
+        setLoading(false);
+      }
     }
 
     loadCoordinates();
-  }, [properties]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [properties.length, propertyIds]);
 
   // Superclusterの初期化
   const cluster = useMemo(() => {
@@ -296,14 +355,6 @@ export function PropertiesMapView({
     return (
       <div className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`} style={{ height }}>
         <p className="text-gray-500">{error}</p>
-      </div>
-    );
-  }
-
-  if (propertyCoordinates.size === 0 || !cluster) {
-    return (
-      <div className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`} style={{ height }}>
-        <p className="text-gray-500">表示できる物件がありません</p>
       </div>
     );
   }
@@ -360,6 +411,11 @@ export function PropertiesMapView({
         }
       `}</style>
       <div className={`rounded-lg overflow-hidden border border-gray-200 ${className}`} style={{ height, position: 'relative', zIndex: 0 }}>
+        {propertyCoordinates.size === 0 && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border border-gray-200">
+            <p className="text-sm text-gray-600 font-medium">表示できる物件がありません</p>
+          </div>
+        )}
         <MapContainer
           center={defaultCenter}
           zoom={12}
@@ -371,7 +427,7 @@ export function PropertiesMapView({
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {bounds && <MapBoundsUpdater bounds={bounds} />}
-          <ClusterUpdater cluster={cluster} onPropertyClick={onPropertyClick} />
+          {cluster && <ClusterUpdater cluster={cluster} onPropertyClick={onPropertyClick} />}
         </MapContainer>
       </div>
     </>

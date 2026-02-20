@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import {
   Search,
   ChevronDown,
+  ChevronUp,
   Heart,
   Bed,
   Maximize2,
@@ -21,6 +22,8 @@ import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { filterPropertiesByHeroParams, type HeroSearchParams } from '@/lib/searchFilters';
+import { searchProperties } from '@/lib/fullTextSearch';
+import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
 
 interface RentPropertiesPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent') => void;
@@ -36,6 +39,17 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedAreas, setSelectedAreas] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [priceMin, setPriceMin] = useState<string>('');
+  const [priceMax, setPriceMax] = useState<string>('');
+  const [bedrooms, setBedrooms] = useState<string>('');
+  const [sizeMin, setSizeMin] = useState<string>('');
+  const [sizeMax, setSizeMax] = useState<string>('');
+  const [stationFilter, setStationFilter] = useState<string>('');
+  const [filterBarOpen, setFilterBarOpen] = useState<boolean>(true);
+  const [sidebarWidth, setSidebarWidth] = useState<number>(384); // w-96 = 384px
+  const [isResizing, setIsResizing] = useState<boolean>(false);
+  const [sortOption, setSortOption] = useState<'popularity' | 'price-asc' | 'price-desc' | 'size-asc' | 'size-desc' | 'walking-asc' | 'walking-desc' | 'newest' | 'oldest'>('popularity');
   const hasAppliedInitialSearch = useRef(false);
   const { formatPrice } = useCurrency();
 
@@ -43,6 +57,21 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
     async function fetchRentProperties() {
       setLoading(true);
       setError(null);
+      
+      // キーワード検索がある場合はFull Text Searchを使用
+      if (searchQuery.trim()) {
+        try {
+          const results = await searchProperties(searchQuery, 'rent', 1000);
+          setAllProperties(results);
+          setLoading(false);
+          return;
+        } catch (err) {
+          console.error('Full text search error:', err);
+          // エラー時は通常のクエリにフォールバック
+        }
+      }
+      
+      // 通常のクエリ
       const { data: raw, error: err } = await supabase.from('properties').select('*').eq('type', 'rent');
       const data = Array.isArray(raw) ? raw : [];
       if (import.meta.env.DEV) console.log('[Rent] Supabase', { data, error: err });
@@ -55,12 +84,15 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
       setLoading(false);
     }
     fetchRentProperties();
-  }, []);
+  }, [searchQuery]);
 
   useEffect(() => {
     if (initialSearchParams?.selectedAreas?.length && !hasAppliedInitialSearch.current) {
       setSelectedAreas(new Set(initialSearchParams.selectedAreas));
       hasAppliedInitialSearch.current = true;
+    }
+    if (initialSearchParams?.keyword) {
+      setSearchQuery(initialSearchParams.keyword);
     }
   }, [initialSearchParams]);
 
@@ -69,12 +101,64 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
       ? filterPropertiesByHeroParams(allProperties, initialSearchParams, 'rent')
       : allProperties;
 
-  const properties =
-    selectedAreas.size > 0
-      ? filterPropertiesByAreas(baseList, selectedAreas)
-      : selectedWard
-        ? baseList.filter((p) => addressMatchesWard(p.address, selectedWard))
-        : baseList;
+  // フィルター適用
+  const properties = baseList.filter((property) => {
+    // エリアフィルター
+    if (selectedAreas.size > 0) {
+      const matchesArea = Array.from(selectedAreas).some(area => 
+        property.address.includes(area)
+      );
+      if (!matchesArea) return false;
+    }
+    
+    // 区フィルター
+    if (selectedWard) {
+      if (!addressMatchesWard(property.address, selectedWard)) return false;
+    }
+    
+    // 検索クエリフィルター
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      if (
+        !property.title.toLowerCase().includes(query) &&
+        !property.address.toLowerCase().includes(query)
+      ) return false;
+    }
+    
+    // 価格フィルター
+    if (priceMin) {
+      const min = parseInt(priceMin.replace(/\D/g, ''), 10);
+      if (property.price < min) return false;
+    }
+    if (priceMax) {
+      const max = parseInt(priceMax.replace(/\D/g, ''), 10);
+      if (property.price > max) return false;
+    }
+    
+    // ベッドルームフィルター
+    if (bedrooms) {
+      const beds = parseInt(bedrooms, 10);
+      if (property.beds !== beds) return false;
+    }
+    
+    // 広さフィルター
+    if (sizeMin) {
+      const min = parseFloat(sizeMin);
+      if (property.size < min) return false;
+    }
+    if (sizeMax) {
+      const max = parseFloat(sizeMax);
+      if (property.size > max) return false;
+    }
+    
+    // 駅フィルター
+    if (stationFilter.trim()) {
+      const station = stationFilter.toLowerCase();
+      if (!property.station.toLowerCase().includes(station)) return false;
+    }
+    
+    return true;
+  });
 
   const toggleFavorite = (id: number) => {
     const newFavorites = new Set(favorites);
@@ -86,20 +170,76 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
     setFavorites(newFavorites);
   };
 
+  // サイドバーリサイズ処理
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      const newWidth = e.clientX;
+      // 最小幅320px、最大幅800px
+      if (newWidth >= 320 && newWidth <= 800) {
+        setSidebarWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header onNavigate={onNavigate} currentPage="rent" />
       
       {/* Sticky Filter Bar */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-6 py-4">
-          <div className="flex items-center gap-3 flex-wrap">
+      <div className="sticky top-20 z-40 bg-white border-b border-gray-200 shadow-sm" style={{ marginTop: '80px' }}>
+        <div className="max-w-[1600px] mx-auto px-6">
+          {/* Filter Bar Toggle Button */}
+          <div className="flex items-center justify-between py-3 border-b border-gray-200">
+            <h2 className="text-sm font-semibold text-gray-900">Filters</h2>
+            <button
+              onClick={() => setFilterBarOpen(!filterBarOpen)}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              {filterBarOpen ? (
+                <>
+                  <span>Hide</span>
+                  <ChevronUp className="w-4 h-4" />
+                </>
+              ) : (
+                <>
+                  <span>Show</span>
+                  <ChevronDown className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </div>
+          
+          {/* Filter Options */}
+          {filterBarOpen && (
+            <div className="py-4">
+              <div className="flex items-center gap-3 flex-wrap">
             {/* Search */}
             <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors">
               <Search className="w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm w-32"
               />
             </div>
@@ -114,28 +254,64 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
             <SelectedAreaFilter selectedAreas={selectedAreas} onChange={setSelectedAreas} />
 
             {/* Train station */}
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
-              Train station
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors">
+              <input
+                type="text"
+                placeholder="Station"
+                value={stationFilter}
+                onChange={(e) => setStationFilter(e.target.value)}
+                className="bg-transparent border-none outline-none text-sm w-24"
+              />
+            </div>
 
             {/* Bedrooms */}
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
-              Bedrooms
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
+            <select
+              value={bedrooms}
+              onChange={(e) => setBedrooms(e.target.value)}
+              className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+            >
+              <option value="">Bedrooms</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4+</option>
+            </select>
 
             {/* Monthly Rent */}
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
-              Monthly Rent
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Min"
+                value={priceMin}
+                onChange={(e) => setPriceMin(e.target.value)}
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+              />
+              <input
+                type="text"
+                placeholder="Max"
+                value={priceMax}
+                onChange={(e) => setPriceMax(e.target.value)}
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+              />
+            </div>
 
             {/* Size */}
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
-              Size (m²)
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                placeholder="Min m²"
+                value={sizeMin}
+                onChange={(e) => setSizeMin(e.target.value)}
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+              />
+              <input
+                type="number"
+                placeholder="Max m²"
+                value={sizeMax}
+                onChange={(e) => setSizeMax(e.target.value)}
+                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+              />
+            </div>
 
             {/* More */}
             <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
@@ -151,65 +327,72 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
               <Bookmark className="w-3.5 h-3.5" />
               Save
             </button>
-          </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-[1600px] mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr,400px] gap-6 md:gap-8">
-          {/* Left Column - Listings or Map */}
-          <div>
+      {/* Main Content - Property Listings + Map */}
+      <div className="flex relative z-0" style={{ height: 'calc(100vh - 160px)', marginTop: '0' }}>
+        {/* Left Sidebar - Property Listings */}
+        <div 
+          className="bg-white border-r border-gray-200 shadow-sm overflow-y-auto overflow-x-hidden relative z-10" 
+          style={{ 
+            width: `${sidebarWidth}px`,
+            height: 'calc(100vh - 160px)',
+            minWidth: '320px',
+            maxWidth: '800px'
+          }}
+        >
+          {/* Resize Handle */}
+          <div
+            onMouseDown={(e) => {
+              e.preventDefault();
+              setIsResizing(true);
+            }}
+            className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#C1121F] transition-colors z-20"
+            style={{ cursor: 'col-resize' }}
+          />
+          <div className="p-4">
             {/* Header */}
-            <div className="mb-6 flex items-start justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-1">
-                  {selectedWard ? `Properties for rent in ${selectedWard}` : 'Properties for rent'}
-                </h1>
-                <p className="text-gray-600">{properties.length} results</p>
-              </div>
-
-              <div className="flex items-center gap-4">
-                {/* Show Map Toggle */}
-                <button
-                  onClick={() => setShowMap(!showMap)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors md:hidden"
-                >
-                  <MapIcon className="w-4 h-4" />
-                  {showMap ? 'Hide map' : 'Show map'}
-                </button>
-
-                {/* Sort Dropdown */}
-                <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-all text-sm font-medium text-gray-700">
-                  Popularity
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-              </div>
+            <div className="mb-4 pb-4 border-b border-gray-200">
+              <h1 className="text-xl font-bold text-gray-900 mb-1">
+                {selectedWard ? `Properties for rent in ${selectedWard}` : 'Properties for rent'}
+              </h1>
+              <p className="text-sm text-gray-600">{sortedProperties.length} results</p>
             </div>
 
-            {/* Listings Container or Map */}
-            {showMap ? (
-              <div className="md:hidden mb-6">
-                <PropertiesMapView
-                  properties={properties}
-                  onPropertyClick={onSelectProperty}
-                  height="500px"
-                />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {loading && (
-                  <div className="py-16 text-center text-gray-500">読み込み中...</div>
-                )}
-                {error && (
-                  <div className="py-16 text-center text-red-600">エラー: {error}</div>
-                )}
-                {!loading && !error && properties.length === 0 && (
-                  <div className="py-16 text-center text-gray-500">
-                    物件がありません。Supabase の properties テーブルに type=rent のデータを追加してください。
-                  </div>
-                )}
-                {!loading && !error && properties.map((property, index) => (
+            {/* Sort Dropdown */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">並び替え</label>
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value as SortOption)}
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-all text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Property Listings */}
+            <div className="space-y-4">
+              {loading && (
+                <div className="py-16 text-center text-gray-500 text-sm">読み込み中...</div>
+              )}
+              {error && (
+                <div className="py-16 text-center text-red-600 text-sm">エラー: {error}</div>
+              )}
+              {!loading && !error && sortedProperties.length === 0 && (
+                <div className="py-16 text-center text-gray-500 text-sm">
+                  物件がありません。
+                </div>
+              )}
+              {!loading && !error && sortedProperties.map((property, index) => (
                 <motion.div
                   key={property.id}
                   role="button"
@@ -219,13 +402,11 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className={`group relative bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer ${
-                    property.isFeatured ? 'lg:h-[480px]' : 'lg:h-[360px]'
-                  }`}
-                  whileHover={{ y: -4 }}
+                  className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border border-gray-100"
+                  whileHover={{ y: -2 }}
                 >
                   {/* Image */}
-                  <div className="relative h-full w-full overflow-hidden">
+                  <div className="relative h-44 w-full overflow-hidden">
                     <ImageWithFallback
                       src={property.image}
                       alt={property.title}
@@ -236,14 +417,14 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
                     {/* Badges */}
-                    <div className="absolute top-4 left-4 flex gap-2">
+                    <div className="absolute top-2 left-2 flex gap-2">
                       {property.isFeatured && (
-                        <span className="px-3 py-1 bg-[#C1121F] text-white text-xs font-semibold rounded-full">
-                          MOST POPULAR
+                        <span className="px-2 py-0.5 bg-[#C1121F] text-white text-xs font-semibold rounded-full">
+                          POPULAR
                         </span>
                       )}
                       {property.isNew && (
-                        <span className="px-3 py-1 bg-white text-gray-900 text-xs font-semibold rounded-full">
+                        <span className="px-2 py-0.5 bg-white text-gray-900 text-xs font-semibold rounded-full">
                           New
                         </span>
                       )}
@@ -255,10 +436,10 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                         e.stopPropagation();
                         toggleFavorite(property.id);
                       }}
-                      className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110"
+                      className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110"
                     >
                       <Heart
-                        className={`w-5 h-5 transition-colors ${
+                        className={`w-4 h-4 transition-colors ${
                           favorites.has(property.id)
                             ? 'fill-[#C1121F] text-[#C1121F]'
                             : 'text-gray-700'
@@ -267,76 +448,76 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                     </button>
 
                     {/* Content Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <h3 className="text-2xl font-bold text-white mb-1">
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <h3 className="text-base font-bold text-white mb-1 line-clamp-1">
                         {property.title}
                       </h3>
-                      <p className="text-white/80 text-sm mb-3">
+                      <p className="text-white/80 text-xs mb-2 line-clamp-1">
                         {property.address}
                       </p>
 
-                      <div className="text-3xl font-bold text-white mb-4">
+                      <div className="text-xl font-bold text-white mb-2">
                         {formatPrice(property.price, 'rent')}
                       </div>
 
                       {/* Attributes */}
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="flex items-center gap-1.5 text-white/90">
-                          <Bed className="w-4 h-4" />
-                          <span className="text-sm font-medium">
-                            {property.beds} beds
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <div className="flex items-center gap-1 text-white/90">
+                          <Bed className="w-3 h-3" />
+                          <span className="text-xs font-medium">
+                            {property.beds}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-white/90">
-                          <Maximize2 className="w-4 h-4" />
-                          <span className="text-sm font-medium">
+                        <div className="flex items-center gap-1 text-white/90">
+                          <Maximize2 className="w-3 h-3" />
+                          <span className="text-xs font-medium">
                             {property.size} m²
                           </span>
                         </div>
-                        <div className="px-2.5 py-1 bg-white/20 backdrop-blur-sm rounded-full">
-                          <span className="text-sm font-medium text-white">
+                        <div className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
+                          <span className="text-xs font-medium text-white">
                             {property.layout}
                           </span>
                         </div>
                       </div>
 
                       {/* Station Tag */}
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full">
+                      <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
                         <StationLineLogo 
                           stationName={property.station} 
-                          size={16} 
+                          size={12} 
                           className="flex-shrink-0" 
                         />
-                        <MapPin className="w-3.5 h-3.5 text-white flex-shrink-0" />
+                        <MapPin className="w-3 h-3 text-white flex-shrink-0" />
                         <span className="text-xs font-medium text-white">
-                          {property.station} • {property.walkingMinutes} min walk
+                          {property.station} • {property.walkingMinutes} min
                         </span>
                       </div>
                     </div>
                   </div>
                 </motion.div>
               ))}
-              </div>
-            )}
+            </div>
 
             {/* Load More */}
-            <div className="mt-8 text-center">
-              <button className="px-8 py-3 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all">
-                Load more properties
-              </button>
-            </div>
+            {!loading && !error && sortedProperties.length > 0 && (
+              <div className="mt-6 text-center">
+                <button className="px-6 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-all">
+                  Load more
+                </button>
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Right Column - Map */}
-          <div className="hidden md:block">
-            <div className="sticky top-[4.5rem] h-[calc(100vh-5.5rem)] min-h-[600px]">
-              <PropertiesMapView
-                properties={properties}
-                onPropertyClick={onSelectProperty}
-                height="100%"
-              />
-            </div>
-          </div>
+        {/* Right Side - Map (Full Screen) */}
+        <div className="flex-1 relative z-0">
+          <PropertiesMapView
+            properties={properties}
+            onPropertyClick={onSelectProperty}
+            height="100%"
+            className="w-full"
+          />
         </div>
       </div>
     </div>

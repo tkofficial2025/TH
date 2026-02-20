@@ -48,6 +48,7 @@ export interface Property {
   walkingMinutes: number;
   isFeatured?: boolean;
   isNew?: boolean;
+  createdAt?: string;
   petFriendly?: boolean;
   foreignFriendly?: boolean;
   floor?: number;
@@ -111,6 +112,7 @@ export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<strin
     walkingMinutes: toNumber(get(r, 'walking_minutes', 'walkingMinutes')),
     isFeatured: Boolean(get(r, 'is_featured', 'isFeatured') ?? false),
     isNew: Boolean(get(r, 'is_new', 'isNew') ?? false),
+    createdAt: get(r, 'created_at', 'createdAt') ? String(get(r, 'created_at', 'createdAt')) : undefined,
     petFriendly: toBool(get(r, 'pet_friendly', 'petFriendly')),
     foreignFriendly: toBool(get(r, 'foreign_friendly', 'foreignFriendly')),
     floor: toOptionalNumber(get(r, 'floor')),

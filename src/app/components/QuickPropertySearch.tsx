@@ -231,6 +231,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
   const [selectedAreas, setSelectedAreas] = useState<Set<string>>(new Set());
   const [budget, setBudget] = useState('');
   const [bedroomCount, setBedroomCount] = useState('');
+  const [keyword, setKeyword] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   
   // Advanced filters
@@ -255,6 +256,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
       bedroomCount,
       sizeMin: propertySizeMin ? Number(propertySizeMin) || undefined : undefined,
       sizeMax: propertySizeMax ? Number(propertySizeMax) || undefined : undefined,
+      keyword: keyword.trim() || undefined,
     };
     onSearch?.(params);
   };
@@ -298,6 +300,23 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
               </span>
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Keyword Search - 独立した行 */}
+      <div className="mb-4">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Search by title, address, station..."
+              className="flex-1 border-none outline-none text-base text-gray-900 placeholder-gray-400 bg-transparent"
+            />
+          </div>
         </div>
       </div>
 

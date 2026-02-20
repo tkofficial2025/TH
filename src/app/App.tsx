@@ -24,6 +24,19 @@ export default function App() {
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
   const [detailSource, setDetailSource] = useState<'rent' | 'buy'>('rent');
 
+  // URLパラメータから物件IDを読み取る
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const propertyId = params.get('property');
+    const source = params.get('source') as 'rent' | 'buy' | null;
+    if (propertyId && !isNaN(Number(propertyId))) {
+      setSelectedPropertyId(Number(propertyId));
+      if (source === 'rent' || source === 'buy') {
+        setDetailSource(source);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
@@ -117,7 +130,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <Header onNavigate={handleNavigate} currentPage="home" />
+      <Header onNavigate={handleNavigate} currentPage={currentPage} />
 
       {/* Hero Section（overflow-visible で Selected Area ドロップダウンが切れないように） */}
       <section className="relative min-h-screen flex items-center justify-center pt-14">

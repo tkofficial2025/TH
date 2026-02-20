@@ -9,6 +9,7 @@ export interface HeroSearchParams {
   bedroomCount: string;
   sizeMin?: number;
   sizeMax?: number;
+  keyword?: string;
 }
 
 /** 予算文字列を [min, max] 円に変換（buy: 百万円、rent: 円/月） */

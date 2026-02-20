@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
 import { SelectedAreaFilter } from '@/app/components/SelectedAreaFilter';
+import { searchProperties } from '@/lib/fullTextSearch';
+import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
 
 interface MapSearchPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent') => void;
@@ -27,12 +29,32 @@ export function MapSearchPage({ onNavigate, selectedWard, onSelectProperty }: Ma
   const [foreignFriendly, setForeignFriendly] = useState<boolean>(false);
   const [elevator, setElevator] = useState<boolean>(false);
   const [balcony, setBalcony] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [sortOption, setSortOption] = useState<'popularity' | 'price-asc' | 'price-desc' | 'size-asc' | 'size-desc' | 'walking-asc' | 'walking-desc' | 'newest' | 'oldest'>('popularity');
 
   useEffect(() => {
     async function fetchProperties() {
       setLoading(true);
       setError(null);
       
+      // キーワード検索がある場合はFull Text Searchを使用
+      if (searchQuery.trim()) {
+        try {
+          const results = await searchProperties(
+            searchQuery, 
+            propertyType !== 'all' ? propertyType : null, 
+            1000
+          );
+          setAllProperties(results);
+          setLoading(false);
+          return;
+        } catch (err) {
+          console.error('Full text search error:', err);
+          // エラー時は通常のクエリにフォールバック
+        }
+      }
+      
+      // 通常のクエリ
       let query = supabase.from('properties').select('*');
       
       // 物件タイプでフィルター
@@ -55,7 +77,7 @@ export function MapSearchPage({ onNavigate, selectedWard, onSelectProperty }: Ma
     }
     
     fetchProperties();
-  }, [propertyType]);
+  }, [propertyType, searchQuery]);
 
   // フィルター適用
   const filteredProperties = allProperties.filter((property) => {
@@ -114,7 +136,7 @@ export function MapSearchPage({ onNavigate, selectedWard, onSelectProperty }: Ma
   });
 
   const handleSelectProperty = (id: number) => {
-    const property = filteredProperties.find(p => p.id === id);
+    const property = sortedProperties.find(p => p.id === id);
     if (property) {
       onSelectProperty?.(id, property.type === 'rent' ? 'rent' : 'buy');
     }
@@ -122,7 +144,7 @@ export function MapSearchPage({ onNavigate, selectedWard, onSelectProperty }: Ma
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onNavigate={onNavigate} currentPage="rent" />
+      <Header onNavigate={onNavigate} currentPage="map" />
       
       {/* Main Content - Sidebar + Map */}
       <div className="flex relative" style={{ height: 'calc(100vh - 80px)', marginTop: '80px' }}>
@@ -144,11 +166,24 @@ export function MapSearchPage({ onNavigate, selectedWard, onSelectProperty }: Ma
                   setForeignFriendly(false);
                   setElevator(false);
                   setBalcony(false);
+                  setSearchQuery('');
                 }}
                 className="text-sm text-[#C1121F] hover:text-[#A00F1A] font-medium"
               >
                 Clear all
               </button>
+            </div>
+
+            {/* Keyword Search */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Keyword Search</label>
+              <input
+                type="text"
+                placeholder="Search by title, address, station..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+              />
             </div>
 
             {/* Property Type */}
@@ -162,6 +197,22 @@ export function MapSearchPage({ onNavigate, selectedWard, onSelectProperty }: Ma
                 <option value="all">All</option>
                 <option value="rent">Rent</option>
                 <option value="buy">Buy</option>
+              </select>
+            </div>
+
+            {/* Sort */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">並び替え</label>
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value as SortOption)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -286,7 +337,7 @@ export function MapSearchPage({ onNavigate, selectedWard, onSelectProperty }: Ma
             {/* Results Count */}
             <div className="pt-4 border-t border-gray-200">
               <div className="text-sm text-gray-600">
-                <span className="font-semibold text-gray-900">{filteredProperties.length}</span> properties found
+                <span className="font-semibold text-gray-900">{sortedProperties.length}</span> properties found
               </div>
             </div>
           </div>
@@ -308,7 +359,7 @@ export function MapSearchPage({ onNavigate, selectedWard, onSelectProperty }: Ma
           
           {!loading && !error && (
             <PropertiesMapView
-              properties={filteredProperties}
+              properties={sortedProperties}
               onPropertyClick={handleSelectProperty}
               height="100%"
               className="w-full"

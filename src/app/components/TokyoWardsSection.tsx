@@ -88,7 +88,7 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
             {visibleWards.map((ward, index) => (
               <motion.div
                 key={ward.name}
-                className="group relative overflow-hidden rounded-2xl aspect-[3/1] cursor-default"
+                className="group relative overflow-hidden rounded-2xl aspect-[3/1.3] min-h-[200px] cursor-default"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -106,10 +106,12 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
                 </div>
 
                 {/* Text Content + 常に見えるボタン */}
-                <div className="relative h-full flex flex-col justify-end p-6">
-                  <h3 className="text-2xl lg:text-3xl font-bold text-white mb-1">
-                    {ward.name}
-                  </h3>
+                <div className="relative h-full flex flex-col justify-between p-6">
+                  <div></div>
+                  <div>
+                    <h3 className="text-2xl lg:text-3xl font-bold text-white mb-1">
+                      {ward.name}
+                    </h3>
                   <p className="text-white/90 text-sm mb-3">
                     {ward.properties} properties
                   </p>
@@ -137,6 +139,7 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
                       </button>
                     </div>
                   )}
+                  </div>
                 </div>
               </motion.div>
             ))}

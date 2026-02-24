@@ -32,7 +32,7 @@ interface PropertyListingPageProps {
 
 export function PropertyListingPage({ selectedWard, onSelectProperty, initialSearchParams }: PropertyListingPageProps = {}) {
   const { formatPrice } = useCurrency();
-  const [showMap, setShowMap] = useState(false);
+  const [showMap, setShowMap] = useState(true);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -209,22 +209,40 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
           {/* Filter Bar Toggle Button */}
           <div className="flex items-center justify-between py-3 border-b border-gray-200">
             <h2 className="text-sm font-semibold text-gray-900">Filters</h2>
-            <button
-              onClick={() => setFilterBarOpen(!filterBarOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              {filterBarOpen ? (
-                <>
-                  <span>Hide</span>
-                  <ChevronUp className="w-4 h-4" />
-                </>
-              ) : (
-                <>
-                  <span>Show</span>
-                  <ChevronDown className="w-4 h-4" />
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-4">
+              {/* Show Map Toggle Switch */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Show map</span>
+                <button
+                  onClick={() => setShowMap(!showMap)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:ring-offset-2 ${
+                    showMap ? 'bg-[#C1121F]' : 'bg-gray-300'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      showMap ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+              <button
+                onClick={() => setFilterBarOpen(!filterBarOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
+              >
+                {filterBarOpen ? (
+                  <>
+                    <span>Hide</span>
+                    <ChevronUp className="w-4 h-4" />
+                  </>
+                ) : (
+                  <>
+                    <span>Show</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
           
           {/* Filter Options */}
@@ -333,53 +351,54 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
       </div>
 
       {/* Main Content - Property Listings + Map */}
-      <div className="flex relative z-0" style={{ height: 'calc(100vh - 160px)', marginTop: '0' }}>
-        {/* Left Sidebar - Property Listings */}
-        <div 
-          className="bg-white border-r border-gray-200 shadow-sm overflow-y-auto overflow-x-hidden relative z-10" 
-          style={{ 
-            width: `${sidebarWidth}px`,
-            height: 'calc(100vh - 160px)',
-            minWidth: '320px',
-            maxWidth: '800px'
-          }}
-        >
-          {/* Resize Handle */}
-          <div
-            onMouseDown={(e) => {
-              e.preventDefault();
-              setIsResizing(true);
+      {showMap ? (
+        <div className="flex relative z-0" style={{ height: 'calc(100vh - 160px)', marginTop: '0' }}>
+          {/* Left Sidebar - Property Listings */}
+          <div 
+            className="bg-white border-r border-gray-200 shadow-sm overflow-y-auto overflow-x-hidden relative z-10" 
+            style={{ 
+              width: `${sidebarWidth}px`,
+              height: 'calc(100vh - 160px)',
+              minWidth: '320px',
+              maxWidth: '800px'
             }}
-            className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#C1121F] transition-colors z-20"
-            style={{ cursor: 'col-resize' }}
-          />
-          <div className="p-4">
-            {/* Header */}
-            <div className="mb-4 pb-4 border-b border-gray-200">
-              <h1 className="text-xl font-bold text-gray-900 mb-1">
-                {selectedWard ? `Properties for sale in ${selectedWard}` : 'Properties for sale'}
-              </h1>
-              <p className="text-sm text-gray-600">{sortedProperties.length} results</p>
-            </div>
+          >
+            {/* Resize Handle */}
+            <div
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setIsResizing(true);
+              }}
+              className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-[#C1121F] transition-colors z-20"
+              style={{ cursor: 'col-resize' }}
+            />
+            <div className="p-4">
+              {/* Header */}
+              <div className="mb-4 pb-4 border-b border-gray-200">
+                <h1 className="text-xl font-bold text-gray-900 mb-1">
+                  {selectedWard ? `Properties for sale in ${selectedWard}` : 'Properties for sale'}
+                </h1>
+                <p className="text-sm text-gray-600">{sortedProperties.length} results</p>
+              </div>
 
-            {/* Sort Dropdown */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">並び替え</label>
-              <select
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value as SortOption)}
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-all text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+              {/* Sort Dropdown */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
+                <select
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value as SortOption)}
+                  className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-all text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                >
+                  {sortOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {/* Property Listings */}
-            <div className="space-y-4">
+              {/* Property Listings */}
+              <div className="space-y-4">
               {loading && (
                 <div className="py-16 text-center text-gray-500 text-sm">読み込み中...</div>
               )}
@@ -509,16 +528,166 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
           </div>
         </div>
 
-        {/* Right Side - Map (Full Screen) */}
-        <div className="flex-1 relative z-0">
-          <PropertiesMapView
-            properties={properties}
-            onPropertyClick={onSelectProperty}
-            height="100%"
-            className="w-full"
-          />
+          {/* Right Side - Map (Full Screen) */}
+          <div className="flex-1 relative z-0">
+            <PropertiesMapView
+              properties={properties}
+              onPropertyClick={onSelectProperty}
+              height="100%"
+              className="w-full"
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Grid Layout when Map is Hidden */
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+          {/* Header and Sort */}
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                {selectedWard ? `Properties for sale in ${selectedWard}` : 'Properties for sale'}
+              </h1>
+              <p className="text-sm text-gray-600">{sortedProperties.length} results</p>
+            </div>
+            <div className="w-48">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
+              <select
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value as SortOption)}
+                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:border-gray-300 transition-all text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Property Grid */}
+          {loading && (
+            <div className="py-16 text-center text-gray-500 text-sm">読み込み中...</div>
+          )}
+          {error && (
+            <div className="py-16 text-center text-red-600 text-sm">エラー: {error}</div>
+          )}
+          {!loading && !error && sortedProperties.length === 0 && (
+            <div className="py-16 text-center text-gray-500 text-sm">
+              物件がありません。
+            </div>
+          )}
+          {!loading && !error && sortedProperties.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {sortedProperties.map((property, index) => (
+                <motion.div
+                  key={property.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onSelectProperty?.(property.id)}
+                  onKeyDown={(e) => e.key === 'Enter' && onSelectProperty?.(property.id)}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border border-gray-100"
+                  whileHover={{ y: -2 }}
+                >
+                  {/* Image */}
+                  <div className="relative h-44 w-full overflow-hidden">
+                    <ImageWithFallback
+                      src={property.image}
+                      alt={property.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+
+                    {/* Badges */}
+                    <div className="absolute top-2 left-2 flex gap-2">
+                      {property.isFeatured && (
+                        <span className="px-2 py-0.5 bg-[#C1121F] text-white text-xs font-semibold rounded-full">
+                          POPULAR
+                        </span>
+                      )}
+                      {property.isNew && (
+                        <span className="px-2 py-0.5 bg-white text-gray-900 text-xs font-semibold rounded-full">
+                          New
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Favorite Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(property.id);
+                      }}
+                      className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110"
+                    >
+                      <Heart
+                        className={`w-4 h-4 transition-colors ${
+                          favorites.has(property.id)
+                            ? 'fill-[#C1121F] text-[#C1121F]'
+                            : 'text-gray-700'
+                        }`}
+                      />
+                    </button>
+
+                    {/* Content Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                      <h3 className="text-base font-bold text-white mb-1 line-clamp-1">
+                        {property.title}
+                      </h3>
+                      <p className="text-white/80 text-xs mb-2 line-clamp-1">
+                        {property.address}
+                      </p>
+
+                      <div className="text-xl font-bold text-white mb-2">
+                        {formatPrice(property.price, 'buy')}
+                      </div>
+
+                      {/* Attributes */}
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <div className="flex items-center gap-1 text-white/90">
+                          <Bed className="w-3 h-3" />
+                          <span className="text-xs font-medium">
+                            {property.beds}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-white/90">
+                          <Maximize2 className="w-3 h-3" />
+                          <span className="text-xs font-medium">
+                            {property.size} m²
+                          </span>
+                        </div>
+                        <div className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
+                          <span className="text-xs font-medium text-white">
+                            {property.layout}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Station Tag */}
+                      <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
+                        <StationLineLogo 
+                          stationName={property.station} 
+                          size={12} 
+                          className="flex-shrink-0" 
+                        />
+                        <MapPin className="w-3 h-3 text-white flex-shrink-0" />
+                        <span className="text-xs font-medium text-white">
+                          {property.station} • {property.walkingMinutes} min
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

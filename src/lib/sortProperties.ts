@@ -91,13 +91,13 @@ export function sortProperties(properties: Property[], sortOption: SortOption): 
  * 並び替えオプションのラベル
  */
 export const sortOptions: { value: SortOption; label: string }[] = [
-  { value: 'popularity', label: '人気順' },
-  { value: 'price-asc', label: '価格順（低→高）' },
-  { value: 'price-desc', label: '価格順（高→低）' },
-  { value: 'size-asc', label: '面積順（小→大）' },
-  { value: 'size-desc', label: '面積順（大→小）' },
-  { value: 'walking-asc', label: '駅近順' },
-  { value: 'walking-desc', label: '駅遠順' },
-  { value: 'newest', label: '新着順' },
-  { value: 'oldest', label: '古い順' },
+  { value: 'popularity', label: 'Popularity' },
+  { value: 'price-asc', label: 'Price (Low to High)' },
+  { value: 'price-desc', label: 'Price (High to Low)' },
+  { value: 'size-asc', label: 'Size (Small to Large)' },
+  { value: 'size-desc', label: 'Size (Large to Small)' },
+  { value: 'walking-asc', label: 'Walking Distance (Near)' },
+  { value: 'walking-desc', label: 'Walking Distance (Far)' },
+  { value: 'newest', label: 'Newest' },
+  { value: 'oldest', label: 'Oldest' },
 ];

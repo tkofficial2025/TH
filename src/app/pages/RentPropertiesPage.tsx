@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
   Map as MapIcon,
   Bookmark,
+  X,
 } from 'lucide-react';
 import { Header } from '@/app/components/Header';
 import { SelectedAreaFilter } from '@/app/components/SelectedAreaFilter';
@@ -46,6 +47,12 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
   const [sizeMin, setSizeMin] = useState<string>('');
   const [sizeMax, setSizeMax] = useState<string>('');
   const [stationFilter, setStationFilter] = useState<string>('');
+  const [propertyTypeFilter, setPropertyTypeFilter] = useState<string>('');
+  const [petFriendly, setPetFriendly] = useState<boolean>(false);
+  const [foreignFriendly, setForeignFriendly] = useState<boolean>(false);
+  const [elevator, setElevator] = useState<boolean>(false);
+  const [balcony, setBalcony] = useState<boolean>(false);
+  const [moreFiltersOpen, setMoreFiltersOpen] = useState<boolean>(false);
   const [filterBarOpen, setFilterBarOpen] = useState<boolean>(true);
   const [sidebarWidth, setSidebarWidth] = useState<number>(384); // w-96 = 384px
   const [isResizing, setIsResizing] = useState<boolean>(false);
@@ -157,6 +164,42 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
       if (!property.station.toLowerCase().includes(station)) return false;
     }
     
+    // 物件タイプフィルター
+    if (propertyTypeFilter) {
+      const titleLower = property.title.toLowerCase();
+      const type = propertyTypeFilter.toLowerCase();
+      let matches = false;
+      
+      switch (type) {
+        case 'apartment':
+          matches = titleLower.includes('apartment') || titleLower.includes('アパート');
+          break;
+        case 'condominium':
+          matches = titleLower.includes('condominium') || titleLower.includes('condo') || titleLower.includes('マンション') || titleLower.includes('manshon');
+          break;
+        case 'house':
+          matches = titleLower.includes('house') || titleLower.includes('一戸建て') || titleLower.includes('戸建') || titleLower.includes('detached');
+          break;
+        case 'studio':
+          matches = titleLower.includes('studio') || titleLower.includes('ワンルーム') || titleLower.includes('1r') || titleLower.includes('1k');
+          break;
+      }
+      
+      if (!matches) return false;
+    }
+    
+    // Pet Friendlyフィルター
+    if (petFriendly && property.petFriendly !== true) return false;
+    
+    // Foreign Friendlyフィルター
+    if (foreignFriendly && property.foreignFriendly !== true) return false;
+    
+    // Elevatorフィルター
+    if (elevator && property.elevator !== true) return false;
+    
+    // Balconyフィルター
+    if (balcony && property.balcony !== true) return false;
+    
     return true;
   });
 
@@ -265,11 +308,18 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
               />
             </div>
 
-            {/* Type */}
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
-              Type
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
+            {/* Property Type */}
+            <select
+              value={propertyTypeFilter}
+              onChange={(e) => setPropertyTypeFilter(e.target.value)}
+              className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+            >
+              <option value="">Property Type</option>
+              <option value="apartment">Apartment</option>
+              <option value="condominium">Condominium</option>
+              <option value="house">House</option>
+              <option value="studio">Studio</option>
+            </select>
 
             {/* Selected Area: 23区＋23区外チェックボックス */}
             <SelectedAreaFilter selectedAreas={selectedAreas} onChange={setSelectedAreas} />
@@ -300,16 +350,17 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
 
             {/* Monthly Rent */}
             <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-600 whitespace-nowrap">Monthly Rent:</span>
               <input
                 type="text"
-                placeholder="Min"
+                placeholder="Min ¥"
                 value={priceMin}
                 onChange={(e) => setPriceMin(e.target.value)}
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
               />
               <input
                 type="text"
-                placeholder="Max"
+                placeholder="Max ¥"
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
@@ -318,6 +369,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
 
             {/* Size */}
             <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-600 whitespace-nowrap">Size:</span>
               <input
                 type="number"
                 placeholder="Min m²"
@@ -335,10 +387,78 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
             </div>
 
             {/* More */}
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700">
-              More
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setMoreFiltersOpen(!moreFiltersOpen)}
+                className={`flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700 ${
+                  moreFiltersOpen ? 'bg-gray-100 border-gray-300' : ''
+                }`}
+              >
+                More
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+              </button>
+              
+              {/* More Filters Dropdown */}
+              {moreFiltersOpen && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-900">More Filters</h3>
+                    <button
+                      onClick={() => setMoreFiltersOpen(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {/* Pet Friendly */}
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={petFriendly}
+                        onChange={(e) => setPetFriendly(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Pet Friendly</span>
+                    </label>
+                    
+                    {/* Foreign Friendly */}
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={foreignFriendly}
+                        onChange={(e) => setForeignFriendly(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Foreign Friendly</span>
+                    </label>
+                    
+                    {/* Elevator */}
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={elevator}
+                        onChange={(e) => setElevator(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Elevator</span>
+                    </label>
+                    
+                    {/* Balcony */}
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={balcony}
+                        onChange={(e) => setBalcony(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Balcony</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Spacer */}
             <div className="flex-1 min-w-[20px]" />
@@ -428,7 +548,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                   whileHover={{ y: -2 }}
                 >
                   {/* Image */}
-                  <div className="relative h-44 w-full overflow-hidden">
+                  <div className="relative h-52 w-full overflow-hidden">
                     <ImageWithFallback
                       src={property.image}
                       alt={property.title}
@@ -439,7 +559,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
                     {/* Badges */}
-                    <div className="absolute top-2 left-2 flex gap-2">
+                    <div className="absolute top-2 left-2 flex gap-2 z-10">
                       {property.isFeatured && (
                         <span className="px-2 py-0.5 bg-[#C1121F] text-white text-xs font-semibold rounded-full">
                           POPULAR
@@ -458,7 +578,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                         e.stopPropagation();
                         toggleFavorite(property.id);
                       }}
-                      className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110"
+                      className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110 z-10"
                     >
                       <Heart
                         className={`w-4 h-4 transition-colors ${
@@ -471,7 +591,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
 
                     {/* Content Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <h3 className="text-base font-bold text-white mb-1 line-clamp-1">
+                      <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>
                         {property.title}
                       </h3>
                       <p className="text-white/80 text-xs mb-2 line-clamp-1">
@@ -597,7 +717,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                   whileHover={{ y: -2 }}
                 >
                   {/* Image */}
-                  <div className="relative h-44 w-full overflow-hidden">
+                  <div className="relative h-52 w-full overflow-hidden">
                     <ImageWithFallback
                       src={property.image}
                       alt={property.title}
@@ -608,7 +728,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
 
                     {/* Badges */}
-                    <div className="absolute top-2 left-2 flex gap-2">
+                    <div className="absolute top-2 left-2 flex gap-2 z-10">
                       {property.isFeatured && (
                         <span className="px-2 py-0.5 bg-[#C1121F] text-white text-xs font-semibold rounded-full">
                           POPULAR
@@ -627,7 +747,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                         e.stopPropagation();
                         toggleFavorite(property.id);
                       }}
-                      className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110"
+                      className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110 z-10"
                     >
                       <Heart
                         className={`w-4 h-4 transition-colors ${
@@ -640,7 +760,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
 
                     {/* Content Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <h3 className="text-base font-bold text-white mb-1 line-clamp-1">
+                      <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>
                         {property.title}
                       </h3>
                       <p className="text-white/80 text-xs mb-2 line-clamp-1">

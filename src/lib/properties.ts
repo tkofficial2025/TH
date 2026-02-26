@@ -46,6 +46,7 @@ export interface Property {
   image: string;
   station: string;
   walkingMinutes: number;
+  type: 'rent' | 'buy';
   isFeatured?: boolean;
   isNew?: boolean;
   createdAt?: string;
@@ -99,6 +100,8 @@ export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<strin
   const r = row as Record<string, unknown>;
   const imagesRaw = get(r, 'images');
   const images = Array.isArray(imagesRaw) ? (imagesRaw as unknown[]).map((x) => String(x ?? '')).filter(Boolean) : [];
+  const typeVal = String(get(r, 'type') ?? 'rent').toLowerCase();
+  const type = (typeVal === 'rent' || typeVal === 'buy') ? typeVal as 'rent' | 'buy' : 'rent';
   return {
     id: Number(get(r, 'id') ?? 0),
     title: String(get(r, 'title') ?? ''),
@@ -110,6 +113,7 @@ export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<strin
     image: String(get(r, 'image') ?? ''),
     station: String(get(r, 'station') ?? ''),
     walkingMinutes: toNumber(get(r, 'walking_minutes', 'walkingMinutes')),
+    type,
     isFeatured: Boolean(get(r, 'is_featured', 'isFeatured') ?? false),
     isNew: Boolean(get(r, 'is_new', 'isNew') ?? false),
     createdAt: get(r, 'created_at', 'createdAt') ? String(get(r, 'created_at', 'createdAt')) : undefined,

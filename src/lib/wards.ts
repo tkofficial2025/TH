@@ -3,6 +3,7 @@
  * TokyoWardsSection と Rent/Buy ページの絞り込みで共通利用
  */
 export const WARD_MATCH_TERMS: Record<string, string[]> = {
+  // 23区
   Chiyoda: ['chiyoda', '千代田'],
   Chuo: ['chuo', '中央区'],
   Minato: ['minato', '港区'],
@@ -26,13 +27,46 @@ export const WARD_MATCH_TERMS: Record<string, string[]> = {
   Adachi: ['adachi', '足立'],
   Katsushika: ['katsushika', '葛飾'],
   Edogawa: ['edogawa', '江戸川'],
+  // 23区外（市部）
+  Hachioji: ['hachioji', '八王子'],
+  Tachikawa: ['tachikawa', '立川'],
+  Musashino: ['musashino', '武蔵野'],
+  Mitaka: ['mitaka', '三鷹'],
+  Ome: ['ome', '青梅'],
+  Fuchu: ['fuchu', '府中'],
+  Akishima: ['akishima', '昭島'],
+  Chofu: ['chofu', '調布'],
+  Machida: ['machida', '町田'],
+  Koganei: ['koganei', '小金井'],
+  Kodaira: ['kodaira', '小平'],
+  Hino: ['hino', '日野'],
+  Higashimurayama: ['higashimurayama', '東村山'],
+  Kokubunji: ['kokubunji', '国分寺'],
+  Kunitachi: ['kunitachi', '国立'],
+  Fussa: ['fussa', '福生'],
+  Komae: ['komae', '狛江'],
+  Higashiyamato: ['higashiyamato', '東大和'],
+  Kiyose: ['kiyose', '清瀬'],
+  Higashikurume: ['higashikurume', '東久留米'],
+  Musashimurayama: ['musashimurayama', '武蔵村山'],
+  Tama: ['tama', '多摩'],
+  Inagi: ['inagi', '稲城'],
+  Hamura: ['hamura', '羽村'],
+  Akiruno: ['akiruno', 'あきる野'],
+  Nishitokyo: ['nishitokyo', '西東京'],
 };
 
 /** 23区外（まとめて1選択肢） */
 export const OUTSIDE_23_KEY = 'Outside23';
 
 /** 東京23区の名前（英語）の配列 */
-export const TOKYO_23_WARD_NAMES = Object.keys(WARD_MATCH_TERMS) as string[];
+const TOKYO_23_WARD_NAMES_LIST = [
+  'Chiyoda', 'Chuo', 'Minato', 'Shinjuku', 'Bunkyo', 'Taito', 'Sumida', 'Koto',
+  'Shinagawa', 'Meguro', 'Ota', 'Setagaya', 'Shibuya', 'Nakano', 'Suginami',
+  'Toshima', 'Kita', 'Arakawa', 'Itabashi', 'Nerima', 'Adachi', 'Katsushika', 'Edogawa'
+] as const;
+
+export const TOKYO_23_WARD_NAMES = TOKYO_23_WARD_NAMES_LIST as readonly string[];
 
 /** Selected Area 用: 23区＋Outer 23 wards（渋谷区を人気で先頭に） */
 const AREA_ORDER = [
@@ -53,7 +87,10 @@ export function wardFilterOr(wardName: string): string {
 
 /** address が指定区に一致するか */
 export function addressMatchesWard(address: string, wardName: string): boolean {
-  if (wardName === OUTSIDE_23_KEY) return false;
+  if (wardName === OUTSIDE_23_KEY) {
+    // 23区外: 23区のいずれにも一致しない場合
+    return !addressMatchesAnyWard(address);
+  }
   const terms = WARD_MATCH_TERMS[wardName];
   if (!terms?.length) return false;
   const addr = (address ?? '').toLowerCase();

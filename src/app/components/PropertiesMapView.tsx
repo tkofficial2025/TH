@@ -380,7 +380,7 @@ export function PropertiesMapView({
           text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
         .custom-price-marker:hover > div {
-          transform: translate(-50%, -100%) scale(1.15);
+          transform: scale(1.05);
           box-shadow: 0 5px 12px rgba(0,0,0,0.5);
           z-index: 1000;
         }
@@ -392,7 +392,7 @@ export function PropertiesMapView({
           transition: transform 0.2s, box-shadow 0.2s;
         }
         .cluster-marker:hover > div {
-          transform: scale(1.1);
+          transform: scale(1.05);
           box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
         /* Leaflet地図のz-indexを制御 */

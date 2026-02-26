@@ -52,6 +52,13 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
   const [foreignFriendly, setForeignFriendly] = useState<boolean>(false);
   const [elevator, setElevator] = useState<boolean>(false);
   const [balcony, setBalcony] = useState<boolean>(false);
+  const [luxury, setLuxury] = useState<boolean>(false);
+  const [furnished, setFurnished] = useState<boolean>(false);
+  const [highRiseResidence, setHighRiseResidence] = useState<boolean>(false);
+  const [noKeyMoney, setNoKeyMoney] = useState<boolean>(false);
+  const [forStudents, setForStudents] = useState<boolean>(false);
+  const [designers, setDesigners] = useState<boolean>(false);
+  const [forFamilies, setForFamilies] = useState<boolean>(false);
   const [moreFiltersOpen, setMoreFiltersOpen] = useState<boolean>(false);
   const [filterBarOpen, setFilterBarOpen] = useState<boolean>(true);
   const [sidebarWidth, setSidebarWidth] = useState<number>(384); // w-96 = 384px
@@ -59,6 +66,50 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
   const [sortOption, setSortOption] = useState<'popularity' | 'price-asc' | 'price-desc' | 'size-asc' | 'size-desc' | 'walking-asc' | 'walking-desc' | 'newest' | 'oldest'>('popularity');
   const hasAppliedInitialSearch = useRef(false);
   const { formatPrice } = useCurrency();
+
+  // サイドバー幅を35%に初期化
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSidebarWidth(window.innerWidth * 0.35);
+    }
+  }, []);
+
+  // URLパラメータからカテゴリーを読み取って、該当フィルターをチェック
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const categoryId = params.get('category');
+    if (categoryId) {
+      // カテゴリーIDをフィルターのstateにマッピング
+      switch (categoryId) {
+        case 'luxury':
+          setLuxury(true);
+          break;
+        case 'pet-friendly':
+          setPetFriendly(true);
+          break;
+        case 'furnished':
+          setFurnished(true);
+          break;
+        case 'top-floor':
+          setHighRiseResidence(true);
+          break;
+        case 'no-key-money':
+          setNoKeyMoney(true);
+          break;
+        case 'for-students':
+          setForStudents(true);
+          break;
+        case 'designers':
+          setDesigners(true);
+          break;
+        case 'for-families':
+          setForFamilies(true);
+          break;
+      }
+      // URLパラメータをクリア（再読み込み時に再度適用されないように）
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchRentProperties() {
@@ -199,6 +250,27 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
     
     // Balconyフィルター
     if (balcony && property.balcony !== true) return false;
+
+    // カテゴリーフィルター
+    if (luxury && property.isFeatured !== true) return false;
+    if (furnished) {
+      const titleLower = property.title.toLowerCase();
+      if (!titleLower.includes('furnished') && !titleLower.includes('家具付き')) return false;
+    }
+    if (highRiseResidence && (!property.floor || property.floor < 5)) return false;
+    if (noKeyMoney && property.keyMoney && property.keyMoney !== 0) return false;
+    if (forStudents) {
+      const titleLower = property.title.toLowerCase();
+      if (!titleLower.includes('student') && !titleLower.includes('学生')) return false;
+    }
+    if (designers) {
+      const titleLower = property.title.toLowerCase();
+      if (!titleLower.includes('design') && !titleLower.includes('デザイナー')) return false;
+    }
+    if (forFamilies) {
+      const titleLower = property.title.toLowerCase();
+      if (!titleLower.includes('family') && !titleLower.includes('家族') && (!property.beds || property.beds < 2)) return false;
+    }
     
     return true;
   });
@@ -455,6 +527,76 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                       />
                       <span className="text-sm font-medium text-gray-700">Balcony</span>
                     </label>
+                  </div>
+
+                  {/* Categories Section */}
+                  <div className="pt-3 border-t border-gray-200">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Categories</h4>
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={luxury}
+                          onChange={(e) => setLuxury(e.target.checked)}
+                          className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Luxury</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={furnished}
+                          onChange={(e) => setFurnished(e.target.checked)}
+                          className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Furnished</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={highRiseResidence}
+                          onChange={(e) => setHighRiseResidence(e.target.checked)}
+                          className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        />
+                        <span className="text-sm font-medium text-gray-700">High-Rise Residence</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={noKeyMoney}
+                          onChange={(e) => setNoKeyMoney(e.target.checked)}
+                          className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        />
+                        <span className="text-sm font-medium text-gray-700">No key money</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={forStudents}
+                          onChange={(e) => setForStudents(e.target.checked)}
+                          className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        />
+                        <span className="text-sm font-medium text-gray-700">For students</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={designers}
+                          onChange={(e) => setDesigners(e.target.checked)}
+                          className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        />
+                        <span className="text-sm font-medium text-gray-700">Designers</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={forFamilies}
+                          onChange={(e) => setForFamilies(e.target.checked)}
+                          className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        />
+                        <span className="text-sm font-medium text-gray-700">For families</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               )}

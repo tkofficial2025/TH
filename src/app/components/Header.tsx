@@ -3,7 +3,7 @@ import { ChevronDown, User, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 
-type NavPage = 'home' | 'buy' | 'rent' | 'consultation' | 'map';
+type NavPage = 'home' | 'buy' | 'rent' | 'consultation' | 'category';
 
 interface HeaderProps {
   onNavigate?: (page: NavPage) => void;
@@ -28,7 +28,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
     }
   }, [currencyOpen]);
 
-  const activeNavName = currentPage === 'home' ? 'Home' : currentPage === 'buy' ? 'Buy' : currentPage === 'rent' ? 'Rent' : currentPage === 'consultation' ? 'Consultation' : currentPage === 'map' ? 'Map' : activeNav;
+  const activeNavName = currentPage === 'home' ? 'Home' : currentPage === 'buy' ? 'Buy' : currentPage === 'rent' ? 'Rent' : currentPage === 'consultation' ? 'Consultation' : currentPage === 'category' ? 'Rent' : activeNav;
 
   const handleNavClick = (e: React.MouseEvent, itemName: string, href: string) => {
     e.preventDefault();
@@ -40,8 +40,6 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
       onNavigate('rent');
     } else if (itemName === 'Home' && onNavigate) {
       onNavigate('home');
-    } else if (itemName === 'Map' && onNavigate) {
-      onNavigate('map');
     } else if (href.startsWith('#') && href.length > 1) {
       const element = document.querySelector(href);
       if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -52,7 +50,6 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
     { name: 'Home', href: '#' },
     { name: 'Buy', href: '#properties' },
     { name: 'Rent', href: '#properties' },
-    { name: 'Map', href: '#' },
     { name: 'Blog', href: '#' },
     { name: 'About', href: '#why-us', hasDropdown: true },
   ];

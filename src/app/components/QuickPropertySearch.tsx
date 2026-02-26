@@ -239,6 +239,13 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
   const [propertySizeMax, setPropertySizeMax] = useState('');
   const [petFriendly, setPetFriendly] = useState(false);
   const [foreignFriendly, setForeignFriendly] = useState(false);
+  const [luxury, setLuxury] = useState(false);
+  const [furnished, setFurnished] = useState(false);
+  const [highRiseResidence, setHighRiseResidence] = useState(false);
+  const [noKeyMoney, setNoKeyMoney] = useState(false);
+  const [forStudents, setForStudents] = useState(false);
+  const [designers, setDesigners] = useState(false);
+  const [forFamilies, setForFamilies] = useState(false);
 
   const budgetOptions = 
     propertyType === 'buy' ? buyBudgets : 
@@ -423,45 +430,94 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                   </div>
                 </div>
 
-                {/* Pet-friendly Toggle (for rent and short-term) */}
-                {(propertyType === 'rent') && (
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">Pet-friendly</span>
-                    <button
-                      type="button"
-                      onClick={() => setPetFriendly(!petFriendly)}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        petFriendly ? 'bg-[#C1121F]' : 'bg-gray-300'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          petFriendly ? 'translate-x-6' : 'translate-x-1'
-                        }`}
+                {/* Categories Section */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Categories
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={petFriendly}
+                        onChange={(e) => setPetFriendly(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                    </button>
+                      <span className="text-sm font-medium text-gray-700">Pet friendly</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={foreignFriendly}
+                        onChange={(e) => setForeignFriendly(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Foreign friendly</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={luxury}
+                        onChange={(e) => setLuxury(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Luxury</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={furnished}
+                        onChange={(e) => setFurnished(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Furnished</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={highRiseResidence}
+                        onChange={(e) => setHighRiseResidence(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">High-Rise Residence</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={noKeyMoney}
+                        onChange={(e) => setNoKeyMoney(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">No key money</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={forStudents}
+                        onChange={(e) => setForStudents(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">For students</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={designers}
+                        onChange={(e) => setDesigners(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Designers</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={forFamilies}
+                        onChange={(e) => setForFamilies(e.target.checked)}
+                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">For families</span>
+                    </label>
                   </div>
-                )}
-
-                {/* Foreign-friendly Toggle */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg md:col-span-2">
-                  <div>
-                    <span className="text-sm font-medium text-gray-700 block">Foreign-friendly</span>
-                    <span className="text-xs text-gray-500">No Japanese guarantor required</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setForeignFriendly(!foreignFriendly)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      foreignFriendly ? 'bg-[#C1121F]' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        foreignFriendly ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
                 </div>
               </div>
             </motion.div>

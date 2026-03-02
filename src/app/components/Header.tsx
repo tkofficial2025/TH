@@ -3,7 +3,7 @@ import { ChevronDown, User, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 
-type NavPage = 'home' | 'buy' | 'rent' | 'consultation' | 'category';
+type NavPage = 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog';
 
 interface HeaderProps {
   onNavigate?: (page: NavPage) => void;
@@ -28,7 +28,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
     }
   }, [currencyOpen]);
 
-  const activeNavName = currentPage === 'home' ? 'Home' : currentPage === 'buy' ? 'Buy' : currentPage === 'rent' ? 'Rent' : currentPage === 'consultation' ? 'Consultation' : currentPage === 'category' ? 'Rent' : activeNav;
+  const activeNavName = currentPage === 'home' ? 'Home' : currentPage === 'buy' ? 'Buy' : currentPage === 'rent' ? 'Rent' : currentPage === 'consultation' ? 'Consultation' : currentPage === 'category' ? 'Rent' : currentPage === 'blog' ? 'Blog' : activeNav;
 
   const handleNavClick = (e: React.MouseEvent, itemName: string, href: string) => {
     e.preventDefault();
@@ -40,6 +40,8 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
       onNavigate('rent');
     } else if (itemName === 'Home' && onNavigate) {
       onNavigate('home');
+    } else if (itemName === 'Blog' && onNavigate) {
+      onNavigate('blog');
     } else if (href.startsWith('#') && href.length > 1) {
       const element = document.querySelector(href);
       if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -136,6 +138,34 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                         className={`w-full px-4 py-2 text-left text-sm font-medium ${currency === 'USD' ? 'bg-gray-100 text-[#C1121F]' : 'text-gray-700 hover:bg-gray-50'}`}
                       >
                         $ USD
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setCurrency('CNY'); setCurrencyOpen(false); }}
+                        className={`w-full px-4 py-2 text-left text-sm font-medium ${currency === 'CNY' ? 'bg-gray-100 text-[#C1121F]' : 'text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        ¥ CNY
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setCurrency('KRW'); setCurrencyOpen(false); }}
+                        className={`w-full px-4 py-2 text-left text-sm font-medium ${currency === 'KRW' ? 'bg-gray-100 text-[#C1121F]' : 'text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        ₩ KRW
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setCurrency('AUD'); setCurrencyOpen(false); }}
+                        className={`w-full px-4 py-2 text-left text-sm font-medium ${currency === 'AUD' ? 'bg-gray-100 text-[#C1121F]' : 'text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        A$ AUD
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setCurrency('CAD'); setCurrencyOpen(false); }}
+                        className={`w-full px-4 py-2 text-left text-sm font-medium ${currency === 'CAD' ? 'bg-gray-100 text-[#C1121F]' : 'text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        C$ CAD
                       </button>
                       {rateDate && (
                         <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-100">

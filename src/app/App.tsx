@@ -13,18 +13,21 @@ import { RentPropertiesPage } from '@/app/pages/RentPropertiesPage';
 import { PropertyDetailPage } from '@/app/pages/PropertyDetailPage';
 import { ConsultationPage } from '@/app/pages/ConsultationPage';
 import { CategoryPropertiesPage } from '@/app/pages/CategoryPropertiesPage';
+import { BlogPage } from '@/app/pages/BlogPage';
+import { BlogPostDetailPage } from '@/app/pages/BlogPostDetailPage';
 import type { HeroSearchParams } from '@/lib/searchFilters';
 
-type Page = 'home' | 'buy' | 'rent' | 'consultation' | 'category';
+type Page = 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog';
 
 export default function App() {
   const [scrollY, setScrollY] = useState(0);
-  const [currentPage, setCurrentPage] = useState<'home' | 'buy' | 'rent' | 'consultation' | 'category'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog'>('home');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
   const [heroSearchParams, setHeroSearchParams] = useState<HeroSearchParams | null>(null);
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
   const [detailSource, setDetailSource] = useState<'rent' | 'buy'>('rent');
+  const [selectedBlogPostId, setSelectedBlogPostId] = useState<number | null>(null);
 
   // URLパラメータから物件IDを読み取る
   useEffect(() => {
@@ -120,6 +123,24 @@ export default function App() {
         onNavigate={handleNavigate}
         categoryId={selectedCategory || undefined}
         onSelectProperty={(id, source) => handleSelectProperty(id, source)}
+      />
+    );
+  }
+
+  if (currentPage === 'blog') {
+    if (selectedBlogPostId != null) {
+      return (
+        <BlogPostDetailPage
+          postId={selectedBlogPostId}
+          onNavigate={handleNavigate}
+          onBack={() => setSelectedBlogPostId(null)}
+        />
+      );
+    }
+    return (
+      <BlogPage
+        onNavigate={handleNavigate}
+        onSelectPost={(postId) => setSelectedBlogPostId(postId)}
       />
     );
   }

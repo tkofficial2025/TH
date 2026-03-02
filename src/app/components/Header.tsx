@@ -114,7 +114,12 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                   onClick={() => setCurrencyOpen((o) => !o)}
                   className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  {currency === 'JPY' ? '¥' : '$'}
+                  {currency === 'JPY' ? '¥' : 
+                   currency === 'USD' ? '$' : 
+                   currency === 'CNY' ? '¥' : 
+                   currency === 'KRW' ? '₩' : 
+                   currency === 'AUD' ? 'A$' : 
+                   currency === 'CAD' ? 'C$' : '$'}
                   <ChevronDown className={`w-3.5 h-3.5 opacity-70 transition-transform ${currencyOpen ? 'rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
@@ -252,20 +257,48 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                   EN
                   <ChevronDown className="w-3.5 h-3.5 opacity-70" />
                 </button>
-                <div className="flex-1 flex gap-1">
+                <div className="flex-1 flex gap-1 flex-wrap">
                   <button
                     type="button"
                     onClick={() => setCurrency('JPY')}
-                    className={`flex-1 flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-medium rounded-xl ${currency === 'JPY' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
+                    className={`flex-1 min-w-[60px] flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-medium rounded-xl ${currency === 'JPY' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
                   >
                     ¥
                   </button>
                   <button
                     type="button"
                     onClick={() => setCurrency('USD')}
-                    className={`flex-1 flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-medium rounded-xl ${currency === 'USD' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
+                    className={`flex-1 min-w-[60px] flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-medium rounded-xl ${currency === 'USD' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
                   >
                     $
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrency('CNY')}
+                    className={`flex-1 min-w-[60px] flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-medium rounded-xl ${currency === 'CNY' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
+                  >
+                    ¥
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrency('KRW')}
+                    className={`flex-1 min-w-[60px] flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-medium rounded-xl ${currency === 'KRW' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
+                  >
+                    ₩
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrency('AUD')}
+                    className={`flex-1 min-w-[60px] flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-medium rounded-xl ${currency === 'AUD' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
+                  >
+                    A$
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrency('CAD')}
+                    className={`flex-1 min-w-[60px] flex items-center justify-center gap-1 px-3 py-2.5 text-sm font-medium rounded-xl ${currency === 'CAD' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
+                  >
+                    C$
                   </button>
                 </div>
               </div>

@@ -15,61 +15,63 @@ export interface TokyoWardsSectionProps {
   onWardClick?: (wardName: string, page: 'rent' | 'buy') => void;
 }
 
-// デフォルト画像URL（UnsplashのTokyo関連画像）
+// デフォルト画像URL（UnsplashのTokyo関連画像）- フォールバック用
 const DEFAULT_TOKYO_IMAGE = 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080';
 
+const U = (id: string) => `https://images.unsplash.com/photo-${id}?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080`;
+
 const WARDS_BASE: Omit<Ward, 'properties'>[] = [
-  // 23区
-  { name: 'Chiyoda', image: 'https://images.unsplash.com/photo-1691434226786-9fef3cda90de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080' },
-  { name: 'Chuo', image: 'https://images.unsplash.com/photo-1759548846978-85544926c40f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080' },
-  { name: 'Minato', image: 'https://images.unsplash.com/photo-1510713829427-39b690447a8c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080' },
-  { name: 'Shinjuku', image: 'https://images.unsplash.com/photo-1728734662981-ff934eb6359d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080' },
-  { name: 'Bunkyo', image: 'https://images.unsplash.com/photo-1724045998002-6792534eea3c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080' },
-  { name: 'Taito', image: 'https://images.unsplash.com/photo-1643431543449-d078a74c9f31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080' },
-  { name: 'Sumida', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Koto', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Shinagawa', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Meguro', image: 'https://images.unsplash.com/photo-1769321868367-5beb43b835df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080' },
-  { name: 'Ota', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Setagaya', image: 'https://images.unsplash.com/photo-1713635632084-f0dd34f5623e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080' },
-  { name: 'Shibuya', image: 'https://images.unsplash.com/photo-1704251550795-647ac5e50551?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080' },
-  { name: 'Nakano', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Suginami', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Toshima', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Kita', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Arakawa', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Itabashi', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Nerima', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Adachi', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Katsushika', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Edogawa', image: DEFAULT_TOKYO_IMAGE },
-  // 23区外（市部）
-  { name: 'Hachioji', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Tachikawa', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Musashino', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Mitaka', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Ome', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Fuchu', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Akishima', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Chofu', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Machida', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Koganei', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Kodaira', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Hino', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Higashimurayama', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Kokubunji', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Kunitachi', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Fussa', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Komae', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Higashiyamato', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Kiyose', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Higashikurume', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Musashimurayama', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Tama', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Inagi', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Hamura', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Akiruno', image: DEFAULT_TOKYO_IMAGE },
-  { name: 'Nishitokyo', image: DEFAULT_TOKYO_IMAGE },
+  // 23区（各カードにUnsplashの東京・日本イメージを割り当て）
+  { name: 'Chiyoda', image: U('1691434226786-9fef3cda90de') },
+  { name: 'Chuo', image: 'https://unsplash.com/photos/0HI2w6EiXSE/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Minato', image: 'https://unsplash.com/photos/64ajtpEzlYc/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Shinjuku', image: 'https://unsplash.com/photos/9gtODWv-L5I/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Shibuya', image: 'https://unsplash.com/photos/0BExqfEtp6A/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Taito', image: U('1643431543449-d078a74c9f31') },
+  { name: 'Sumida', image: 'https://unsplash.com/photos/BFVNRz-W35c/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Koto', image: 'https://unsplash.com/photos/yCPrEOZbPXw/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Shinagawa', image: 'https://unsplash.com/photos/cmn4mMoI64E/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Meguro', image: 'https://unsplash.com/photos/hRuZjEmsKmY/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Bunkyo', image: U('1724045998002-6792534eea3c') },
+  { name: 'Setagaya', image: U('1713635632084-f0dd34f5623e') },
+  { name: 'Ota', image: 'https://unsplash.com/photos/stbBpWbZENk/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Nakano', image: 'https://unsplash.com/photos/y9EP6OX7Joc/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Suginami', image: 'https://unsplash.com/photos/muizaEf3LjM/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Toshima', image: 'https://unsplash.com/photos/4MUQEYhaKHI/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Kita', image: 'https://unsplash.com/photos/Ek-BbDtc3eQ/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Arakawa', image: 'https://unsplash.com/photos/fWtWJySOyAU/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Itabashi', image: 'https://unsplash.com/photos/ZuNCTKsqFjw/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Nerima', image: 'https://unsplash.com/photos/ageF5Xg3dQ0/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Adachi', image: 'https://unsplash.com/photos/8YLNCKUySAU/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Katsushika', image: 'https://unsplash.com/photos/S_Oft8i6DVw/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  { name: 'Edogawa', image: 'https://unsplash.com/photos/8ypUj2m3b1I/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80' },
+  // 23区外（市部）- 郊外・住宅・自然イメージ
+  { name: 'Hachioji', image: U('1449824913935-59a10b8d85c7') },
+  { name: 'Tachikawa', image: U('1519501025264-65ba15a82390') },
+  { name: 'Musashino', image: U('1514565131-fce0801e5785') },
+  { name: 'Mitaka', image: U('1470071459604-3b5ec3a7fe05') },
+  { name: 'Ome', image: U('1449824913935-59a10b8d85c7') },
+  { name: 'Fuchu', image: U('1500534314209-a25ddb2bd429') },
+  { name: 'Akishima', image: U('1507525428034-b723cf961d3e') },
+  { name: 'Chofu', image: U('1518837695005-2083093ee35b') },
+  { name: 'Machida', image: U('1518391846935-76eb2a83b6fd') },
+  { name: 'Koganei', image: U('1477959858617-67f85cf4f1df') },
+  { name: 'Kodaira', image: U('1441974231531-c6227db76b6e') },
+  { name: 'Hino', image: U('1501785888042-1a85b4c21e0b') },
+  { name: 'Higashimurayama', image: U('1518173946687-a4c036bc9162') },
+  { name: 'Kokubunji', image: U('1519500528352-2dab040ba42e') },
+  { name: 'Kunitachi', image: U('1506905925346-21bda4d32df4') },
+  { name: 'Fussa', image: U('1540959733332-eab4deabeeaf') },
+  { name: 'Komae', image: U('1501854148051-d6ea1e45796f') },
+  { name: 'Higashiyamato', image: U('1514565131-fce0801e5785') },
+  { name: 'Kiyose', image: U('1476514525535-07fb3b4ae5f1') },
+  { name: 'Higashikurume', image: U('1518391846935-76eb2a83b6fd') },
+  { name: 'Musashimurayama', image: U('1470071459604-3b5ec3a7fe05') },
+  { name: 'Tama', image: U('1506905925346-21bda4d32df4') },
+  { name: 'Inagi', image: U('1449824913935-59a10b8d85c7') },
+  { name: 'Hamura', image: U('1500534314209-a25ddb2bd429') },
+  { name: 'Akiruno', image: U('1501785888042-1a85b4c21e0b') },
+  { name: 'Nishitokyo', image: U('1519500528352-2dab040ba42e') },
 ];
 
 export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
@@ -107,7 +109,7 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
   }, []);
 
   // 23区と23区外を分けて表示
-  const ward23Names = ['Chiyoda', 'Chuo', 'Minato', 'Shinjuku', 'Bunkyo', 'Taito', 'Sumida', 'Koto', 'Shinagawa', 'Meguro', 'Ota', 'Setagaya', 'Shibuya', 'Nakano', 'Suginami', 'Toshima', 'Kita', 'Arakawa', 'Itabashi', 'Nerima', 'Adachi', 'Katsushika', 'Edogawa'];
+  const ward23Names = ['Chiyoda', 'Chuo', 'Minato', 'Shinjuku', 'Shibuya', 'Taito', 'Sumida', 'Koto', 'Shinagawa', 'Meguro', 'Bunkyo', 'Setagaya', 'Ota', 'Nakano', 'Suginami', 'Toshima', 'Kita', 'Arakawa', 'Itabashi', 'Nerima', 'Adachi', 'Katsushika', 'Edogawa'];
   const wards23 = wards.filter((w) => ward23Names.includes(w.name));
   const outerWards = wards.filter((w) => !ward23Names.includes(w.name));
   
@@ -203,6 +205,29 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
           </div>
         </div>
 
+        {/* Show More/Less Button - 23区のみ（23区外は常に表示） */}
+        {wards23.length > 6 && (
+          <motion.div
+            className="flex justify-center mb-12"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="flex items-center gap-2 px-6 py-3 text-gray-700 hover:text-gray-900 font-medium transition-colors group"
+            >
+              <span>{showAll ? 'Show less' : 'Show more'}</span>
+              {showAll ? (
+                <ChevronUp className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
+              ) : (
+                <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+              )}
+            </button>
+          </motion.div>
+        )}
+
         {/* Outer 23 Wards - Single Card */}
         <div className="mb-12">
           <h3 className="text-2xl font-bold text-gray-900 mb-6">Outer 23 Wards</h3>
@@ -217,7 +242,7 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
               {/* Background Image */}
               <div className="absolute inset-0 overflow-hidden">
                 <ImageWithFallback
-                  src={DEFAULT_TOKYO_IMAGE}
+                  src="https://unsplash.com/photos/uNvmbsLQ4uU/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80"
                   alt="Outer 23 Wards"
                   className="w-full h-full object-cover"
                 />
@@ -265,29 +290,6 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
             </motion.div>
           </div>
         </div>
-
-        {/* Show More/Less Button - 23区のみ（23区外は常に表示） */}
-        {wards23.length > 6 && (
-          <motion.div
-            className="flex justify-center mt-12"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            <button
-              onClick={() => setShowAll(!showAll)}
-              className="flex items-center gap-2 px-6 py-3 text-gray-700 hover:text-gray-900 font-medium transition-colors group"
-            >
-              <span>{showAll ? 'Show less' : 'Show more'}</span>
-              {showAll ? (
-                <ChevronUp className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
-              ) : (
-                <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
-              )}
-            </button>
-          </motion.div>
-        )}
       </div>
     </section>
   );

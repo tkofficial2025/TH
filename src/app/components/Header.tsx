@@ -3,7 +3,7 @@ import { ChevronDown, User, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 
-type NavPage = 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog';
+type NavPage = 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog' | 'about';
 
 interface HeaderProps {
   onNavigate?: (page: NavPage) => void;
@@ -28,7 +28,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
     }
   }, [currencyOpen]);
 
-  const activeNavName = currentPage === 'home' ? 'Home' : currentPage === 'buy' ? 'Buy' : currentPage === 'rent' ? 'Rent' : currentPage === 'consultation' ? 'Consultation' : currentPage === 'category' ? 'Rent' : currentPage === 'blog' ? 'Blog' : activeNav;
+  const activeNavName = currentPage === 'home' ? 'Home' : currentPage === 'buy' ? 'Buy' : currentPage === 'rent' ? 'Rent' : currentPage === 'consultation' ? 'Consultation' : currentPage === 'category' ? 'Rent' : currentPage === 'blog' ? 'Blog' : currentPage === 'about' ? 'About' : activeNav;
 
   const handleNavClick = (e: React.MouseEvent, itemName: string, href: string) => {
     e.preventDefault();
@@ -42,6 +42,8 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
       onNavigate('home');
     } else if (itemName === 'Blog' && onNavigate) {
       onNavigate('blog');
+    } else if (itemName === 'About' && onNavigate) {
+      onNavigate('about');
     } else if (href.startsWith('#') && href.length > 1) {
       const element = document.querySelector(href);
       if (element) element.scrollIntoView({ behavior: 'smooth' });
@@ -68,14 +70,13 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                 setActiveNav('Home');
                 onNavigate?.('home');
               }}
-              className="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity h-full"
             >
-              <img src="/tk.jpg" alt="Tokyo Housing" className="h-8 w-auto object-contain" />
-              <span className="text-xl font-semibold text-gray-900">Tokyo Housing</span>
+              <img src="/logo2.png" alt="Tokyo Housing" className="h-16 md:h-20 w-auto object-contain" />
             </button>
 
             {/* Desktop Navigation - Pill Container */}
-            <nav className="hidden lg:flex items-center bg-gray-100 rounded-full px-2 py-2">
+            <nav className="hidden lg:flex items-center bg-gray-100 rounded-full px-2 py-2 h-full">
               {navItems.map((item) => (
                 <a
                   key={item.name}

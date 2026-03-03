@@ -170,82 +170,10 @@ export function BlogPage({ onNavigate, onSelectPost }: BlogPageProps) {
           </div>
         )}
 
-        {/* 記事グリッド */}
-        {!loading && !error && (
-          <>
-            {posts.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">記事が見つかりませんでした。</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {posts.map((post) => {
-                  const featuredImage = getFeaturedImage(post);
-                  const postCategories = getPostCategories(post);
-
-                  return (
-                    <article
-                      key={post.id}
-                      className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300"
-                    >
-                      {/* 画像 */}
-                      {featuredImage && (
-                        <button
-                          onClick={() => onSelectPost?.(post.id)}
-                          className="w-full cursor-pointer"
-                        >
-                          <img
-                            src={featuredImage}
-                            alt={post.title.rendered}
-                            className="w-full h-48 object-cover hover:opacity-90 transition-opacity"
-                          />
-                        </button>
-                      )}
-
-                      {/* コンテンツ */}
-                      <div className="p-6">
-                        {/* カテゴリー */}
-                        {postCategories.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-3">
-                            {postCategories.map((cat) => (
-                              <span
-                                key={cat.id}
-                                className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded"
-                              >
-                                <Tag className="w-3 h-3" />
-                                {cat.name}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* タイトル */}
-                        <h2 className="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
-                          <button
-                            onClick={() => onSelectPost?.(post.id)}
-                            className="text-left hover:text-[#C1121F] transition-colors cursor-pointer w-full"
-                            dangerouslySetInnerHTML={{ __html: post.title.rendered }}
-                          />
-                        </h2>
-
-                        {/* 抜粋 */}
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                          {stripHtml(post.excerpt.rendered)}
-                        </p>
-
-                        {/* 日付 */}
-                        <div className="flex items-center gap-2 text-gray-500 text-xs">
-                          <Calendar className="w-4 h-4" />
-                          <time dateTime={post.date}>{formatDate(post.date)}</time>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        )}
+        {/* Preparing メッセージ */}
+        <div className="text-center py-20">
+          <p className="text-2xl font-semibold text-gray-600">Preparing</p>
+        </div>
       </div>
     </div>
   );

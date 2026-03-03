@@ -15,13 +15,14 @@ import { ConsultationPage } from '@/app/pages/ConsultationPage';
 import { CategoryPropertiesPage } from '@/app/pages/CategoryPropertiesPage';
 import { BlogPage } from '@/app/pages/BlogPage';
 import { BlogPostDetailPage } from '@/app/pages/BlogPostDetailPage';
+import { AboutPage } from '@/app/pages/AboutPage';
 import type { HeroSearchParams } from '@/lib/searchFilters';
 
-type Page = 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog';
+type Page = 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog' | 'about';
 
 export default function App() {
   const [scrollY, setScrollY] = useState(0);
-  const [currentPage, setCurrentPage] = useState<'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog' | 'about'>('home');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
   const [heroSearchParams, setHeroSearchParams] = useState<HeroSearchParams | null>(null);
@@ -143,6 +144,10 @@ export default function App() {
         onSelectPost={(postId) => setSelectedBlogPostId(postId)}
       />
     );
+  }
+
+  if (currentPage === 'about') {
+    return <AboutPage onNavigate={handleNavigate} />;
   }
 
   return (
@@ -766,10 +771,13 @@ export default function App() {
               </h4>
               <ul className="space-y-3">
                 <li>
-                  <a href="#" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
+                  <button
+                    onClick={() => handleNavigate('about')}
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group w-full text-left"
+                  >
                     <div className="w-1.5 h-1.5 bg-[#C1121F] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <span>About Us</span>
-                  </a>
+                  </button>
                 </li>
                 <li>
                   <a href="#" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">

@@ -26,16 +26,33 @@ export function FeaturedPropertiesCarousel({ onSelectProperty }: FeaturedPropert
   useEffect(() => {
     async function fetchFeaturedProperties() {
       setLoading(true);
-      const { data, error } = await supabase
+      const featured = await supabase
         .from('properties')
         .select('*')
-        .eq('is_featured', true);
-      if (import.meta.env.DEV) console.log('[Featured] Supabase', { data, error });
-      if (!error && data?.length) {
-        setProperties(data.map((row) => mapSupabaseRowToFeaturedProperty(row as SupabasePropertyRow)));
-      } else {
-        setProperties([]);
+        .eq('is_featured', true)
+        .limit(12);
+      if (import.meta.env.DEV) {
+        console.log('[Featured] is_featured=true', {
+          count: featured.data?.length ?? 0,
+          error: featured.error?.message,
+          code: featured.error?.code,
+        });
       }
+      let rows = featured.data ?? [];
+      if (rows.length === 0 && !featured.error) {
+        const fallback = await supabase
+          .from('properties')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(12);
+        if (fallback.data?.length) rows = fallback.data;
+        if (import.meta.env.DEV) console.log('[Featured] Fallback used', fallback.data?.length ?? 0);
+      }
+      setProperties(
+        Array.isArray(rows)
+          ? rows.map((row) => mapSupabaseRowToFeaturedProperty(row as SupabasePropertyRow))
+          : []
+      );
       setLoading(false);
     }
     fetchFeaturedProperties();

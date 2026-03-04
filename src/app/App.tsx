@@ -16,13 +16,26 @@ import { CategoryPropertiesPage } from '@/app/pages/CategoryPropertiesPage';
 import { BlogPage } from '@/app/pages/BlogPage';
 import { BlogPostDetailPage } from '@/app/pages/BlogPostDetailPage';
 import { AboutPage } from '@/app/pages/AboutPage';
+import { CookiePolicyPage } from '@/app/pages/CookiePolicyPage';
+import { TermsOfServicePage } from '@/app/pages/TermsOfServicePage';
+import { PrivacyPolicyPage } from '@/app/pages/PrivacyPolicyPage';
+import { MyAccountPage } from '@/app/pages/MyAccountPage';
+import { SignUpPage } from '@/app/pages/SignUpPage';
+import { FavoritesPage } from '@/app/pages/FavoritesPage';
+import { ProfilePage } from '@/app/pages/ProfilePage';
 import type { HeroSearchParams } from '@/lib/searchFilters';
-
-type Page = 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog' | 'about';
+import {
+  type Page,
+  getPageFromPath,
+  getPathFromPage,
+  getPathname,
+  pushState,
+  replaceState,
+} from '@/lib/routes';
 
 export default function App() {
   const [scrollY, setScrollY] = useState(0);
-  const [currentPage, setCurrentPage] = useState<'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog' | 'about'>('home');
+  const [currentPage, setCurrentPage] = useState<Page>(() => getPageFromPath(getPathname()));
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
   const [heroSearchParams, setHeroSearchParams] = useState<HeroSearchParams | null>(null);
@@ -30,17 +43,29 @@ export default function App() {
   const [detailSource, setDetailSource] = useState<'rent' | 'buy'>('rent');
   const [selectedBlogPostId, setSelectedBlogPostId] = useState<number | null>(null);
 
-  // URLパラメータから物件IDを読み取る
+  // 初回ロード・ブラウザバック/フォワード: URL から状態を復元
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const propertyId = params.get('property');
-    const source = params.get('source') as 'rent' | 'buy' | null;
-    if (propertyId && !isNaN(Number(propertyId))) {
-      setSelectedPropertyId(Number(propertyId));
-      if (source === 'rent' || source === 'buy') {
-        setDetailSource(source);
+    const syncFromUrl = () => {
+      const path = getPathname();
+      const params = new URLSearchParams(window.location.search);
+      const page = getPageFromPath(path);
+      setCurrentPage(page);
+      const propId = params.get('property');
+      const source = params.get('source') as 'rent' | 'buy' | null;
+      if (propId && !isNaN(Number(propId))) {
+        setSelectedPropertyId(Number(propId));
+        if (source === 'rent' || source === 'buy') setDetailSource(source);
+      } else {
+        setSelectedPropertyId(null);
       }
-    }
+      const cat = params.get('category');
+      setSelectedCategory(cat ?? null);
+      const postId = params.get('post');
+      setSelectedBlogPostId(postId && !isNaN(Number(postId)) ? Number(postId) : null);
+    };
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
   }, []);
 
   useEffect(() => {
@@ -49,14 +74,24 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleNavigate = (page: Page) => {
+  const handleNavigate = (page: Page, options?: { categoryId?: string; blogPostId?: number }) => {
     if (page === 'home') {
       setSelectedWard(null);
       setHeroSearchParams(null);
       setSelectedCategory(null);
     }
     setSelectedPropertyId(null);
+    setSelectedBlogPostId(options?.blogPostId ?? null);
+    setSelectedCategory(options?.categoryId ?? null);
     setCurrentPage(page);
+    const path = getPathFromPage(page);
+    const search =
+      page === 'category' && options?.categoryId
+        ? `?category=${encodeURIComponent(options.categoryId)}`
+        : page === 'blog' && options?.blogPostId != null
+          ? `?post=${options.blogPostId}`
+          : '';
+    pushState(path, search || undefined);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -65,19 +100,33 @@ export default function App() {
     setSelectedWard(null);
     setSelectedPropertyId(null);
     setCurrentPage(params.propertyType);
+    pushState(getPathFromPage(params.propertyType));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleWardClick = (wardName: string, page: 'rent' | 'buy') => {
     setSelectedWard(wardName);
     setCurrentPage(page);
+    pushState(getPathFromPage(page));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSelectProperty = (id: number, source: 'rent' | 'buy') => {
     setSelectedPropertyId(id);
     setDetailSource(source);
+    const path = getPathFromPage(source);
+    pushState(path, `?property=${id}&source=${source}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBackFromProperty = () => {
+    setSelectedPropertyId(null);
+    replaceState(getPathFromPage(detailSource));
+  };
+
+  const handleBackFromBlogPost = () => {
+    setSelectedBlogPostId(null);
+    replaceState(getPathFromPage('blog'));
   };
 
   // 物件詳細を表示中
@@ -87,7 +136,7 @@ export default function App() {
         propertyId={selectedPropertyId}
         source={detailSource}
         onNavigate={handleNavigate}
-        onBack={() => setSelectedPropertyId(null)}
+        onBack={handleBackFromProperty}
       />
     );
   }
@@ -134,20 +183,55 @@ export default function App() {
         <BlogPostDetailPage
           postId={selectedBlogPostId}
           onNavigate={handleNavigate}
-          onBack={() => setSelectedBlogPostId(null)}
+          onBack={handleBackFromBlogPost}
         />
       );
     }
     return (
       <BlogPage
         onNavigate={handleNavigate}
-        onSelectPost={(postId) => setSelectedBlogPostId(postId)}
+        onSelectPost={(postId) => {
+          setSelectedBlogPostId(postId);
+          pushState(getPathFromPage('blog'), `?post=${postId}`);
+        }}
       />
     );
   }
 
   if (currentPage === 'about') {
     return <AboutPage onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === 'cookie') {
+    return <CookiePolicyPage onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === 'terms') {
+    return <TermsOfServicePage onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === 'privacy') {
+    return <PrivacyPolicyPage onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === 'account') {
+    return <MyAccountPage onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === 'signup') {
+    return <SignUpPage onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === 'favorites') {
+    return <FavoritesPage onNavigate={handleNavigate} onSelectProperty={handleSelectProperty} />;
+  }
+
+  if (currentPage === 'activity') {
+    return <ActivityPage onNavigate={handleNavigate} onSelectProperty={handleSelectProperty} />;
+  }
+
+  if (currentPage === 'profile') {
+    return <ProfilePage onNavigate={handleNavigate} />;
   }
 
   return (
@@ -252,9 +336,7 @@ export default function App() {
 
       {/* Rental Categories Section */}
       <RentalCategoriesSection onCategoryClick={(categoryId) => {
-        setSelectedCategory(categoryId);
-        setCurrentPage('category');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        handleNavigate('category', { categoryId });
       }} />
 
       {/* Tokyo Wards Section */}
@@ -799,9 +881,9 @@ export default function App() {
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-gray-400 text-sm">© 2026 TK LLC. All Rights Reserved.</p>
               <div className="flex gap-6 text-sm">
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">Cookie Policy</a>
+                <button type="button" onClick={() => handleNavigate('privacy')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">Privacy Policy</button>
+                <button type="button" onClick={() => handleNavigate('terms')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">Terms of Service</button>
+                <button type="button" onClick={() => handleNavigate('cookie')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">Cookie Policy</button>
               </div>
             </div>
           </div>

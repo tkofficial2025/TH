@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, User, Menu, X } from 'lucide-react';
+import { ChevronDown, User, Menu, X, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { supabase } from '@/lib/supabase';
+import type { User as AuthUser } from '@supabase/supabase-js';
 
-type NavPage = 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog' | 'about';
+type NavPage = 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog' | 'about' | 'account' | 'favorites';
 
 interface HeaderProps {
   onNavigate?: (page: NavPage) => void;
@@ -15,8 +17,21 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
   const [activeNav, setActiveNav] = useState<'Home' | 'Buy' | 'Rent' | 'Blog' | 'About'>('Home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const currencyRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency, rateDate } = useCurrency();
+
+  useEffect(() => {
+    const init = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+    init();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -187,14 +202,33 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
               <div className="w-px h-6 bg-gray-200 mx-1" />
 
               {/* Free Consultation CTA */}
-              <button className="px-5 py-2 text-sm font-semibold text-[#C1121F] border-2 border-[#C1121F] rounded-full hover:bg-[#C1121F] hover:text-white transition-all duration-200">
+              <button
+                type="button"
+                onClick={() => onNavigate?.('consultation')}
+                className="px-5 py-2 text-sm font-semibold text-[#C1121F] border-2 border-[#C1121F] rounded-full hover:bg-[#C1121F] hover:text-white transition-all duration-200"
+              >
                 Free Consultation
               </button>
 
-              {/* My Account Button */}
-              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 transition-all duration-200">
-                <User className="w-4 h-4" />
-                My account
+              {/* ログイン中: ハート（お気に入り）＋人（アカウント）。未ログイン: My account */}
+              {user && (
+                <button
+                  type="button"
+                  onClick={() => onNavigate?.('favorites')}
+                  className="flex items-center justify-center p-2 text-gray-700 border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
+                  aria-label="Favorites"
+                >
+                  <Heart className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => onNavigate?.(user ? 'account' : 'account')}
+                className={`flex items-center gap-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 ${user ? 'p-2' : 'px-4 py-2'}`}
+                aria-label={user ? 'My account' : 'My account'}
+              >
+                <User className="w-4 h-4 flex-shrink-0" />
+                {!user && <span>My account</span>}
               </button>
             </div>
 
@@ -316,7 +350,29 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                 >
                   Free Consultation
                 </button>
-                <button className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 border border-gray-300 rounded-xl">
+                {user && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onNavigate?.('favorites');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 border border-gray-300 rounded-xl"
+                    aria-label="Favorites"
+                  >
+                    <Heart className="w-4 h-4" />
+                    Favorites
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onNavigate?.('account');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 border border-gray-300 rounded-xl"
+                  aria-label="My account"
+                >
                   <User className="w-4 h-4" />
                   My account
                 </button>

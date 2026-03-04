@@ -11,7 +11,6 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronRight,
-  Mail,
   Calendar,
   Clock,
 } from 'lucide-react';
@@ -26,7 +25,7 @@ import { useCurrency } from '@/app/contexts/CurrencyContext';
 interface PropertyDetailPageProps {
   propertyId: number;
   source: 'rent' | 'buy';
-  onNavigate?: (page: 'home' | 'buy' | 'rent') => void;
+  onNavigate?: (page: 'home' | 'buy' | 'rent' | 'account' | 'favorites') => void;
   onBack?: () => void;
 }
 
@@ -36,10 +35,20 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [favorite, setFavorite] = useState(false);
-  const [costOpen, setCostOpen] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [favoriteMessage, setFavoriteMessage] = useState<'added' | 'removed' | 'error' | null>(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
-  const [tourDate, setTourDate] = useState('2024-01-01');
-  const [tourTime, setTourTime] = useState('12:00');
+  const [tourCandidates, setTourCandidates] = useState<{ date: string; timeRange: string }[]>([
+    { date: '', timeRange: '09:00-12:00' },
+    { date: '', timeRange: '09:00-12:00' },
+    { date: '', timeRange: '09:00-12:00' },
+  ]);
+  const [tourConfirmed, setTourConfirmed] = useState(false);
+  const [inquiryName, setInquiryName] = useState('');
+  const [inquiryEmail, setInquiryEmail] = useState('');
+  const [inquiryLoading, setInquiryLoading] = useState(false);
+  const [inquirySent, setInquirySent] = useState(false);
+  const [inquiryError, setInquiryError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchProperty() {
@@ -62,6 +71,80 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
     }
     fetchProperty();
   }, [propertyId]);
+
+  useEffect(() => {
+    async function checkFavorite() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('user_favorites')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('property_id', propertyId)
+        .maybeSingle();
+      setFavorite(!!data);
+    }
+    checkFavorite();
+  }, [propertyId]);
+
+  const toggleFavorite = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      onNavigate?.('account');
+      return;
+    }
+    setFavoriteLoading(true);
+    setFavoriteMessage(null);
+    if (favorite) {
+      const { error: err } = await supabase
+        .from('user_favorites')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('property_id', propertyId);
+      if (err) {
+        setFavoriteMessage('error');
+      } else {
+        setFavorite(false);
+        setFavoriteMessage('removed');
+      }
+    } else {
+      const { error: err } = await supabase.from('user_favorites').insert({
+        user_id: user.id,
+        property_id: propertyId,
+        type: source,
+      });
+      if (err) {
+        setFavoriteMessage('error');
+      } else {
+        setFavorite(true);
+        setFavoriteMessage('added');
+      }
+    }
+    setFavoriteLoading(false);
+    setTimeout(() => setFavoriteMessage((m) => (m === 'error' ? m : null)), 3000);
+  };
+
+  const handleInquirySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = inquiryEmail.trim();
+    if (!email) return;
+    setInquiryError(null);
+    setInquiryLoading(true);
+    const { error } = await supabase.from('property_inquiries').insert({
+      name: inquiryName.trim() || null,
+      email,
+      property_id: propertyId,
+      property_title: property?.title ?? null,
+    });
+    setInquiryLoading(false);
+    if (error) {
+      setInquiryError(error.message);
+      return;
+    }
+    setInquirySent(true);
+    setInquiryName('');
+    setInquiryEmail('');
+  };
 
   if (loading) {
     return (
@@ -154,8 +237,10 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setFavorite(!favorite)}
-                  className="p-2 rounded-full border border-gray-200 hover:bg-gray-50"
+                  onClick={toggleFavorite}
+                  disabled={favoriteLoading}
+                  className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 disabled:opacity-60"
+                  aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
                 >
                   <Heart className={`w-5 h-5 ${favorite ? 'fill-[#C1121F] text-[#C1121F]' : 'text-gray-600'}`} />
                 </button>
@@ -163,6 +248,15 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                   <FileText className="w-4 h-4" /> Brochure
                 </button>
               </div>
+              {favoriteMessage === 'added' && (
+                <p className="text-sm text-green-600 mt-2">Added to Favorites.</p>
+              )}
+              {favoriteMessage === 'removed' && (
+                <p className="text-sm text-gray-500 mt-2">Removed from Favorites.</p>
+              )}
+              {favoriteMessage === 'error' && (
+                <p className="text-sm text-red-600 mt-2">Could not save. Check Supabase: run add_user_favorites.sql in SQL Editor.</p>
+              )}
             </div>
             <div className="flex flex-wrap gap-3">
               <div className="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm">
@@ -310,74 +404,123 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
           {/* Right Column - Sticky */}
           <div className="lg:col-span-1">
             <div className="lg:sticky lg:top-[4.5rem] space-y-6">
-              {/* Estimated Initial Move-In Cost */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setCostOpen(!costOpen)}
-                  className="w-full flex items-center justify-between p-4 text-left font-semibold text-gray-900"
-                >
-                  Estimated Initial Move-In cost
-                  <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${costOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {costOpen && (
-                  <div className="px-4 pb-4 text-sm text-gray-600 border-t border-gray-100 pt-2">
-                    <p>Deposit, key money, and other fees may apply. Contact us for a detailed estimate.</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Agent */}
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Agent</h3>
-                <div className="flex gap-4">
-                  <div className="w-14 h-14 rounded-full bg-gray-200 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium text-gray-900">Tokyo Housing Agent</p>
-                    <a href="mailto:info@tokyohousing.example" className="flex items-center gap-1.5 text-sm text-gray-600 mt-1">
-                      <Mail className="w-4 h-4" /> info@tokyohousing.example
-                    </a>
-                    <p className="text-sm text-gray-500 mt-2">We help clients find homes in Tokyo with ease and confidence.</p>
-                  </div>
-                </div>
-              </div>
-
               {/* Request a Tour */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Request a Tour</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Select date</label>
-                    <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <input
-                        type="date"
-                        value={tourDate}
-                        onChange={(e) => setTourDate(e.target.value)}
-                        className="flex-1 outline-none text-sm"
-                      />
+                {tourConfirmed ? (
+                  <p className="text-sm text-green-600 py-2">A staff member will contact you within 24 hours.</p>
+                ) : (
+                <>
+                <p className="text-xs text-gray-500 mb-4">Please provide up to 3 preferred date and time options. We will contact you to confirm.</p>
+                <div className="space-y-4">
+                  {tourCandidates.map((candidate, index) => (
+                    <div key={index} className="p-3 border border-gray-200 rounded-lg space-y-2">
+                      <span className="text-xs font-medium text-gray-600">Option {index + 1}</span>
+                      <div className="flex flex-wrap gap-2 items-end">
+                        <div className="flex-1 min-w-[120px]">
+                          <label className="block text-xs text-gray-500 mb-1">Date</label>
+                          <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-2 py-1.5">
+                            <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                            <input
+                              type="date"
+                              value={candidate.date}
+                              onChange={(e) => {
+                                const next = [...tourCandidates];
+                                next[index] = { ...next[index], date: e.target.value };
+                                setTourCandidates(next);
+                              }}
+                              className="flex-1 outline-none text-sm min-w-0"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-[120px]">
+                          <label className="block text-xs text-gray-500 mb-1">Time range</label>
+                          <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-2 py-1.5">
+                            <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                            <select
+                              value={candidate.timeRange}
+                              onChange={(e) => {
+                                const next = [...tourCandidates];
+                                next[index] = { ...next[index], timeRange: e.target.value };
+                                setTourCandidates(next);
+                              }}
+                              className="flex-1 outline-none text-sm bg-transparent min-w-0"
+                            >
+                              <option value="09:00-12:00">09:00 – 12:00</option>
+                              <option value="12:00-15:00">12:00 – 15:00</option>
+                              <option value="15:00-18:00">15:00 – 18:00</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">Available time</label>
-                    <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      <select
-                        value={tourTime}
-                        onChange={(e) => setTourTime(e.target.value)}
-                        className="flex-1 outline-none text-sm bg-transparent"
-                      >
-                        {['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'].map((t) => (
-                          <option key={t} value={t}>{t}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
-                    </div>
-                  </div>
-                  <button type="button" className="w-full py-3 bg-[#C1121F] text-white font-semibold rounded-lg hover:bg-[#A00F1A] transition-colors">
-                    Next
+                  ))}
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const { data: { user } } = await supabase.auth.getUser();
+                      if (user) {
+                        await supabase.from('property_tour_requests').insert({
+                          user_id: user.id,
+                          property_id: propertyId,
+                          tour_candidates: tourCandidates,
+                        });
+                      }
+                      setTourConfirmed(true);
+                    }}
+                    disabled={!tourCandidates.every((c) => c.date.trim() !== '')}
+                    className="w-full py-3 bg-[#C1121F] text-white font-semibold rounded-lg hover:bg-[#A00F1A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#C1121F]"
+                  >
+                    Confirm
                   </button>
                 </div>
+                </>
+                )}
+              </div>
+
+              {/* Check Availability and Request Property Details */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Check Availability and Request Property Details</h3>
+                <p className="text-xs text-gray-500 mb-3">Enter your name and email address. We will send you availability and full details for this property. You can check anytime.</p>
+                {inquirySent ? (
+                  <p className="text-sm text-green-600 py-2">Request received. A staff member will contact you within 24 hours.</p>
+                ) : (
+                  <form onSubmit={handleInquirySubmit} className="space-y-3">
+                    <div>
+                      <label htmlFor="inquiry-name" className="block text-xs text-gray-500 mb-1">Name</label>
+                      <input
+                        id="inquiry-name"
+                        type="text"
+                        value={inquiryName}
+                        onChange={(e) => setInquiryName(e.target.value)}
+                        placeholder="Your name"
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="inquiry-email" className="block text-xs text-gray-500 mb-1">Email address</label>
+                      <input
+                        id="inquiry-email"
+                        type="email"
+                        value={inquiryEmail}
+                        onChange={(e) => setInquiryEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        required
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                      />
+                    </div>
+                    {inquiryError && (
+                      <p className="text-xs text-red-600">{inquiryError}</p>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={inquiryLoading}
+                      className="w-full py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 disabled:opacity-60 transition-colors"
+                    >
+                      {inquiryLoading ? 'Sending...' : 'Submit'}
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           </div>

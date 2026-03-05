@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, Mail, MessageSquare, Phone, User, Building2, ChevronDown, Search, Video } from 'lucide-react';
 import { Header } from '@/app/components/Header';
+import { sendRequestEmails } from '@/lib/send-request-emails';
 
 interface ConsultationPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent' | 'consultation') => void;
@@ -78,8 +79,18 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: send to API / Supabase / email service
+    const fullPhone = [displayDial, phone].filter(Boolean).join(' ').trim();
     setSubmitted(true);
+    sendRequestEmails({
+      type: 'consultation',
+      name: name.trim(),
+      email: email.trim(),
+      phone: fullPhone || undefined,
+      interest,
+      preferredDate: preferredDate || undefined,
+      preferOnlineMeeting,
+      message: message.trim() || undefined,
+    }).then((r) => { if (!r.ok) console.error('[send-request-emails]', r.error); });
   };
 
   return (

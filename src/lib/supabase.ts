@@ -34,4 +34,11 @@ const dummySupabase = {
 
 export const supabase = envMissing
   ? (dummySupabase as unknown as ReturnType<typeof createClient>)
-  : createClient(supabaseUrl!, supabaseAnonKey!);
+  : createClient(supabaseUrl!, supabaseAnonKey!, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: 'tokyo-housing-auth',
+      },
+    });

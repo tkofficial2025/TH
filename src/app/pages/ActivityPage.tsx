@@ -13,7 +13,8 @@ interface ActivityPageProps {
   onSelectProperty?: (id: number, source: 'rent' | 'buy') => void;
 }
 
-type AppliedItem = { property: Property; hasTour: boolean; hasInquiry: boolean };
+type TourCandidate = { date: string; timeRange: string };
+type AppliedItem = { property: Property; hasTour: boolean; hasInquiry: boolean; tourCandidates?: TourCandidate[] };
 
 export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps) {
   const [userName, setUserName] = useState('');
@@ -38,13 +39,43 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
 
       setLoading(true);
       const [tourRows, inquiryRows] = await Promise.all([
-        supabase.from('property_tour_requests').select('property_id').eq('user_id', user.id),
+        supabase
+          .from('property_tour_requests')
+          .select('property_id, property_tour_request_candidates(candidate_date, time_range)')
+          .eq('user_id', user.id),
         supabase.from('property_inquiries').select('property_id').eq('email', user.email ?? ''),
       ]);
 
-      const tourIds = new Set((tourRows.data ?? []).map((r) => r.property_id));
-      const inquiryIds = new Set((inquiryRows.data ?? []).map((r) => r.property_id));
+      // Supabase の bigint が文字列で返ることがあるため、数値に統一。NaN は除外する
+      const toNum = (v: unknown): number => (typeof v === 'number' ? v : Number(v));
+      const validId = (n: number) => !Number.isNaN(n) && n > 0;
+      const tourIds = new Set(
+        (tourRows.data ?? []).map((r) => toNum((r as { property_id?: unknown }).property_id)).filter(validId)
+      );
+      const inquiryIds = new Set(
+        (inquiryRows.data ?? []).map((r) => toNum((r as { property_id?: unknown }).property_id)).filter(validId)
+      );
       const allIds = [...new Set([...tourIds, ...inquiryIds])];
+
+      // property_id -> 候補日時のマップ（内見予約した物件のみ）
+      type CandidateRow = { candidate_date?: string; time_range?: string };
+      const tourCandidatesByPropertyId = new Map<number, TourCandidate[]>();
+      for (const row of tourRows.data ?? []) {
+        const pid = toNum((row as { property_id?: unknown }).property_id);
+        if (!validId(pid)) continue;
+        const raw = (row as { property_tour_request_candidates?: CandidateRow[] }).property_tour_request_candidates;
+        const candidates: TourCandidate[] = Array.isArray(raw)
+          ? raw
+            .filter((c) => c?.candidate_date)
+            .map((c) => ({
+              date: String(c.candidate_date).slice(0, 10),
+              timeRange: String(c?.time_range ?? ''),
+            }))
+          : [];
+        if (candidates.length > 0) {
+          tourCandidatesByPropertyId.set(pid, candidates);
+        }
+      }
 
       if (allIds.length === 0) {
         setAppliedRent([]);
@@ -54,26 +85,43 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
       }
 
       const { data: props } = await supabase.from('properties').select('*').in('id', allIds);
-      const list: AppliedItem[] = (props ?? []).map((r) => ({
-        property: mapSupabaseRowToProperty(r as SupabasePropertyRow),
-        hasTour: tourIds.has(r.id),
-        hasInquiry: inquiryIds.has(r.id),
-      }));
+      const list: AppliedItem[] = (props ?? []).map((r) => {
+        const property = mapSupabaseRowToProperty(r as SupabasePropertyRow);
+        const hasTour = tourIds.has(property.id);
+        return {
+          property,
+          hasTour,
+          hasInquiry: inquiryIds.has(property.id),
+          tourCandidates: hasTour ? tourCandidatesByPropertyId.get(property.id) : undefined,
+        };
+      });
 
       setAppliedRent(list.filter((x) => x.property.type === 'rent'));
       setAppliedBuy(list.filter((x) => x.property.type === 'buy'));
       setLoading(false);
     }
     load();
-  }, [onNavigate]);
+    // 初回マウント時のみ実行（onNavigate を依存に含めると親の再レンダーで再実行され下までスクロール時に「リロード」のように見える）
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     onNavigate('home');
   };
 
+  function formatCandidateDate(dateStr: string, timeRange: string) {
+    try {
+      const d = new Date(dateStr + 'T00:00:00');
+      const formatted = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return timeRange ? `${formatted} ${timeRange}` : formatted;
+    } catch {
+      return timeRange ? `${dateStr} ${timeRange}` : dateStr;
+    }
+  }
+
   function Card({ item, source }: { item: AppliedItem; source: 'rent' | 'buy' }) {
-    const { property, hasTour, hasInquiry } = item;
+    const { property, hasTour, hasInquiry, tourCandidates } = item;
     return (
       <div
         role="button"
@@ -84,20 +132,22 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
       >
         <div className="relative aspect-[4/3] bg-gray-100">
           <ImageWithFallback src={property.image} alt={property.title} className="w-full h-full object-cover" />
-          <span
-            className={`absolute top-3 left-3 px-2 py-1 text-xs font-semibold rounded-lg ${
-              source === 'rent' ? 'bg-white text-gray-900' : 'bg-[#C1121F] text-white'
-            }`}
-          >
-            {source === 'rent' ? 'For Rent' : 'For Sale'}
-          </span>
-          <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
-            {hasTour && <span className="px-2 py-0.5 bg-[#C1121F] text-white text-xs font-medium rounded">Room tour</span>}
-            {hasInquiry && <span className="px-2 py-0.5 bg-gray-700 text-white text-xs font-medium rounded">資料請求</span>}
-          </div>
         </div>
         <div className="p-4">
-          <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">{property.title}</h3>
+          <div className="mb-3">
+            <span
+              className={`inline-block px-2 py-1 text-xs font-semibold rounded-lg ${
+                source === 'rent' ? 'bg-gray-200 text-gray-800' : 'bg-[#C1121F] text-white'
+              }`}
+            >
+              {source === 'rent' ? 'For Rent' : 'For Sale'}
+            </span>
+          </div>
+          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{property.title}</h3>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {hasTour && <span className="inline-flex px-2 py-1 text-white text-xs font-medium rounded" style={{ backgroundColor: '#C1121F' }}>Room tour booked</span>}
+            {hasInquiry && <span className="inline-flex px-2 py-1 text-white text-xs font-medium rounded" style={{ backgroundColor: '#374151' }}>Details requested</span>}
+          </div>
           <p className="text-sm text-gray-500 mb-2 line-clamp-1">{property.address}</p>
           <p className="font-semibold text-[#C1121F] mb-2">{formatPrice(property.price, source)}</p>
           <div className="flex items-center gap-2 text-xs text-gray-600">
@@ -112,6 +162,20 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
             <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
             <span>{property.station} • {property.walkingMinutes} min</span>
           </div>
+
+          {hasTour && tourCandidates && tourCandidates.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <p className="text-xs font-medium text-gray-500 mb-1.5 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5" />
+                Preferred tour dates
+              </p>
+              <ul className="space-y-1 text-xs text-gray-600">
+                {tourCandidates.map((c, i) => (
+                  <li key={i}>{formatCandidateDate(c.date, c.timeRange)}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -178,7 +242,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
 
         <main className="flex-1 min-h-[calc(100vh-5rem)] bg-white p-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">応募した物件</h1>
-          <p className="text-sm text-gray-500 mb-6">Room tour または資料請求をした物件を確認できます。</p>
+          <p className="text-sm text-gray-500 mb-6">View properties for which you have requested a room tour or property details.</p>
 
           <div className="flex gap-8 border-b border-gray-200 mb-6">
             <button
@@ -205,7 +269,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
             <p className="text-gray-500">読み込み中...</p>
           ) : list.length === 0 ? (
             <p className="text-gray-600">
-              {activeTab === 'rent' ? '応募した賃貸物件はありません。' : '応募した売買物件はありません。'}
+              {activeTab === 'rent' ? 'No rental properties with tour or inquiry requests.' : 'No properties for sale with tour or inquiry requests.'}
             </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

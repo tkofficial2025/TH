@@ -22,6 +22,7 @@ import { PrivacyPolicyPage } from '@/app/pages/PrivacyPolicyPage';
 import { MyAccountPage } from '@/app/pages/MyAccountPage';
 import { SignUpPage } from '@/app/pages/SignUpPage';
 import { FavoritesPage } from '@/app/pages/FavoritesPage';
+import { ActivityPage } from '@/app/pages/ActivityPage';
 import { ProfilePage } from '@/app/pages/ProfilePage';
 import type { HeroSearchParams } from '@/lib/searchFilters';
 import {

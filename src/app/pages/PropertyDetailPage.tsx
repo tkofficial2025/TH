@@ -19,6 +19,7 @@ import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { PropertyMap } from '@/app/components/PropertyMap';
 import { supabase } from '@/lib/supabase';
+import { sendRequestEmails } from '@/lib/send-request-emails';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 
@@ -44,6 +45,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
     { date: '', timeRange: '09:00-12:00' },
   ]);
   const [tourConfirmed, setTourConfirmed] = useState(false);
+  const [tourError, setTourError] = useState<string | null>(null);
   const [inquiryName, setInquiryName] = useState('');
   const [inquiryEmail, setInquiryEmail] = useState('');
   const [inquiryLoading, setInquiryLoading] = useState(false);
@@ -86,6 +88,33 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
     }
     checkFavorite();
   }, [propertyId]);
+
+  // 既に内見予約・資料請求済みなら完了表示にする（物件読み込み後・DB の bigint に合わせて数値で検索）
+  useEffect(() => {
+    if (!propertyId || loading) return;
+    async function checkAlreadyRequested() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const pid = Number(propertyId);
+      const [tourRes, inquiryRes] = await Promise.all([
+        supabase
+          .from('property_tour_requests')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('property_id', pid)
+          .limit(1),
+        supabase
+          .from('property_inquiries')
+          .select('id')
+          .eq('email', String(user.email ?? '').trim())
+          .eq('property_id', pid)
+          .limit(1),
+      ]);
+      if (Array.isArray(tourRes.data) && tourRes.data.length > 0) setTourConfirmed(true);
+      if (Array.isArray(inquiryRes.data) && inquiryRes.data.length > 0) setInquirySent(true);
+    }
+    checkAlreadyRequested();
+  }, [propertyId, loading]);
 
   const toggleFavorite = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -141,9 +170,17 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
       setInquiryError(error.message);
       return;
     }
+    const nameForEmail = inquiryName.trim() || '';
     setInquirySent(true);
     setInquiryName('');
     setInquiryEmail('');
+    sendRequestEmails({
+      type: 'inquiry',
+      email,
+      name: nameForEmail,
+      propertyId: Number(propertyId),
+      propertyTitle: property?.title ?? undefined,
+    }).then((r) => { if (!r.ok) console.error('[send-request-emails]', r.error); });
   };
 
   if (loading) {
@@ -190,7 +227,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
     <div className="min-h-screen bg-gray-50">
       <Header onNavigate={onNavigate} currentPage={source} />
 
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="max-w-7xl mx-auto px-6 pt-10 pb-6">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
           <button type="button" onClick={() => onNavigate?.('home')} className="hover:text-gray-900">
@@ -408,7 +445,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Request a Tour</h3>
                 {tourConfirmed ? (
-                  <p className="text-sm text-green-600 py-2">A staff member will contact you within 24 hours.</p>
+                  <p className="text-sm text-green-600 py-2">Room tour already requested. A staff member will contact you within 24 hours.</p>
                 ) : (
                 <>
                 <p className="text-xs text-gray-500 mb-4">Please provide up to 3 preferred date and time options. We will contact you to confirm.</p>
@@ -455,18 +492,56 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                       </div>
                     </div>
                   ))}
+                  {tourError && (
+                    <p className="text-xs text-red-600 mb-2">{tourError}</p>
+                  )}
                   <button
                     type="button"
                     onClick={async () => {
+                      setTourError(null);
                       const { data: { user } } = await supabase.auth.getUser();
-                      if (user) {
-                        await supabase.from('property_tour_requests').insert({
+                      if (!user) {
+                        setTourError('Please sign in to your account to request a room tour.');
+                        return;
+                      }
+                      const { data: tourRequest, error: tourError } = await supabase
+                        .from('property_tour_requests')
+                        .insert({
                           user_id: user.id,
-                          property_id: propertyId,
-                          tour_candidates: tourCandidates,
-                        });
+                          property_id: Number(propertyId),
+                        })
+                        .select('id')
+                        .single();
+                      if (tourError || !tourRequest) {
+                        setTourError(tourError?.message || 'Failed to submit. Please try again.');
+                        return;
+                      }
+                      const filled = tourCandidates.filter((c) => c.date.trim() !== '');
+                      if (filled.length > 0) {
+                        const { error: candidatesError } = await supabase
+                          .from('property_tour_request_candidates')
+                          .insert(
+                            filled.map((c) => ({
+                              tour_request_id: tourRequest.id,
+                              candidate_date: c.date,
+                              time_range: c.timeRange,
+                            }))
+                          );
+                        if (candidatesError) {
+                          setTourError(candidatesError.message || 'Failed to save preferred times.');
+                          return;
+                        }
                       }
                       setTourConfirmed(true);
+                      const userName = [user.user_metadata?.first_name, user.user_metadata?.last_name].filter(Boolean).join(' ') || user.email || '';
+                      sendRequestEmails({
+                        type: 'tour',
+                        userEmail: user.email ?? '',
+                        userName,
+                        propertyId: Number(propertyId),
+                        propertyTitle: property?.title ?? undefined,
+                        candidateDates: filled.length > 0 ? filled : undefined,
+                      }).then((r) => { if (!r.ok) console.error('[send-request-emails]', r.error); });
                     }}
                     disabled={!tourCandidates.every((c) => c.date.trim() !== '')}
                     className="w-full py-3 bg-[#C1121F] text-white font-semibold rounded-lg hover:bg-[#A00F1A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#C1121F]"
@@ -483,7 +558,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">Check Availability and Request Property Details</h3>
                 <p className="text-xs text-gray-500 mb-3">Enter your name and email address. We will send you availability and full details for this property. You can check anytime.</p>
                 {inquirySent ? (
-                  <p className="text-sm text-green-600 py-2">Request received. A staff member will contact you within 24 hours.</p>
+                  <p className="text-sm text-green-600 py-2">Property details request already submitted. A staff member will contact you within 24 hours.</p>
                 ) : (
                   <form onSubmit={handleInquirySubmit} className="space-y-3">
                     <div>

@@ -87,7 +87,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
               }}
               className="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity h-full"
             >
-              <img src="/logo2.png" alt="Tokyo Housing" className="h-16 md:h-20 w-auto object-contain" />
+              <img src="/logo3.png" alt="Tokyo Housing" className="h-16 md:h-20 w-auto object-contain" />
             </button>
 
             {/* Desktop Navigation - Pill Container */}

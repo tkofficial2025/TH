@@ -190,7 +190,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
         <aside className="w-64 min-h-[calc(100vh-5rem)] bg-gray-200 border-r border-gray-300 flex flex-col flex-shrink-0">
           <div className="p-4 border-b border-gray-300">
             <button type="button" onClick={() => onNavigate('home')} className="hover:opacity-80">
-              <img src="/logo2.png" alt="Tokyo Housing" className="h-10 w-auto object-contain" />
+              <img src="/logo3.png" alt="Tokyo Housing" className="h-10 w-auto object-contain" />
             </button>
           </div>
           <nav className="p-3 flex-1">

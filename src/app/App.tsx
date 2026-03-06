@@ -69,12 +69,6 @@ export default function App() {
     return () => window.removeEventListener('popstate', syncFromUrl);
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const handleNavigate = (page: Page, options?: { categoryId?: string; blogPostId?: number }) => {
     if (page === 'home') {
       setSelectedWard(null);
@@ -248,7 +242,7 @@ export default function App() {
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage: 'url(/tokyo.jpg)',
-              transform: `translateY(${scrollY * 0.3}px) scale(1.05)`,
+              transform: 'scale(1.05)',
             }}
           />
         </div>

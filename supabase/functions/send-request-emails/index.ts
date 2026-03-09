@@ -3,7 +3,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'Tokyo Housing <onboarding@resend.dev>';
+const FROM_EMAIL = Deno.env.get('FROM_EMAIL') || 'Tokyo Expat Housing <onboarding@resend.dev>';
 const OWNER_EMAIL = Deno.env.get('OWNER_EMAIL') || '';
 
 type TourPayload = {
@@ -71,12 +71,19 @@ async function sendResend(to: string, subject: string, html: string): Promise<{ 
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: { 'Access-Control-Allow-Origin': '*' } });
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      },
+    });
   }
 
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   };
 
   if (req.method !== 'POST') {
@@ -107,9 +114,9 @@ serve(async (req) => {
       <p>Hello ${name || 'there'},</p>
       <p>Thank you for requesting a free consultation.</p>
       <p>We've received your details and a staff member will contact you within 24 hours to schedule your consultation.</p>
-      <p>Best regards,<br/>Tokyo Housing</p>
+      <p>Best regards,<br/>Tokyo Expat Housing</p>
     `;
-    const r1 = await sendResend(email, 'Free consultation request received – Tokyo Housing', customerHtml);
+    const r1 = await sendResend(email, 'Free consultation request received – Tokyo Expat Housing', customerHtml);
     results.push({ to: email, ok: r1.ok, error: r1.error });
 
     if (OWNER_EMAIL) {
@@ -123,7 +130,7 @@ serve(async (req) => {
         <p>Meeting: ${meetingLabel}</p>
         ${messageLine}
       `;
-      const r2 = await sendResend(OWNER_EMAIL, `[Tokyo Housing] Free consultation: ${name || email}`, ownerHtml);
+      const r2 = await sendResend(OWNER_EMAIL, `[Tokyo Expat Housing] Free consultation: ${name || email}`, ownerHtml);
       results.push({ to: OWNER_EMAIL, ok: r2.ok, error: r2.error });
     }
   } else if (isTour(payload)) {
@@ -140,9 +147,9 @@ serve(async (req) => {
       <p><strong>Preferred dates:</strong></p>
       <p>${datesList}</p>
       <p>A staff member will contact you within 24 hours to confirm your viewing.</p>
-      <p>Best regards,<br/>Tokyo Housing</p>
+      <p>Best regards,<br/>Tokyo Expat Housing</p>
     `;
-    const r1 = await sendResend(userEmail, 'Room tour request received – Tokyo Housing', customerHtml);
+    const r1 = await sendResend(userEmail, 'Room tour request received – Tokyo Expat Housing', customerHtml);
     results.push({ to: userEmail, ok: r1.ok, error: r1.error });
 
     if (OWNER_EMAIL) {
@@ -153,7 +160,7 @@ serve(async (req) => {
         <p>Preferred dates:</p>
         <p>${datesList}</p>
       `;
-      const r2 = await sendResend(OWNER_EMAIL, `[Tokyo Housing] Room tour request: ${title}`, ownerHtml);
+      const r2 = await sendResend(OWNER_EMAIL, `[Tokyo Expat Housing] Room tour request: ${title}`, ownerHtml);
       results.push({ to: OWNER_EMAIL, ok: r2.ok, error: r2.error });
     }
   } else if (isInquiry(payload)) {
@@ -165,9 +172,9 @@ serve(async (req) => {
       <p>Thank you for your request for property details.</p>
       <p><strong>Property:</strong> ${title}</p>
       <p>A staff member will contact you within 24 hours with availability and full details.</p>
-      <p>Best regards,<br/>Tokyo Housing</p>
+      <p>Best regards,<br/>Tokyo Expat Housing</p>
     `;
-    const r1 = await sendResend(email, 'Property details request received – Tokyo Housing', customerHtml);
+    const r1 = await sendResend(email, 'Property details request received – Tokyo Expat Housing', customerHtml);
     results.push({ to: email, ok: r1.ok, error: r1.error });
 
     if (OWNER_EMAIL) {
@@ -176,7 +183,7 @@ serve(async (req) => {
         <p>Customer: ${name || '—'} &lt;${email}&gt;</p>
         <p>Property: ${title} (ID: ${propertyId})</p>
       `;
-      const r2 = await sendResend(OWNER_EMAIL, `[Tokyo Housing] Details request: ${title}`, ownerHtml);
+      const r2 = await sendResend(OWNER_EMAIL, `[Tokyo Expat Housing] Details request: ${title}`, ownerHtml);
       results.push({ to: OWNER_EMAIL, ok: r2.ok, error: r2.error });
     }
   }

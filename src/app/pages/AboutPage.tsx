@@ -19,7 +19,7 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
           </div>
           <div className="max-w-4xl space-y-4 text-lg text-gray-700 leading-relaxed">
             <p>
-              Tokyo Housing (operated by Jokyo Property Co., Ltd.) is a Tokyo-based real estate service dedicated to international residents, students, and global clients.
+              Tokyo Expat Housing (operated by Jokyo Property Co., Ltd.) is a Tokyo-based real estate service dedicated to international residents, students, and global clients.
             </p>
             <p>
               We specialize in helping international clients find ideal properties in Tokyo through clear communication, transparent fees, and full multilingual support.

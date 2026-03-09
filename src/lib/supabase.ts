@@ -39,6 +39,6 @@ export const supabase = envMissing
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        storageKey: 'tokyo-housing-auth',
+        storageKey: 'tokyo-expat-housing-auth',
       },
     });

@@ -180,7 +180,7 @@ supabase functions deploy send-request-emails --no-verify-jwt
 |---------------------|------|
 | `RESEND_API_KEY`    | Resend の API キー（必須） |
 | `OWNER_EMAIL`       | 管理者（あなた）のメールアドレス。ここに通知が届きます |
-| `FROM_EMAIL`        | （任意）送信元。例: `Tokyo Housing <noreply@yourdomain.com>`。未設定時は Resend のデフォルト |
+| `FROM_EMAIL`        | （任意）送信元。例: `Tokyo Expat Housing <noreply@yourdomain.com>`。未設定時は Resend のデフォルト |
 
 ### 3. 動作
 

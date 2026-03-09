@@ -596,7 +596,7 @@ export default function App() {
         </div>
       </section>
 
-      {/* Why Tokyo Housing Section */}
+      {/* Why Tokyo Expat Housing Section */}
       <section id="why-us" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div
@@ -605,7 +605,7 @@ export default function App() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Why Tokyo Housing</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Why Tokyo Expat Housing</h2>
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -708,7 +708,7 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-2 mb-6">
-                <span className="text-2xl font-semibold">Tokyo Housing</span>
+                <span className="text-2xl font-semibold">Tokyo Expat Housing</span>
               </div>
               
               {/* Company Info */}

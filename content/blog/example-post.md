@@ -1,11 +1,11 @@
 ---
-title: "Tokyo Housing Guide - Getting Started"
+title: "Tokyo Expat Housing Guide - Getting Started"
 date: "2024-01-15"
 category: "Guide"
 featuredImage: "/tokyo.jpg"
 ---
 
-# Tokyo Housing Guide - Getting Started
+# Tokyo Expat Housing Guide - Getting Started
 
 Welcome to our comprehensive guide on finding housing in Tokyo! This article will help you navigate the Tokyo real estate market.
 

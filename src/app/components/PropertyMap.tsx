@@ -3,6 +3,9 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { geocodeAddress, type Coordinates } from '@/lib/geocoding';
+import { getTileLayerConfig, getMaptilerApiKey } from '@/lib/mapTiles';
+import { useLanguage } from '@/app/contexts/LanguageContext';
+import { MapTilerLayer } from '@/app/components/MapTilerLayer';
 
 // Leafletのデフォルトアイコンの問題を修正
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -31,6 +34,9 @@ function MapCenterUpdater({ center }: { center: [number, number] }) {
 }
 
 export function PropertyMap({ address, title, className = '', height = '400px' }: PropertyMapProps) {
+  const { t, language } = useLanguage();
+  const tileConfig = getTileLayerConfig(language);
+  const maptilerApiKey = getMaptilerApiKey();
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +44,7 @@ export function PropertyMap({ address, title, className = '', height = '400px' }
   useEffect(() => {
     async function loadCoordinates() {
       if (!address) {
-        setError('住所が指定されていません');
+        setError('no_address');
         setLoading(false);
         return;
       }
@@ -51,7 +57,7 @@ export function PropertyMap({ address, title, className = '', height = '400px' }
       if (coords) {
         setCoordinates(coords);
       } else {
-        setError('住所から位置を取得できませんでした');
+        setError('geocode_error');
       }
       
       setLoading(false);
@@ -63,15 +69,16 @@ export function PropertyMap({ address, title, className = '', height = '400px' }
   if (loading) {
     return (
       <div className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`} style={{ height }}>
-        <p className="text-gray-500">地図を読み込み中...</p>
+        <p className="text-gray-500">{t('map.loading')}</p>
       </div>
     );
   }
 
   if (error || !coordinates) {
+    const message = error === 'no_address' ? t('map.no_address') : error === 'geocode_error' ? t('map.geocode_error') : t('map.cannot_display');
     return (
       <div className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`} style={{ height }}>
-        <p className="text-gray-500">{error || '地図を表示できません'}</p>
+        <p className="text-gray-500">{message}</p>
       </div>
     );
   }
@@ -86,15 +93,16 @@ export function PropertyMap({ address, title, className = '', height = '400px' }
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {maptilerApiKey ? (
+          <MapTilerLayer apiKey={maptilerApiKey} language={language} />
+        ) : (
+          <TileLayer attribution={tileConfig.attribution} url={tileConfig.url} />
+        )}
         <MapCenterUpdater center={center} />
         <Marker position={center}>
           <Popup>
             <div>
-              <p className="font-semibold">{title || '物件位置'}</p>
+              <p className="font-semibold">{title || t('map.property_location')}</p>
               <p className="text-sm text-gray-600">{address}</p>
             </div>
           </Popup>

@@ -21,5 +21,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'motion', 'leaflet', 'react-leaflet'],
+    force: true, // 504 Outdated Optimize Dep 対策。解消したら false に戻してよい
   },
 })

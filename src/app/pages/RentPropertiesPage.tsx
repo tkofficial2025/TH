@@ -25,6 +25,7 @@ import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { filterPropertiesByHeroParams, type HeroSearchParams } from '@/lib/searchFilters';
 import { searchProperties } from '@/lib/fullTextSearch';
 import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 interface RentPropertiesPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent') => void;
@@ -34,6 +35,7 @@ interface RentPropertiesPageProps {
 }
 
 export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty, initialSearchParams }: RentPropertiesPageProps) {
+  const { t } = useLanguage();
   const [showMap, setShowMap] = useState(true);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -327,11 +329,11 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
         <div className="max-w-[1600px] mx-auto px-6">
           {/* Filter Bar Toggle Button */}
           <div className="flex items-center justify-between py-3 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900">Filters</h2>
+            <h2 className="text-sm font-semibold text-gray-900">{t('filter.title')}</h2>
             <div className="flex items-center gap-4">
               {/* Show Map Toggle Switch */}
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">Show map</span>
+                <span className="text-sm font-medium text-gray-700">{t('filter.show_map')}</span>
                 <button
                   onClick={() => setShowMap(!showMap)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:ring-offset-2 ${
@@ -351,12 +353,12 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
               >
                 {filterBarOpen ? (
                   <>
-                    <span>Hide</span>
+                    <span>{t('filter.hide')}</span>
                     <ChevronUp className="w-4 h-4" />
                   </>
                 ) : (
                   <>
-                    <span>Show</span>
+                    <span>{t('filter.show')}</span>
                     <ChevronDown className="w-4 h-4" />
                   </>
                 )}
@@ -422,7 +424,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
 
             {/* Monthly Rent */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-600 whitespace-nowrap">Monthly Rent:</span>
+              <span className="text-xs text-gray-600 whitespace-nowrap">{t('listing.monthly_rent_label')}</span>
               <input
                 type="text"
                 placeholder="Min ¥"
@@ -466,7 +468,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                   moreFiltersOpen ? 'bg-gray-100 border-gray-300' : ''
                 }`}
               >
-                More
+                {t('filter.more_filters')}
                 <SlidersHorizontal className="w-3.5 h-3.5" />
               </button>
               
@@ -474,7 +476,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
               {moreFiltersOpen && (
                 <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-900">More Filters</h3>
+                    <h3 className="text-sm font-semibold text-gray-900">{t('filter.more_filters')}</h3>
                     <button
                       onClick={() => setMoreFiltersOpen(false)}
                       className="text-gray-400 hover:text-gray-600"
@@ -811,12 +813,12 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                {selectedWard ? `Properties for rent in ${selectedWard}` : 'Properties for rent'}
+                {selectedWard ? t('listing.title.rent.ward').replace('{ward}', selectedWard) : t('listing.title.rent')}
               </h1>
-              <p className="text-sm text-gray-600">{sortedProperties.length} results</p>
+              <p className="text-sm text-gray-600">{t('listing.results_count').replace('{count}', String(sortedProperties.length))}</p>
             </div>
             <div className="w-48">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('sort.label')}</label>
               <select
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value as SortOption)}
@@ -824,7 +826,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
               >
                 {sortOptions.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {t(`sort.${option.value.replace(/-/g, '_')}`)}
                   </option>
                 ))}
               </select>

@@ -22,6 +22,7 @@ import { supabase } from '@/lib/supabase';
 import { sendRequestEmails } from '@/lib/send-request-emails';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 interface PropertyDetailPageProps {
   propertyId: number;
@@ -32,6 +33,7 @@ interface PropertyDetailPageProps {
 
 export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: PropertyDetailPageProps) {
   const { formatPrice } = useCurrency();
+  const { t } = useLanguage();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -186,7 +188,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">読み込み中...</p>
+        <p className="text-gray-500">{t('property.loading')}</p>
       </div>
     );
   }
@@ -195,32 +197,32 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
       <div className="min-h-screen bg-gray-50">
         <Header onNavigate={onNavigate} currentPage={source} />
         <div className="max-w-4xl mx-auto px-6 py-16 text-center">
-          <p className="text-red-600 mb-4">{error || '物件が見つかりません'}</p>
+          <p className="text-red-600 mb-4">{error || t('property.notfound')}</p>
           <button
             type="button"
             onClick={onBack}
             className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
           >
-            一覧に戻る
+            {t('property.back')}
           </button>
         </div>
       </div>
     );
   }
 
-  const breadcrumbLabel = source === 'rent' ? 'Rent' : 'Buy';
-  const priceLabel = source === 'rent' ? 'Monthly rent' : 'Price';
+  const breadcrumbLabel = source === 'rent' ? t('search.rent') : t('search.buy');
+  const priceLabel = source === 'rent' ? t('property.price.rent') : t('property.price.buy');
   const priceDisplay = formatPrice(property.price, source);
 
   const allPhotos = [property.image, ...(property.images ?? [])].filter(Boolean) as string[];
   const featureFlags = [
-    property.petFriendly && { label: 'Pet-friendly', Icon: Building2 },
-    property.foreignFriendly && { label: 'Foreign-friendly', Icon: Building2 },
-    property.balcony && { label: 'Balcony', Icon: Building2 },
-    property.bicycleParking && { label: 'Bicycle parking', Icon: Bike },
-    property.deliveryBox && { label: 'Delivery box', Icon: Package },
-    property.elevator && { label: 'Elevator', Icon: ArrowUpDown },
-    property.southFacing && { label: 'South facing', Icon: Maximize2 },
+    property.petFriendly && { label: t('property.feature.pet'), Icon: Building2 },
+    property.foreignFriendly && { label: t('property.feature.foreign'), Icon: Building2 },
+    property.balcony && { label: t('property.feature.balcony'), Icon: Building2 },
+    property.bicycleParking && { label: t('property.feature.bicycle'), Icon: Bike },
+    property.deliveryBox && { label: t('property.feature.delivery'), Icon: Package },
+    property.elevator && { label: t('property.feature.elevator'), Icon: ArrowUpDown },
+    property.southFacing && { label: t('property.feature.south'), Icon: Maximize2 },
   ].filter(Boolean) as { label: string; Icon: typeof Building2 }[];
 
   return (
@@ -231,7 +233,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
           <button type="button" onClick={() => onNavigate?.('home')} className="hover:text-gray-900">
-            Home page
+            {t('nav.home')}
           </button>
           <ChevronRight className="w-4 h-4" />
           <span>{breadcrumbLabel}</span>
@@ -260,12 +262,12 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                     ))
                   : [1, 2, 3].map((i) => (
                       <div key={i} className="rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-500 text-xs">Photo {i + 1}</span>
+                        <span className="text-gray-500 text-xs">{t('property.photo')} {i + 1}</span>
                       </div>
                     ))}
               </div>
             </div>
-            <p className="text-xs text-gray-500">※The building completion forecast image is based on the drawing and may differ from the actual property.</p>
+            <p className="text-xs text-gray-500">{t('property.photo.disclaimer')}</p>
 
             {/* Location + Title + Station */}
             <p className="text-gray-600">{property.address}</p>
@@ -282,17 +284,17 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                   <Heart className={`w-5 h-5 ${favorite ? 'fill-[#C1121F] text-[#C1121F]' : 'text-gray-600'}`} />
                 </button>
                 <button type="button" className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm font-medium">
-                  <FileText className="w-4 h-4" /> Brochure
+                  <FileText className="w-4 h-4" /> {t('property.brochure')}
                 </button>
               </div>
               {favoriteMessage === 'added' && (
-                <p className="text-sm text-green-600 mt-2">Added to Favorites.</p>
+                <p className="text-sm text-green-600 mt-2">{t('property.favorite.added')}</p>
               )}
               {favoriteMessage === 'removed' && (
-                <p className="text-sm text-gray-500 mt-2">Removed from Favorites.</p>
+                <p className="text-sm text-gray-500 mt-2">{t('property.favorite.removed')}</p>
               )}
               {favoriteMessage === 'error' && (
-                <p className="text-sm text-red-600 mt-2">Could not save. Check Supabase: run add_user_favorites.sql in SQL Editor.</p>
+                <p className="text-sm text-red-600 mt-2">{t('property.favorite.error')}</p>
               )}
             </div>
             <div className="flex flex-wrap gap-3">
@@ -317,45 +319,45 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                 {source === 'rent' && (
                   <>
                     <div className="flex justify-between py-2 border-b border-gray-100">
-                      <span className="text-gray-600">Management fee</span>
+                      <span className="text-gray-600">{t('property.management_fee')}</span>
                       <span className="font-medium">
                         {property.managementFee != null ? formatPrice(property.managementFee, 'rent') : '—'}
                       </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100">
-                      <span className="text-gray-600">Deposit</span>
+                      <span className="text-gray-600">{t('property.deposit')}</span>
                       <span className="font-medium">
-                        {property.deposit != null ? (property.deposit === 0 ? 'No deposit' : formatPrice(property.deposit, 'rent')) : '—'}
+                        {property.deposit != null ? (property.deposit === 0 ? t('property.no_deposit') : formatPrice(property.deposit, 'rent')) : '—'}
                       </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-gray-100">
-                      <span className="text-gray-600">Key money</span>
+                      <span className="text-gray-600">{t('property.key_money')}</span>
                       <span className="font-medium">
-                        {property.keyMoney != null ? (property.keyMoney === 0 ? 'No key money' : formatPrice(property.keyMoney, 'rent')) : '—'}
+                        {property.keyMoney != null ? (property.keyMoney === 0 ? t('property.no_key_money') : formatPrice(property.keyMoney, 'rent')) : '—'}
                       </span>
                     </div>
                   </>
                 )}
                 {source === 'buy' && property.managementFee != null && (
                   <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-600">Management fee</span>
+                    <span className="text-gray-600">{t('property.management_fee')}</span>
                     <span className="font-medium">{formatPrice(property.managementFee, 'rent')}</span>
                   </div>
                 )}
                 <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Layout</span>
+                  <span className="text-gray-600">{t('property.layout')}</span>
                   <span className="font-medium">{property.layout}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Bedrooms</span>
+                  <span className="text-gray-600">{t('property.bedrooms')}</span>
                   <span className="font-medium">{property.beds}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Size</span>
+                  <span className="text-gray-600">{t('property.size')}</span>
                   <span className="font-medium">{property.size} m²</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Floor</span>
+                  <span className="text-gray-600">{t('property.floor')}</span>
                   <span className="font-medium">{property.floor != null ? `${property.floor}F` : '—'}</span>
                 </div>
               </div>
@@ -364,16 +366,16 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
             {/* Rental Fees pills (from DB) */}
             {source === 'rent' && (property.keyMoney != null || property.deposit != null) && (
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Rental fees</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('property.rental_fees')}</h3>
                 <div className="flex flex-wrap gap-2">
                   {property.keyMoney === 0 && (
-                    <span className="px-4 py-2 bg-[#C1121F]/10 text-[#C1121F] rounded-lg text-sm font-medium">No key money</span>
+                    <span className="px-4 py-2 bg-[#C1121F]/10 text-[#C1121F] rounded-lg text-sm font-medium">{t('property.no_key_money')}</span>
                   )}
                   {property.keyMoney != null && property.keyMoney > 0 && (
-                    <span className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm">Key money</span>
+                    <span className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm">{t('property.key_money')}</span>
                   )}
                   {property.deposit != null && (
-                    <span className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm">Deposit</span>
+                    <span className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm">{property.deposit === 0 ? t('property.no_deposit') : t('property.deposit')}</span>
                   )}
                 </div>
               </div>
@@ -382,7 +384,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
             {/* Property Features (only show when true in DB) */}
             {featureFlags.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Property features</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('property.features')}</h3>
                 <div className="flex flex-wrap gap-2">
                   {featureFlags.map(({ label, Icon }) => (
                     <span key={label} className="px-3 py-1.5 bg-gray-900 text-white text-sm rounded-full flex items-center gap-1.5">
@@ -396,10 +398,10 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
 
             {/* Property Information */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Property information</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('property.information')}</h3>
               <p className="text-gray-600 text-sm leading-relaxed">
                 {descriptionExpanded
-                  ? `${property.title} offers a comfortable living space of ${property.size} m² in ${property.address}, with ${property.beds} bedroom(s) and ${property.layout} layout. Located ${property.walkingMinutes} minutes walk from ${property.station}, this property provides easy access to transport and local amenities.`
+                  ? `${property.title} offers a comfortable living space of ${property.size} m² in ${property.address}, with ${property.beds} bedroom(s) and ${property.layout} layout. Located ${property.walkingMinutes} ${t('property.walk.min')} from ${property.station}, this property provides easy access to transport and local amenities.`
                   : `${property.title} offers a comfortable living space of ${property.size} m² in ${property.address}...`}
               </p>
               <button
@@ -407,15 +409,15 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                 onClick={() => setDescriptionExpanded(!descriptionExpanded)}
                 className="mt-2 text-sm font-medium text-[#C1121F] flex items-center gap-1"
               >
-                {descriptionExpanded ? 'Show less' : 'Show more'} <ChevronDown className={`w-4 h-4 transition-transform ${descriptionExpanded ? 'rotate-180' : ''}`} />
+                {descriptionExpanded ? t('property.showLess') : t('property.readMore')} <ChevronDown className={`w-4 h-4 transition-transform ${descriptionExpanded ? 'rotate-180' : ''}`} />
               </button>
             </div>
 
             {/* Initial fees by card (only when enabled in DB) */}
             {source === 'rent' && property.initialFeesCreditCard && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">Initial fees can be paid by credit card</h3>
-                <p className="text-xs text-gray-500 mb-4">*Additional transaction fees may apply</p>
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">{t('property.initial_fees_card')}</h3>
+                <p className="text-xs text-gray-500 mb-4">{t('property.initial_fees_card_note')}</p>
                 <div className="flex gap-4 text-gray-600">
                   <span className="text-xs font-medium">JCB</span>
                   <span className="text-xs font-medium">Mastercard</span>
@@ -428,7 +430,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
             {/* Map */}
             {property.address && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Location</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('property.location')}</h3>
                 <PropertyMap 
                   address={property.address} 
                   title={property.title}
@@ -443,12 +445,12 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
             <div className="lg:sticky lg:top-[4.5rem] space-y-6">
               {/* Request a Tour */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Request a Tour</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('property.tour.title')}</h3>
                 {tourConfirmed ? (
-                  <p className="text-sm text-green-600 py-2">Room tour already requested. A staff member will contact you within 24 hours.</p>
+                  <p className="text-sm text-green-600 py-2">{t('property.tour.success')}</p>
                 ) : (
                 <>
-                <p className="text-xs text-gray-500 mb-4">Please provide up to 3 preferred date and time options. We will contact you to confirm.</p>
+                <p className="text-xs text-gray-500 mb-4">{t('property.tour.instruction')}</p>
                 <div className="space-y-4">
                   {tourCandidates.map((candidate, index) => (
                     <div key={index} className="p-3 border border-gray-200 rounded-lg space-y-2">
@@ -471,7 +473,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                           </div>
                         </div>
                         <div className="flex-1 min-w-[120px]">
-                          <label className="block text-xs text-gray-500 mb-1">Time range</label>
+                          <label className="block text-xs text-gray-500 mb-1">{t('property.tour.time_range')}</label>
                           <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-2 py-1.5">
                             <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
                             <select
@@ -513,7 +515,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                         .select('id')
                         .single();
                       if (tourError || !tourRequest) {
-                        setTourError(tourError?.message || 'Failed to submit. Please try again.');
+                        setTourError(tourError?.message || t('property.tour.submit_error'));
                         return;
                       }
                       const filled = tourCandidates.filter((c) => c.date.trim() !== '');
@@ -592,7 +594,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                       disabled={inquiryLoading}
                       className="w-full py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 disabled:opacity-60 transition-colors"
                     >
-                      {inquiryLoading ? 'Sending...' : 'Submit'}
+                      {inquiryLoading ? t('property.sending') : t('property.inquiry.submit')}
                     </button>
                   </form>
                 )}

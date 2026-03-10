@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, Mail, MessageSquare, Phone, User, Building2, ChevronDown, Search, Video } from 'lucide-react';
 import { Header } from '@/app/components/Header';
 import { sendRequestEmails } from '@/lib/send-request-emails';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 interface ConsultationPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent' | 'consultation') => void;
@@ -40,6 +41,7 @@ const COUNTRY_CODES: { code: string; label: string; dial: string }[] = [
 const OTHER_DIAL = '+';
 
 export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneCountry, setPhoneCountry] = useState('+81');
@@ -106,10 +108,10 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
             className="text-center mb-12"
           >
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-              Free Consultation
+              {t('consult.title')}
             </h1>
             <p className="text-xl text-gray-600">
-              Tell us about your goals. We'll get back to you within 24 hours to schedule a call or meeting.
+              {t('consult.desc')}
             </p>
           </motion.div>
 
@@ -122,16 +124,16 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
               <div className="w-16 h-16 bg-[#C1121F]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Mail className="w-8 h-8 text-[#C1121F]" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Thank you</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('consult.thank_you')}</h2>
               <p className="text-gray-600 mb-6">
-                We've received your request. Our team will contact you within 24 hours.
+                {t('consult.success_desc')}
               </p>
               <button
                 type="button"
                 onClick={() => onNavigate?.('home')}
                 className="px-6 py-3 bg-[#C1121F] text-white font-semibold rounded-xl hover:bg-[#A00F1A] transition-colors"
               >
-                Back to Home
+                {t('consult.back_home')}
               </button>
             </motion.div>
           ) : (
@@ -144,7 +146,7 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
             >
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Name *
+                  {t('consult.name')}
                 </label>
                 <div className="flex items-center gap-3 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#C1121F]/20 focus-within:border-[#C1121F]">
                   <span className="flex-shrink-0 pl-4 text-gray-400" aria-hidden>
@@ -157,14 +159,14 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="flex-1 min-w-0 py-3 pr-4 border-0 focus:ring-0 focus:outline-none bg-transparent"
-                    placeholder="Your name"
+                    placeholder={t('consult.name_ph')}
                   />
                 </div>
               </div>
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Email *
+                  {t('consult.email')}
                 </label>
                 <div className="flex items-center gap-3 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#C1121F]/20 focus-within:border-[#C1121F]">
                   <span className="flex-shrink-0 pl-4 text-gray-400" aria-hidden>
@@ -177,14 +179,14 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="flex-1 min-w-0 py-3 pr-4 border-0 focus:ring-0 focus:outline-none bg-transparent"
-                    placeholder="you@example.com"
+                    placeholder={t('consult.email_ph')}
                   />
                 </div>
               </div>
 
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Phone
+                  {t('consult.phone')}
                 </label>
                 <div className="flex items-center gap-0 border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-[#C1121F]/20 focus-within:border-[#C1121F] overflow-visible">
                   <span className="flex-shrink-0 pl-4 text-gray-400 rounded-l-xl" aria-hidden>
@@ -231,7 +233,7 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
                                 type="text"
                                 value={phoneCountrySearch}
                                 onChange={(e) => setPhoneCountrySearch(e.target.value)}
-                                placeholder="Search country..."
+                                placeholder={t('consult.search_country')}
                                 className="flex-1 min-w-0 py-1 bg-transparent border-0 text-sm focus:ring-0 focus:outline-none"
                               />
                             </div>
@@ -328,7 +330,7 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
                       className="w-5 h-5 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F] focus:ring-2 cursor-pointer"
                     />
                     <label htmlFor="preferOnlineMeeting" className="text-gray-700 cursor-pointer flex-1">
-                      I prefer online meeting
+                      {t('consult.online')}
                     </label>
                   </div>
                 </div>
@@ -336,7 +338,7 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
 
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Message
+                  {t('consult.message')}
                 </label>
                 <div className="flex gap-3 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#C1121F]/20 focus-within:border-[#C1121F]">
                   <span className="flex-shrink-0 pt-4 pl-4 text-gray-400 self-start" aria-hidden>
@@ -348,7 +350,7 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     className="flex-1 min-w-0 py-3 pr-4 border-0 focus:ring-0 focus:outline-none bg-transparent resize-none"
-                    placeholder="Tell us about your budget, preferred areas, or any questions..."
+                    placeholder={t('consult.message_ph')}
                   />
                 </div>
               </div>
@@ -357,7 +359,7 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
                 type="submit"
                 className="w-full py-4 bg-[#C1121F] text-white font-semibold rounded-xl hover:bg-[#A00F1A] transition-colors shadow-lg hover:shadow-xl"
               >
-                Request Free Consultation
+                {t('consult.submit')}
               </button>
             </motion.form>
           )}

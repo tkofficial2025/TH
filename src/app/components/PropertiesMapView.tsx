@@ -6,6 +6,9 @@ import Supercluster from 'supercluster';
 import { geocodeAddresses, type Coordinates } from '@/lib/geocoding';
 import { type Property } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getTileLayerConfig, getMaptilerApiKey } from '@/lib/mapTiles';
+import { MapTilerLayer } from '@/app/components/MapTilerLayer';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
 
@@ -49,6 +52,7 @@ function ClusterUpdater({
 }) {
   const map = useMap();
   const { formatPrice } = useCurrency();
+  const { t } = useLanguage();
   const [clusters, setClusters] = useState<any[]>([]);
 
   useEffect(() => {
@@ -128,8 +132,8 @@ function ClusterUpdater({
             >
               <Popup>
                 <div className="text-center">
-                  <p className="font-semibold">{pointCount} properties</p>
-                  <p className="text-xs text-gray-500">Click to zoom in</p>
+                  <p className="font-semibold">{t('map.cluster_count').replace('{n}', String(pointCount))}</p>
+                  <p className="text-xs text-gray-500">{t('map.click_to_zoom')}</p>
                 </div>
               </Popup>
             </Marker>
@@ -218,7 +222,7 @@ function ClusterUpdater({
                     {priceText}
                   </p>
                   <div className="flex gap-2 text-xs text-gray-500 mb-2">
-                    <span>{property.beds} bed</span>
+                    <span>{property.beds} {t('map.bed')}</span>
                     <span>•</span>
                     <span>{property.size} m²</span>
                     {property.station && (
@@ -254,6 +258,9 @@ export function PropertiesMapView({
   height = '600px' 
 }: PropertiesMapViewProps) {
   const { formatPrice } = useCurrency();
+  const { t, language } = useLanguage();
+  const tileConfig = getTileLayerConfig(language);
+  const maptilerApiKey = getMaptilerApiKey();
   const [propertyCoordinates, setPropertyCoordinates] = useState<Map<number, Coordinates>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -413,7 +420,7 @@ export function PropertiesMapView({
       <div className={`rounded-lg overflow-hidden border border-gray-200 ${className}`} style={{ height, position: 'relative', zIndex: 0 }}>
         {propertyCoordinates.size === 0 && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border border-gray-200">
-            <p className="text-sm text-gray-600 font-medium">表示できる物件がありません</p>
+            <p className="text-sm text-gray-600 font-medium">{t('map.no_properties')}</p>
           </div>
         )}
         <MapContainer
@@ -422,10 +429,11 @@ export function PropertiesMapView({
           style={{ height: '100%', width: '100%', position: 'relative', zIndex: 0 }}
           scrollWheelZoom={true}
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          {maptilerApiKey ? (
+            <MapTilerLayer apiKey={maptilerApiKey} language={language} />
+          ) : (
+            <TileLayer attribution={tileConfig.attribution} url={tileConfig.url} />
+          )}
           {bounds && <MapBoundsUpdater bounds={bounds} />}
           {cluster && <ClusterUpdater cluster={cluster} onPropertyClick={onPropertyClick} />}
         </MapContainer>

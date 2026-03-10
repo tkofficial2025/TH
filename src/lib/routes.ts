@@ -55,12 +55,19 @@ const PAGE_TO_PATH: Record<Page, string> = {
 };
 
 export function getPageFromPath(pathname: string): Page {
-  const normalized = pathname.replace(/\/$/, '') || '/';
+  // Remove /zh prefix if it exists
+  const base = pathname.startsWith('/zh/') ? pathname.substring(3) : 
+               pathname === '/zh' ? '/' : pathname;
+  const normalized = base.replace(/\/$/, '') || '/';
   return PATH_TO_PAGE[normalized] ?? 'home';
 }
 
-export function getPathFromPage(page: Page): string {
-  return PAGE_TO_PATH[page];
+export function getPathFromPage(page: Page, language?: string): string {
+  const path = PAGE_TO_PATH[page];
+  if (language === 'zh') {
+    return path === '/' ? '/zh' : `/zh${path}`;
+  }
+  return path;
 }
 
 export function getPathname(): string {

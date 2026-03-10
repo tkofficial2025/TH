@@ -8,6 +8,10 @@ Run `npm i` to install the dependencies.
 
 Run `npm run dev` to start the development server.
 
+**地図の表示言語**: サイトの言語（英語/中国語）に合わせて地図を切り替えています。  
+- **MapTiler API キーを設定した場合**: 地図の地名・住所ラベルが英語／中国語で表示されます。[MapTiler Cloud](https://cloud.maptiler.com/)で無料アカウントを作成し、API キーを取得して環境変数 `VITE_MAPTILER_API_KEY` に設定してください。  
+- **キー未設定の場合**: 英語時は CARTO、中国語時は OpenStreetMap のタイルを使用します（日本では現地語表記になることがあります）。
+
 ## Vercel にデプロイする
 
 1. **Vercel にログイン**  
@@ -25,6 +29,7 @@ Run `npm run dev` to start the development server.
    |------|--------|
    | `VITE_SUPABASE_URL` | Supabase の Project URL（例: `https://xxxxx.supabase.co`） |
    | `VITE_SUPABASE_ANON_KEY` | Supabase の anon public key |
+   | `VITE_MAPTILER_API_KEY` | （任意）MapTiler の API キー。設定すると地図の地名が英語／中国語で表示されます。[MapTiler Cloud](https://cloud.maptiler.com/account/keys/)で取得。 |
 
    値は [Supabase Dashboard](https://supabase.com/dashboard) → 対象プロジェクト → **Settings** → **API** で確認できる。
 

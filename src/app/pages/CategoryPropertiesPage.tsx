@@ -22,6 +22,7 @@ import { supabase } from '@/lib/supabase';
 import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
 
 interface CategoryPropertiesPageProps {
@@ -32,6 +33,7 @@ interface CategoryPropertiesPageProps {
 
 export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectProperty }: CategoryPropertiesPageProps) {
   const { formatPrice } = useCurrency();
+  const { t } = useLanguage();
   const [showMap, setShowMap] = useState(true);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -373,8 +375,8 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                     className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
                   >
                     <option value="">All</option>
-                    <option value="rent">Rent</option>
-                    <option value="buy">Buy</option>
+                    <option value="rent">{t('search.rent')}</option>
+                    <option value="buy">{t('search.buy')}</option>
                   </select>
                 </div>
 
@@ -483,7 +485,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                     onClick={() => setMoreFiltersOpen(!moreFiltersOpen)}
                     className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors flex items-center gap-2"
                   >
-                    <span>More</span>
+                    <span>{t('filter.more_filters')}</span>
                     {moreFiltersOpen ? (
                       <ChevronUp className="w-4 h-4" />
                     ) : (
@@ -640,12 +642,12 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
           <div className="p-6">
             {/* Results Count */}
             <div className="mb-4 text-sm text-gray-600">
-              {sortedProperties.length} properties found
+              {t('listing.properties_found').replace('{count}', String(sortedProperties.length))}
             </div>
 
             {/* Property Listings */}
             {loading ? (
-              <div className="text-center py-12 text-gray-500">Loading...</div>
+              <div className="text-center py-12 text-gray-500">{t('property.loading')}</div>
             ) : error ? (
               <div className="text-center py-12 text-red-500">{error}</div>
             ) : !showMap ? (

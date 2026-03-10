@@ -3,6 +3,7 @@ import { Search, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { AREA_OPTIONS } from '@/lib/wards';
 import type { HeroSearchParams } from '@/lib/searchFilters';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 const AREA_DROPDOWN_MAX_HEIGHT = 380;
 
@@ -227,6 +228,7 @@ interface QuickPropertySearchProps {
 }
 
 export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {}) {
+  const { t } = useLanguage();
   const [propertyType, setPropertyType] = useState<PropertyType>('rent');
   const [selectedAreas, setSelectedAreas] = useState<Set<string>>(new Set());
   const [budget, setBudget] = useState('');
@@ -376,7 +378,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
             className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#C1121F] transition-colors"
           >
             <SlidersHorizontal className="w-4 h-4" />
-            <span>Advanced filters</span>
+            <span>{t('search.advanced_filters')}</span>
             <ChevronDown 
               className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} 
             />

@@ -10,18 +10,24 @@ import {
   mapSupabaseRowToFeaturedProperty,
 } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 export interface FeaturedPropertiesCarouselProps {
   onSelectProperty?: (id: number, source: 'rent' | 'buy') => void;
+  title?: string;
+  subtitle?: string;
 }
 
-export function FeaturedPropertiesCarousel({ onSelectProperty }: FeaturedPropertiesCarouselProps = {}) {
+export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }: FeaturedPropertiesCarouselProps = {}) {
+  const { t } = useLanguage();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [properties, setProperties] = useState<FeaturedProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const { formatPrice } = useCurrency();
+  const displayTitle = title ?? t('section.featured.title');
+  const displaySubtitle = subtitle ?? t('section.featured.subtitle');
 
   useEffect(() => {
     async function fetchFeaturedProperties() {
@@ -145,12 +151,12 @@ export function FeaturedPropertiesCarousel({ onSelectProperty }: FeaturedPropert
           >
             {loading && (
               <div className="flex-shrink-0 w-[340px] md:w-[380px] flex items-center justify-center py-12 text-gray-500">
-                読み込み中...
+                {t('section.featured.loading')}
               </div>
             )}
             {!loading && properties.length === 0 && (
               <div className="flex-shrink-0 w-full flex items-center justify-center py-12 text-gray-500">
-                おすすめ物件はありません
+                {t('section.featured.empty')}
               </div>
             )}
             {!loading && properties.map((property, index) => (

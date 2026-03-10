@@ -9,6 +9,7 @@ import { Header } from '@/app/components/Header';
 import { SelectedAreaFilter } from '@/app/components/SelectedAreaFilter';
 import { filterPropertiesByAreas } from '@/lib/wards';
 import type { Page } from '@/lib/routes';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 interface FavoritesPageProps {
   onNavigate: (page: Page) => void;
@@ -201,15 +202,15 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-300 text-gray-900 font-medium"
           >
             <Heart className="w-5 h-5 text-[#C1121F]" />
-            Favorites
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigate('activity')}
+            {t('account.favorites')}
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate('activity')}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-300/50 mt-1"
           >
             <Calendar className="w-5 h-5" />
-            Activity
+            {t('account.activity')}
           </button>
           <button
             type="button"
@@ -217,7 +218,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-300/50 mt-1"
           >
             <User className="w-5 h-5" />
-            Profile
+            {t('account.profile')}
           </button>
         </nav>
         <div className="p-3 border-t border-gray-300 mt-auto space-y-2">
@@ -236,14 +237,14 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-300/50 rounded-lg"
           >
             <LogOut className="w-4 h-4" />
-            Logout
+            {t('account.logout')}
           </button>
         </div>
       </aside>
 
       {/* Main content */}
       <main className="flex-1 min-h-[calc(100vh-5rem)] bg-white p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Favorites</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('favorites.title')}</h1>
 
         {/* Tabs */}
         <div className="flex gap-8 border-b border-gray-200 mb-6">
@@ -256,7 +257,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            Rent
+            {t('search.rent')}
           </button>
           <button
             type="button"
@@ -267,7 +268,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            Buy
+            {t('search.buy')}
           </button>
         </div>
 
@@ -354,7 +355,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
             {moreFiltersOpen && (
               <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-gray-900">More Filters</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">{t('filter.more_filters')}</h3>
                   <button type="button" onClick={() => setMoreFiltersOpen(false)} className="text-gray-400 hover:text-gray-600">
                     <X className="w-4 h-4" />
                   </button>
@@ -420,7 +421,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
           <p className="text-gray-500">読み込み中...</p>
         ) : activeTab === 'rent' ? (
           filteredRent.length === 0 ? (
-            <p className="text-gray-600">{favoritesRent.length === 0 ? 'No favorites yet.' : '0 rental properties match the filters.'}</p>
+            <p className="text-gray-600">{favoritesRent.length === 0 ? t('favorites.no_favorites') : t('favorites.no_match_rent')}</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredRent.map((property) => (
@@ -436,7 +437,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                     type="button"
                     onClick={(e) => { e.stopPropagation(); e.preventDefault(); removeFavorite(property.id, 'rent'); }}
                     className="absolute top-2 right-2 z-10 w-9 h-9 bg-white/90 rounded-full flex items-center justify-center hover:bg-white shadow"
-                    aria-label="Remove from favorites"
+                    aria-label={t('property.favorite.remove_aria')}
                   >
                     <Heart className="w-4 h-4 fill-[#C1121F] text-[#C1121F]" />
                   </button>
@@ -447,7 +448,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                       className="w-full h-full object-cover"
                     />
                     <span className="absolute top-3 left-3 px-2 py-1 bg-white text-gray-900 text-xs font-semibold rounded-lg">
-                      For Rent
+                      {t('activity.for_rent')}
                     </span>
                   </div>
                   <div className="p-4">
@@ -472,7 +473,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
             </div>
           )
         ) : filteredBuy.length === 0 ? (
-          <p className="text-gray-600">{favoritesBuy.length === 0 ? 'No favorites yet.' : '0 properties for sale match the filters.'}</p>
+          <p className="text-gray-600">{favoritesBuy.length === 0 ? t('favorites.no_favorites') : t('favorites.no_match_buy')}</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBuy.map((property) => (
@@ -488,7 +489,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                   type="button"
                   onClick={(e) => { e.stopPropagation(); e.preventDefault(); removeFavorite(property.id, 'buy'); }}
                   className="absolute top-2 right-2 z-10 w-9 h-9 bg-white/90 rounded-full flex items-center justify-center hover:bg-white shadow"
-                  aria-label="Remove from favorites"
+                  aria-label={t('property.favorite.remove_aria')}
                 >
                   <Heart className="w-4 h-4 fill-[#C1121F] text-[#C1121F]" />
                 </button>
@@ -499,7 +500,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                     className="w-full h-full object-cover"
                   />
                   <span className="absolute top-3 left-3 px-2 py-1 bg-[#C1121F] text-white text-xs font-semibold rounded-lg">
-                    For Sale
+                    {t('activity.for_sale')}
                   </span>
                 </div>
                 <div className="p-4">

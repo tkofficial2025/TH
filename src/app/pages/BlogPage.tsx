@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Header } from '@/app/components/Header';
 import { Calendar, Tag } from 'lucide-react';
 import { getBlogPosts } from '@/lib/blogPosts';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 interface BlogPostDetailPageProps {
   onNavigate: (page: 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog') => void;
@@ -40,6 +41,7 @@ interface BlogPageProps {
 }
 
 export function BlogPage({ onNavigate, onSelectPost }: BlogPageProps) {
+  const { t } = useLanguage();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [categories, setCategories] = useState<Array<{ id: number; name: string; slug: string }>>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -85,7 +87,7 @@ export function BlogPage({ onNavigate, onSelectPost }: BlogPageProps) {
       })
       .catch((err) => {
         console.error('記事取得エラー:', err);
-        setError('記事の読み込みに失敗しました。');
+        setError(t('blog.error_desc'));
         setLoading(false);
       });
   }, [selectedCategory]);
@@ -122,7 +124,7 @@ export function BlogPage({ onNavigate, onSelectPost }: BlogPageProps) {
       <Header onNavigate={onNavigate} currentPage="blog" />
 
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Blog</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-8">{t('blog.title')}</h1>
 
         {/* カテゴリーフィルター */}
         <nav className="flex flex-wrap gap-4 mb-8 pb-4 border-b border-gray-200">
@@ -134,7 +136,7 @@ export function BlogPage({ onNavigate, onSelectPost }: BlogPageProps) {
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           }`}
                         >
-                          All
+                          {t('blog.all')}
                         </button>
                         {categories.map((category) => (
                           <button
@@ -154,7 +156,7 @@ export function BlogPage({ onNavigate, onSelectPost }: BlogPageProps) {
         {/* エラーメッセージ */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
-            <p className="font-semibold">エラー</p>
+            <p className="font-semibold">{t('blog.error')}</p>
             <p className="text-sm">{error}</p>
             <p className="text-xs mt-2">
               WordPress API URL: {WORDPRESS_API_URL}
@@ -166,13 +168,13 @@ export function BlogPage({ onNavigate, onSelectPost }: BlogPageProps) {
         {loading && (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#C1121F]"></div>
-            <p className="mt-4 text-gray-600">記事を読み込み中...</p>
+            <p className="mt-4 text-gray-600">{t('blog.loading')}</p>
           </div>
         )}
 
         {/* Preparing メッセージ */}
         <div className="text-center py-20">
-          <p className="text-2xl font-semibold text-gray-600">Preparing</p>
+          <p className="text-2xl font-semibold text-gray-600">{t('blog.preparing')}</p>
         </div>
       </div>
     </div>

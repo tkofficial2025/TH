@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { supabase } from '@/lib/supabase';
 import { WARD_MATCH_TERMS } from '@/lib/wards';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 interface Ward {
   name: string;
@@ -13,6 +14,8 @@ interface Ward {
 
 export interface TokyoWardsSectionProps {
   onWardClick?: (wardName: string, page: 'rent' | 'buy') => void;
+  title?: string;
+  subtitle?: string;
 }
 
 // デフォルト画像URL（UnsplashのTokyo関連画像）- フォールバック用
@@ -74,8 +77,11 @@ const WARDS_BASE: Omit<Ward, 'properties'>[] = [
   { name: 'Nishitokyo', image: U('1519500528352-2dab040ba42e') },
 ];
 
-export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
+export function TokyoWardsSection({ onWardClick, title, subtitle }: TokyoWardsSectionProps) {
+  const { t } = useLanguage();
   const [showAll, setShowAll] = useState(false);
+  const sectionTitle = title ?? t('section.areas.explore_title');
+  const sectionDesc = subtitle ?? t('section.areas.explore_desc');
   const [wards, setWards] = useState<Ward[]>(() =>
     WARDS_BASE.map((w) => ({ ...w, properties: 0 }))
   );
@@ -131,16 +137,16 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-            Explore Tokyo Wards
+            {sectionTitle}
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl">
-            Discover popular areas across Tokyo, from central business districts to quiet residential neighborhoods.
+            {sectionDesc}
           </p>
         </motion.div>
 
         {/* 23 Wards Grid */}
         <div className="mb-12">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">23 Special Wards</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('section.areas.wards23')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence mode="popLayout">
               {visibleWards23.map((ward, index) => (
@@ -171,7 +177,7 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
                       {ward.name}
                     </h3>
                   <p className="text-white/90 text-sm mb-3">
-                    {ward.properties} properties
+                    {t('section.areas.properties_count').replace('{n}', String(ward.properties))}
                   </p>
                   {onWardClick && (
                     <div className="flex gap-3 flex-wrap">
@@ -183,7 +189,7 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
                         }}
                         className="cursor-pointer px-4 py-2.5 bg-[#C1121F] hover:bg-[#A00F1A] text-white text-sm font-semibold rounded-lg transition-colors shadow-md"
                       >
-                        View Rentals
+                        {t('section.areas.view_rentals')}
                       </button>
                       <button
                         type="button"
@@ -193,7 +199,7 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
                         }}
                         className="cursor-pointer px-4 py-2.5 bg-white hover:bg-gray-100 text-gray-900 text-sm font-semibold rounded-lg transition-colors shadow-md border border-white/50"
                       >
-                        View for Sale
+                        {t('section.areas.view_sale')}
                       </button>
                     </div>
                   )}
@@ -218,7 +224,7 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
               onClick={() => setShowAll(!showAll)}
               className="flex items-center gap-2 px-6 py-3 text-gray-700 hover:text-gray-900 font-medium transition-colors group"
             >
-              <span>{showAll ? 'Show less' : 'Show more'}</span>
+              <span>{showAll ? t('section.areas.show_less') : t('section.areas.show_more')}</span>
               {showAll ? (
                 <ChevronUp className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
               ) : (
@@ -230,7 +236,7 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
 
         {/* Outer 23 Wards - Single Card */}
         <div className="mb-12">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">Outer 23 Wards</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('section.areas.outer')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <motion.div
               className="group relative overflow-hidden rounded-2xl aspect-[3/1.3] min-h-[200px] cursor-default"
@@ -255,10 +261,10 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
                 <div></div>
                 <div>
                   <h3 className="text-2xl lg:text-3xl font-bold text-white mb-1">
-                    Outer 23 Wards
+                    {t('section.areas.outer')}
                   </h3>
                   <p className="text-white/90 text-sm mb-3">
-                    {outerWardsTotalProperties} properties
+                    {t('section.areas.properties_count').replace('{n}', String(outerWardsTotalProperties))}
                   </p>
                   {onWardClick && (
                     <div className="flex gap-3 flex-wrap">
@@ -266,12 +272,11 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // 23区外を選択した状態でrentページに遷移
                           onWardClick('Outside23', 'rent');
                         }}
                         className="cursor-pointer px-4 py-2.5 bg-[#C1121F] hover:bg-[#A00F1A] text-white text-sm font-semibold rounded-lg transition-colors shadow-md"
                       >
-                        View Rentals
+                        {t('section.areas.view_rentals')}
                       </button>
                       <button
                         type="button"
@@ -281,7 +286,7 @@ export function TokyoWardsSection({ onWardClick }: TokyoWardsSectionProps) {
                         }}
                         className="cursor-pointer px-4 py-2.5 bg-white hover:bg-gray-100 text-gray-900 text-sm font-semibold rounded-lg transition-colors shadow-md border border-white/50"
                       >
-                        View for Sale
+                        {t('section.areas.view_sale')}
                       </button>
                     </div>
                   )}

@@ -3,6 +3,7 @@ import { Heart, User, LogOut, Calendar, MapPin, Bed, Maximize2 } from 'lucide-re
 import { supabase } from '@/lib/supabase';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { Header } from '@/app/components/Header';
@@ -17,6 +18,7 @@ type TourCandidate = { date: string; timeRange: string };
 type AppliedItem = { property: Property; hasTour: boolean; hasInquiry: boolean; tourCandidates?: TourCandidate[] };
 
 export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps) {
+  const { t } = useLanguage();
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [activeTab, setActiveTab] = useState<'rent' | 'buy'>('rent');
@@ -145,8 +147,8 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
           </div>
           <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{property.title}</h3>
           <div className="flex flex-wrap gap-1.5 mb-2">
-            {hasTour && <span className="inline-flex px-2 py-1 text-white text-xs font-medium rounded" style={{ backgroundColor: '#C1121F' }}>Room tour booked</span>}
-            {hasInquiry && <span className="inline-flex px-2 py-1 text-white text-xs font-medium rounded" style={{ backgroundColor: '#374151' }}>Details requested</span>}
+            {hasTour && <span className="inline-flex px-2 py-1 text-white text-xs font-medium rounded" style={{ backgroundColor: '#C1121F' }}>{t('activity.room_tour_booked')}</span>}
+            {hasInquiry && <span className="inline-flex px-2 py-1 text-white text-xs font-medium rounded" style={{ backgroundColor: '#374151' }}>{t('activity.details_requested')}</span>}
           </div>
           <p className="text-sm text-gray-500 mb-2 line-clamp-1">{property.address}</p>
           <p className="font-semibold text-[#C1121F] mb-2">{formatPrice(property.price, source)}</p>
@@ -167,7 +169,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
             <div className="mt-4 pt-4 border-t border-gray-100">
               <p className="text-xs font-medium text-gray-500 mb-1.5 flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />
-                Preferred tour dates
+                {t('activity.preferred_tour_dates')}
               </p>
               <ul className="space-y-1 text-xs text-gray-600">
                 {tourCandidates.map((c, i) => (
@@ -194,21 +196,21 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
             </button>
           </div>
           <nav className="p-3 flex-1">
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">User</div>
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">{t('account.user')}</div>
             <button
               type="button"
               onClick={() => onNavigate('favorites')}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-300/50 mt-1"
             >
               <Heart className="w-5 h-5" />
-              Favorites
+              {t('account.favorites')}
             </button>
             <button
               type="button"
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-300 text-gray-900 font-medium mt-1"
             >
               <Calendar className="w-5 h-5 text-[#C1121F]" />
-              Activity
+              {t('account.activity')}
             </button>
             <button
               type="button"
@@ -216,7 +218,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-300/50 mt-1"
             >
               <User className="w-5 h-5" />
-              Profile
+              {t('account.profile')}
             </button>
           </nav>
           <div className="p-3 border-t border-gray-300 mt-auto space-y-2">
@@ -225,7 +227,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
                 <User className="w-4 h-4 text-[#C1121F]" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-gray-900 truncate">{userName || 'User'}</p>
+                <p className="text-sm font-medium text-gray-900 truncate">{userName || t('account.user')}</p>
                 <p className="text-xs text-gray-500 truncate">{userEmail || '—'}</p>
               </div>
             </div>
@@ -235,14 +237,14 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-300/50 rounded-lg"
             >
               <LogOut className="w-4 h-4" />
-              Logout
+              {t('account.logout')}
             </button>
           </div>
         </aside>
 
         <main className="flex-1 min-h-[calc(100vh-5rem)] bg-white p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">応募した物件</h1>
-          <p className="text-sm text-gray-500 mb-6">View properties for which you have requested a room tour or property details.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('activity.title')}</h1>
+          <p className="text-sm text-gray-500 mb-6">{t('activity.subtitle')}</p>
 
           <div className="flex gap-8 border-b border-gray-200 mb-6">
             <button
@@ -252,7 +254,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
                 activeTab === 'rent' ? 'border-[#C1121F] text-[#C1121F]' : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Rent
+              {t('search.rent')}
             </button>
             <button
               type="button"
@@ -261,7 +263,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
                 activeTab === 'buy' ? 'border-[#C1121F] text-[#C1121F]' : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              Buy
+              {t('search.buy')}
             </button>
           </div>
 

@@ -1,11 +1,14 @@
 import { Header } from '@/app/components/Header';
 import { MapPin, Phone, Mail, Award, Building2, Globe, Shield, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 interface AboutPageProps {
   onNavigate: (page: 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog' | 'about') => void;
 }
 
 export function AboutPage({ onNavigate }: AboutPageProps) {
+  const { t } = useLanguage();
+  
   return (
     <div className="min-h-screen bg-white">
       <Header onNavigate={onNavigate} currentPage="about" />
@@ -15,21 +18,13 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-center gap-4 mb-10">
             <div className="w-1 h-12 bg-[#C1121F]"></div>
-            <h1 className="text-4xl font-bold text-gray-900">About Us</h1>
+            <h1 className="text-4xl font-bold text-gray-900">{t('about.title')}</h1>
           </div>
           <div className="max-w-4xl space-y-4 text-lg text-gray-700 leading-relaxed">
-            <p>
-              Tokyo Expat Housing (operated by Jokyo Property Co., Ltd.) is a Tokyo-based real estate service dedicated to international residents, students, and global clients.
-            </p>
-            <p>
-              We specialize in helping international clients find ideal properties in Tokyo through clear communication, transparent fees, and full multilingual support.
-            </p>
-            <p>
-              Our team brings diverse international experience, with backgrounds connected to the United States, China, and Korea. This global perspective enables us to understand cultural expectations, communication styles, and the unique challenges clients may face when relocating to Japan.
-            </p>
-            <p>
-              Navigating Japan's housing system can be complex — from guarantor requirements to detailed contract procedures. Our role is to simplify the process and provide accurate, straightforward guidance at every step.
-            </p>
+            <p>{t('about.p1')}</p>
+            <p>{t('about.p2')}</p>
+            <p>{t('about.p3')}</p>
+            <p>{t('about.p4')}</p>
           </div>
         </div>
       </div>
@@ -40,45 +35,44 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
         <section>
           <div className="flex items-center gap-4 mb-10">
             <div className="w-1 h-12 bg-[#C1121F]"></div>
-            <h2 className="text-4xl font-bold text-gray-900">Company Profile</h2>
+            <h2 className="text-4xl font-bold text-gray-900">{t('about.company_profile')}</h2>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <table className="w-full">
               <tbody className="divide-y divide-gray-200">
                 <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">Company Name</td>
+                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">{t('about.company_name')}</td>
                   <td className="px-6 py-4 text-gray-700">
-                    Jokyo Property Co., Ltd.<br />
-                    <span className="text-gray-500">上京プロパティ株式会社</span>
+                    {t('about.company_name_val')}
+                    {t('about.company_name_val') !== '上京プロパティ株式会社' && <><br /><span className="text-gray-500">上京プロパティ株式会社</span></>}
                   </td>
                 </tr>
                 <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">License</td>
+                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">{t('about.license')}</td>
                   <td className="px-6 py-4 text-gray-700">
-                    Tokyo Governor License (1) No. 113518
+                    {t('about.license_val')}
                   </td>
                 </tr>
                 <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">Corporate Number</td>
+                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">{t('about.corporate_number')}</td>
                   <td className="px-6 py-4 text-gray-700">
                     6010501054967
                   </td>
                 </tr>
                 <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">Representative Director</td>
+                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">{t('about.director')}</td>
                   <td className="px-6 py-4 text-gray-700">
-                    Kosei Kudo
+                    {t('about.director_val')}
                   </td>
                 </tr>
                 <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">Address</td>
-                  <td className="px-6 py-4 text-gray-700">
-                    77 Space 102, 3-1-5 Kita-Otsuka<br />
-                    Toshima-ku, Tokyo 170-0004, Japan
+                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">{t('about.address')}</td>
+                  <td className="px-6 py-4 text-gray-700 whitespace-pre-line">
+                    {t('about.address_val').replace(', Japan', '\nJapan').replace(' (邮编', '\n(邮编')}
                   </td>
                 </tr>
                 <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">Phone</td>
+                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">{t('about.phone')}</td>
                   <td className="px-6 py-4 text-gray-700">
                     <a 
                       href="tel:+81359808304" 
@@ -89,10 +83,10 @@ export function AboutPage({ onNavigate }: AboutPageProps) {
                   </td>
                 </tr>
                 <tr className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">Email</td>
+                  <td className="px-6 py-4 font-semibold text-gray-900 w-1/3">{t('about.email')}</td>
                   <td className="px-6 py-4 text-gray-700">
                     <a 
-                      href="mailto:information@tkofficial.net?subject=Inquiry&body=Hello, I would like to inquire about..."
+                      href={`mailto:information@tkofficial.net?subject=${encodeURIComponent(t('about.mailto.subject'))}&body=${encodeURIComponent(t('about.mailto.body'))}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-[#C1121F] transition-colors"

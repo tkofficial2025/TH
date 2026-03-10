@@ -24,6 +24,7 @@ import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { filterPropertiesByHeroParams, type HeroSearchParams } from '@/lib/searchFilters';
 import { searchProperties } from '@/lib/fullTextSearch';
 import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 interface PropertyListingPageProps {
   selectedWard?: string | null;
@@ -33,6 +34,7 @@ interface PropertyListingPageProps {
 
 export function PropertyListingPage({ selectedWard, onSelectProperty, initialSearchParams }: PropertyListingPageProps = {}) {
   const { formatPrice } = useCurrency();
+  const { t } = useLanguage();
   const [showMap, setShowMap] = useState(true);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -323,11 +325,11 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
         <div className="max-w-[1600px] mx-auto px-6">
           {/* Filter Bar Toggle Button */}
           <div className="flex items-center justify-between py-3 border-b border-gray-200">
-            <h2 className="text-sm font-semibold text-gray-900">Filters</h2>
+            <h2 className="text-sm font-semibold text-gray-900">{t('filter.title')}</h2>
             <div className="flex items-center gap-4">
               {/* Show Map Toggle Switch */}
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">Show map</span>
+                <span className="text-sm font-medium text-gray-700">{t('filter.show_map')}</span>
                 <button
                   onClick={() => setShowMap(!showMap)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:ring-offset-2 ${
@@ -347,12 +349,12 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               >
                 {filterBarOpen ? (
                   <>
-                    <span>Hide</span>
+                    <span>{t('filter.hide')}</span>
                     <ChevronUp className="w-4 h-4" />
                   </>
                 ) : (
                   <>
-                    <span>Show</span>
+                    <span>{t('filter.show')}</span>
                     <ChevronDown className="w-4 h-4" />
                   </>
                 )}
@@ -369,7 +371,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               <Search className="w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search"
+                placeholder={t('filter.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm w-32"
@@ -382,11 +384,11 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               onChange={(e) => setPropertyTypeFilter(e.target.value)}
               className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
             >
-              <option value="">Property Type</option>
-              <option value="apartment">Apartment</option>
-              <option value="condominium">Condominium</option>
-              <option value="house">House</option>
-              <option value="studio">Studio</option>
+              <option value="">{t('filter.property_type')}</option>
+              <option value="apartment">{t('filter.type.apartment')}</option>
+              <option value="condominium">{t('filter.type.condominium')}</option>
+              <option value="house">{t('filter.type.house')}</option>
+              <option value="studio">{t('filter.type.studio')}</option>
             </select>
 
             {/* Selected Area: 23区＋23区外チェックボックス */}
@@ -396,7 +398,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
             <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors">
               <input
                 type="text"
-                placeholder="Station"
+                placeholder={t('filter.station')}
                 value={stationFilter}
                 onChange={(e) => setStationFilter(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm w-24"
@@ -409,7 +411,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               onChange={(e) => setBedrooms(e.target.value)}
               className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
             >
-              <option value="">Bedrooms</option>
+              <option value="">{t('filter.bedrooms')}</option>
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
@@ -462,7 +464,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                   moreFiltersOpen ? 'bg-gray-100 border-gray-300' : ''
                 }`}
               >
-                More
+                {t('filter.more_filters')}
                 <SlidersHorizontal className="w-3.5 h-3.5" />
               </button>
               
@@ -470,7 +472,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               {moreFiltersOpen && (
                 <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-900">More Filters</h3>
+                    <h3 className="text-sm font-semibold text-gray-900">{t('filter.more_filters')}</h3>
                     <button
                       onClick={() => setMoreFiltersOpen(false)}
                       className="text-gray-400 hover:text-gray-600"
@@ -488,7 +490,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                         onChange={(e) => setPetFriendly(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">Pet Friendly</span>
+                      <span className="text-sm font-medium text-gray-700">{t('property.feature.pet')}</span>
                     </label>
                     
                     {/* Foreign Friendly */}
@@ -499,7 +501,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                         onChange={(e) => setForeignFriendly(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">Foreign Friendly</span>
+                      <span className="text-sm font-medium text-gray-700">{t('property.feature.foreign')}</span>
                     </label>
                     
                     {/* Elevator */}
@@ -510,7 +512,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                         onChange={(e) => setElevator(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">Elevator</span>
+                      <span className="text-sm font-medium text-gray-700">{t('property.feature.elevator')}</span>
                     </label>
                     
                     {/* Balcony */}
@@ -521,13 +523,13 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                         onChange={(e) => setBalcony(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">Balcony</span>
+                      <span className="text-sm font-medium text-gray-700">{t('property.feature.balcony')}</span>
                     </label>
                   </div>
 
                   {/* Categories Section */}
                   <div className="pt-3 border-t border-gray-200">
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Categories</h4>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('filter.categories')}</h4>
                     <div className="space-y-3">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -536,7 +538,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                           onChange={(e) => setLuxury(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">Luxury</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.luxury')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -545,7 +547,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                           onChange={(e) => setFurnished(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">Furnished</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.furnished')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -554,7 +556,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                           onChange={(e) => setHighRiseResidence(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">High-Rise Residence</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.high_rise')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -563,7 +565,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                           onChange={(e) => setNoKeyMoney(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">No key money</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.no_key_money')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -572,7 +574,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                           onChange={(e) => setForStudents(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">For students</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.students')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -581,7 +583,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                           onChange={(e) => setDesigners(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">Designers</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.designers')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -590,7 +592,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                           onChange={(e) => setForFamilies(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">For families</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.families')}</span>
                       </label>
                     </div>
                   </div>
@@ -604,7 +606,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
             {/* Save */}
             <button className="flex items-center gap-2 px-5 py-2 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition-all text-sm font-medium">
               <Bookmark className="w-3.5 h-3.5" />
-              Save
+              {t('filter.save')}
             </button>
               </div>
             </div>
@@ -638,14 +640,14 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               {/* Header */}
               <div className="mb-4 pb-4 border-b border-gray-200">
                 <h1 className="text-xl font-bold text-gray-900 mb-1">
-                  {selectedWard ? `Properties for sale in ${selectedWard}` : 'Properties for sale'}
+                  {selectedWard ? t('listing.title.ward').replace('{ward}', selectedWard) : t('listing.title')}
                 </h1>
-                <p className="text-sm text-gray-600">{sortedProperties.length} results</p>
+                <p className="text-sm text-gray-600">{t('listing.results').replace('{count}', String(sortedProperties.length))}</p>
               </div>
 
               {/* Sort Dropdown */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('sort.label')}</label>
                 <select
                   value={sortOption}
                   onChange={(e) => setSortOption(e.target.value as SortOption)}
@@ -653,7 +655,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                 >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
-                      {option.label}
+                      {t(`sort.${option.value.replace('-', '_')}`)}
                     </option>
                   ))}
                 </select>
@@ -662,14 +664,14 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               {/* Property Listings */}
               <div className="space-y-4">
               {loading && (
-                <div className="py-16 text-center text-gray-500 text-sm">読み込み中...</div>
+                <div className="py-16 text-center text-gray-500 text-sm">{t('listing.loading')}</div>
               )}
               {error && (
-                <div className="py-16 text-center text-red-600 text-sm">エラー: {error}</div>
+                <div className="py-16 text-center text-red-600 text-sm">{t('listing.error').replace('{error}', error)}</div>
               )}
               {!loading && !error && sortedProperties.length === 0 && (
                 <div className="py-16 text-center text-gray-500 text-sm">
-                  物件がありません。
+                  {t('listing.empty')}
                 </div>
               )}
               {!loading && !error && sortedProperties.map((property, index) => (
@@ -700,12 +702,12 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                     <div className="absolute top-2 left-2 flex gap-2 z-10">
                       {property.isFeatured && (
                         <span className="px-2 py-0.5 bg-[#C1121F] text-white text-xs font-semibold rounded-full">
-                          POPULAR
+                          {t('listing.badge.popular')}
                         </span>
                       )}
                       {property.isNew && (
                         <span className="px-2 py-0.5 bg-white text-gray-900 text-xs font-semibold rounded-full">
-                          New
+                          {t('listing.badge.new')}
                         </span>
                       )}
                     </div>
@@ -783,7 +785,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
             {!loading && !error && sortedProperties.length > 0 && (
               <div className="mt-6 text-center">
                 <button className="px-6 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-all">
-                  Load more
+                  {t('listing.load_more')}
                 </button>
               </div>
             )}
@@ -807,12 +809,12 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                {selectedWard ? `Properties for sale in ${selectedWard}` : 'Properties for sale'}
+                {selectedWard ? t('listing.title.ward').replace('{ward}', selectedWard) : t('listing.title')}
               </h1>
-              <p className="text-sm text-gray-600">{sortedProperties.length} results</p>
+              <p className="text-sm text-gray-600">{t('listing.results').replace('{count}', String(sortedProperties.length))}</p>
             </div>
             <div className="w-48">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sort by</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('sort.label')}</label>
               <select
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value as SortOption)}
@@ -820,7 +822,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               >
                 {sortOptions.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {t(`sort.${option.value.replace('-', '_')}`)}
                   </option>
                 ))}
               </select>
@@ -829,14 +831,14 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
 
           {/* Property Grid */}
           {loading && (
-            <div className="py-16 text-center text-gray-500 text-sm">読み込み中...</div>
+            <div className="py-16 text-center text-gray-500 text-sm">{t('listing.loading')}</div>
           )}
           {error && (
-            <div className="py-16 text-center text-red-600 text-sm">エラー: {error}</div>
+            <div className="py-16 text-center text-red-600 text-sm">{t('listing.error').replace('{error}', error)}</div>
           )}
           {!loading && !error && sortedProperties.length === 0 && (
             <div className="py-16 text-center text-gray-500 text-sm">
-              物件がありません。
+              {t('listing.empty')}
             </div>
           )}
           {!loading && !error && sortedProperties.length > 0 && (
@@ -869,12 +871,12 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                     <div className="absolute top-2 left-2 flex gap-2 z-10">
                       {property.isFeatured && (
                         <span className="px-2 py-0.5 bg-[#C1121F] text-white text-xs font-semibold rounded-full">
-                          POPULAR
+                          {t('listing.badge.popular')}
                         </span>
                       )}
                       {property.isNew && (
                         <span className="px-2 py-0.5 bg-white text-gray-900 text-xs font-semibold rounded-full">
-                          New
+                          {t('listing.badge.new')}
                         </span>
                       )}
                     </div>

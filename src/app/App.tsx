@@ -33,9 +33,21 @@ import {
   pushState,
   replaceState,
 } from '@/lib/routes';
+import { CurrencyProvider } from './contexts/CurrencyContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
 export default function App() {
-  const [scrollY, setScrollY] = useState(0);
+  return (
+    <LanguageProvider>
+      <CurrencyProvider>
+        <AppContent />
+      </CurrencyProvider>
+    </LanguageProvider>
+  );
+}
+
+function AppContent() {
+  const { language, setLanguage, t } = useLanguage();
   const [currentPage, setCurrentPage] = useState<Page>(() => getPageFromPath(getPathname()));
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
@@ -51,6 +63,13 @@ export default function App() {
       const params = new URLSearchParams(window.location.search);
       const page = getPageFromPath(path);
       setCurrentPage(page);
+      
+      // Update language based on URL if it changed via browser navigation
+      const urlLang = path.startsWith('/zh/') || path === '/zh' ? 'zh' : 'en';
+      if (urlLang !== language) {
+        setLanguage(urlLang);
+      }
+      
       const propId = params.get('property');
       const source = params.get('source') as 'rent' | 'buy' | null;
       if (propId && !isNaN(Number(propId))) {
@@ -79,7 +98,7 @@ export default function App() {
     setSelectedBlogPostId(options?.blogPostId ?? null);
     setSelectedCategory(options?.categoryId ?? null);
     setCurrentPage(page);
-    const path = getPathFromPage(page);
+    const path = getPathFromPage(page, language);
     const search =
       page === 'category' && options?.categoryId
         ? `?category=${encodeURIComponent(options.categoryId)}`
@@ -95,33 +114,33 @@ export default function App() {
     setSelectedWard(null);
     setSelectedPropertyId(null);
     setCurrentPage(params.propertyType);
-    pushState(getPathFromPage(params.propertyType));
+    pushState(getPathFromPage(params.propertyType, language));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleWardClick = (wardName: string, page: 'rent' | 'buy') => {
     setSelectedWard(wardName);
     setCurrentPage(page);
-    pushState(getPathFromPage(page));
+    pushState(getPathFromPage(page, language));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSelectProperty = (id: number, source: 'rent' | 'buy') => {
     setSelectedPropertyId(id);
     setDetailSource(source);
-    const path = getPathFromPage(source);
+    const path = getPathFromPage(source, language);
     pushState(path, `?property=${id}&source=${source}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBackFromProperty = () => {
     setSelectedPropertyId(null);
-    replaceState(getPathFromPage(detailSource));
+    replaceState(getPathFromPage(detailSource, language));
   };
 
   const handleBackFromBlogPost = () => {
     setSelectedBlogPostId(null);
-    replaceState(getPathFromPage('blog'));
+    replaceState(getPathFromPage('blog', language));
   };
 
   // 物件詳細を表示中
@@ -187,7 +206,7 @@ export default function App() {
         onNavigate={handleNavigate}
         onSelectPost={(postId) => {
           setSelectedBlogPostId(postId);
-          pushState(getPathFromPage('blog'), `?post=${postId}`);
+          pushState(getPathFromPage('blog', language), `?post=${postId}`);
         }}
       />
     );
@@ -259,8 +278,11 @@ export default function App() {
                 className="text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight"
                 style={{ textShadow: '0 6px 12px rgba(0,0,0,0.5)' }}
               >
-                Your Gateway to <br />
-                <span className="text-[#C1121F]" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>Japanese Real Estate</span>
+                {t('hero.title.1') ? (
+                  <> {t('hero.title.1')} <br /><span className="text-[#C1121F]" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>{t('hero.title.2')}</span></>
+                ) : (
+                  <span className="text-[#C1121F]" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>{t('hero.title.2')}</span>
+                )}
               </h1>
             </motion.div>
             
@@ -271,7 +293,7 @@ export default function App() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Buy and Live in Japan with Confidence
+              {t('hero.subtitle')}
             </motion.p>
 
             <motion.div
@@ -285,7 +307,7 @@ export default function App() {
                 onClick={() => handleNavigate('consultation')}
                 className="px-8 py-4 bg-[#C1121F] text-white rounded-xl font-semibold hover:bg-[#A00F1A] transition-all hover:scale-105 hover:shadow-xl shadow-lg"
               >
-                Book Free Consultation
+                {t('hero.btn.consultation')}
               </button>
               <button
                 type="button"
@@ -299,7 +321,7 @@ export default function App() {
                 className="px-8 py-4 bg-white/90 backdrop-blur-sm text-gray-900 rounded-xl font-semibold hover:bg-white transition-all hover:scale-105 hover:shadow-xl shadow-lg border border-white/20"
                 style={{ textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}
               >
-                Contact Us on Social Media
+                {t('hero.btn.social')}
               </button>
             </motion.div>
 
@@ -327,7 +349,7 @@ export default function App() {
       </section>
 
       {/* Featured Properties Carousel */}
-      <FeaturedPropertiesCarousel onSelectProperty={handleSelectProperty} />
+      <FeaturedPropertiesCarousel onSelectProperty={handleSelectProperty} title={t('section.featured.title')} subtitle={t('section.featured.subtitle')} />
 
       {/* Rental Categories Section */}
       <RentalCategoriesSection onCategoryClick={(categoryId) => {
@@ -335,7 +357,7 @@ export default function App() {
       }} />
 
       {/* Tokyo Wards Section */}
-      <TokyoWardsSection onWardClick={handleWardClick} />
+      <TokyoWardsSection onWardClick={handleWardClick} title={t('section.areas.title')} subtitle={t('section.areas.subtitle')} />
 
       {/* Trust Indicators */}
       <section className="py-20 bg-gray-50 border-y border-gray-100">
@@ -351,8 +373,8 @@ export default function App() {
               <div className="w-16 h-16 bg-[#C1121F]/10 rounded-full flex items-center justify-center mb-4">
                 <Shield className="w-8 h-8 text-[#C1121F]" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Licensed & Compliant Brokerage</h3>
-              <p className="text-gray-600">Officially registered under Japanese real estate law with full regulatory compliance and transparent transaction management.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('trust.brokerage.title')}</h3>
+              <p className="text-gray-600">{t('trust.brokerage.desc')}</p>
             </motion.div>
 
             <motion.div
@@ -365,8 +387,8 @@ export default function App() {
               <div className="w-16 h-16 bg-[#C1121F]/10 rounded-full flex items-center justify-center mb-4">
                 <Globe className="w-8 h-8 text-[#C1121F]" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Multilingual Professional Support (EN / JP / CN / KR)</h3>
-              <p className="text-gray-600">Dedicated multilingual team providing contract explanation, negotiation, and full transaction assistance.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('trust.multilingual.title')}</h3>
+              <p className="text-gray-600">{t('trust.multilingual.desc')}</p>
             </motion.div>
 
             <motion.div
@@ -379,8 +401,8 @@ export default function App() {
               <div className="w-16 h-16 bg-[#C1121F]/10 rounded-full flex items-center justify-center mb-4">
                 <CheckCircle2 className="w-8 h-8 text-[#C1121F]" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Foreign Resident Specialists</h3>
-              <p className="text-gray-600">Extensive experience assisting expats and non-Japanese residents with rentals and purchases.</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('trust.specialist.title')}</h3>
+              <p className="text-gray-600">{t('trust.specialist.desc')}</p>
             </motion.div>
           </div>
         </div>
@@ -395,7 +417,7 @@ export default function App() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Our Process</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{t('process.title')}</h2>
           </motion.div>
 
           <div className="space-y-8">
@@ -412,10 +434,9 @@ export default function App() {
                   1
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">Initial Consultation</h3>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step1.title')}</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    Contact us via email, LINE, WeChat, Whatsapp, Instagram, or the inquiry form.
-                    Share your goals (rent or purchase), budget, preferred area, timeline, and any special requirements.
+                    {t('process.step1.desc')}
                   </p>
                 </div>
               </div>
@@ -434,26 +455,26 @@ export default function App() {
                   2
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">Property Proposal</h3>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step2.title')}</h3>
                   <p className="text-gray-600 leading-relaxed mb-3">
-                    Based on your needs, we carefully select suitable properties and provide:
+                    {t('process.step2.desc')}
                   </p>
                   <ul className="space-y-2 text-gray-600">
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
-                      <span>Photos & floor plans</span>
+                      <span>{t('process.step2.list1')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
-                      <span>Pricing details</span>
+                      <span>{t('process.step2.list2')}</span>
                 </li>
                     <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
-                      <span>Estimated initial costs</span>
+                      <span>{t('process.step2.list3')}</span>
                 </li>
                     <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
-                      <span>Key property information</span>
+                      <span>{t('process.step2.list4')}</span>
                 </li>
               </ul>
                 </div>
@@ -473,10 +494,9 @@ export default function App() {
                   3
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">Viewing (In-Person or Online)</h3>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step3.heading')}</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    You may visit the property in person or join an online viewing via Zoom.
-                    We explain the property condition, neighborhood, and relevant considerations.
+                    {t('process.step3.desc_long')}
                   </p>
                 </div>
               </div>
@@ -495,10 +515,10 @@ export default function App() {
                   4
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">Application or Purchase Offer</h3>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step4.heading')}</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    <strong>For Rentals:</strong> We assist with the rental application and required documentation.<br />
-                    <strong>For Purchases:</strong> We help prepare and submit a formal purchase offer.
+                    {t('process.step4.desc_rent')}<br />
+                    {t('process.step4.desc_buy')}
                   </p>
                 </div>
               </div>
@@ -539,9 +559,9 @@ export default function App() {
                   6
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">Contract Preparation & Explanation</h3>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step6.heading')}</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    We prepare the contract documents and clearly explain all terms and conditions in English before signing.
+                    {t('process.step6.desc')}
                   </p>
                 </div>
               </div>
@@ -560,10 +580,10 @@ export default function App() {
                   7
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">Payment & Final Procedures</h3>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step7.heading')}</h3>
                   <p className="text-gray-600 leading-relaxed mb-3">
-                    <strong>Rentals:</strong> Initial move-in costs (deposit, key money, agency fee, etc.)<br />
-                    <strong>Purchases:</strong> Deposit payment and remaining balance settlement
+                    {t('process.step7.desc_rent')}<br />
+                    {t('process.step7.desc_buy')}
                   </p>
                   <p className="text-gray-600 leading-relaxed">
                     We guide you through every payment step.
@@ -585,9 +605,9 @@ export default function App() {
                   8
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">Key Handover</h3>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step8.heading')}</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    Once procedures are completed, you receive the keys and officially take possession of your new home.
+                    {t('process.step8.desc')}
                   </p>
                 </div>
               </div>
@@ -617,10 +637,9 @@ export default function App() {
             >
               <div className="mb-6">
                 <div className="w-12 h-1 bg-[#C1121F] mb-6"></div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">Multilingual Professional Support (EN / JP / CN / KR)</h3>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">{t('why.multilingual.title')}</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Full support in four languages, ensuring accurate communication from property search to contract signing.
-                  No misunderstandings — just clear guidance tailored for international clients.
+                  {t('why.multilingual.desc')}
                 </p>
               </div>
             </motion.div>
@@ -633,10 +652,9 @@ export default function App() {
             >
               <div className="mb-6">
                 <div className="w-12 h-1 bg-[#C1121F] mb-6"></div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">Strong Approval Expertise for Foreign Clients</h3>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">{t('why.approval.title')}</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  We understand which properties and guarantor companies are more foreigner-friendly.
-                  Our structured approach helps maximize rental approval success and smooth transactions.
+                  {t('why.approval.desc')}
                 </p>
               </div>
             </motion.div>
@@ -649,10 +667,9 @@ export default function App() {
             >
               <div className="mb-6">
                 <div className="w-12 h-1 bg-[#C1121F] mb-6"></div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">Fast, Transparent & Structured Process</h3>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">{t('why.fast.title')}</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  We work with clear timelines and proactive coordination to meet your move-in goals.
-                  Every step — from pricing to paperwork — is explained clearly so you can move forward with confidence.
+                  {t('why.fast.desc')}
                 </p>
               </div>
             </motion.div>
@@ -677,10 +694,10 @@ export default function App() {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-              Ready to Start Your Journey?
+              {t('cta.title')}
             </h2>
             <p className="text-xl text-white/90 mb-10 leading-relaxed">
-              Schedule a free consultation with our expert team. We'll guide you through every step of finding your perfect property in Japan.
+              {t('cta.desc')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <button
@@ -688,14 +705,14 @@ export default function App() {
                 onClick={() => handleNavigate('consultation')}
                 className="px-8 py-4 bg-white text-[#C1121F] rounded-xl font-semibold hover:bg-gray-100 transition-all hover:scale-105 shadow-xl"
               >
-                Book Free Consultation
+                {t('cta.book')}
               </button>
               <button
                 type="button"
                 onClick={() => handleNavigate('buy')}
                 className="px-8 py-4 bg-transparent text-white border-2 border-white rounded-xl font-semibold hover:bg-white hover:text-[#C1121F] transition-all hover:scale-105"
               >
-                Browse Properties
+                {t('cta.browse')}
               </button>
             </div>
           </motion.div>
@@ -754,7 +771,7 @@ export default function App() {
 
               {/* Social Media Icons */}
               <div className="mt-6 pt-6 border-t border-gray-800">
-                <p className="text-gray-400 text-sm mb-3">Follow Us</p>
+                <p className="text-gray-400 text-sm mb-3">{t('footer.follow')}</p>
                 <div className="flex gap-3">
                   <a 
                     href="https://www.instagram.com/" 

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, User, Menu, X, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import type { User as AuthUser } from '@supabase/supabase-js';
 
@@ -17,9 +18,12 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
   const [activeNav, setActiveNav] = useState<'Home' | 'Buy' | 'Rent' | 'Blog' | 'About'>('Home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [languageOpen, setLanguageOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const currencyRef = useRef<HTMLDivElement>(null);
+  const languageRef = useRef<HTMLDivElement>(null);
   const { currency, setCurrency, rateDate } = useCurrency();
+  const { language, setLanguage, t } = useLanguage();
 
   useEffect(() => {
     const init = async () => {
@@ -36,12 +40,13 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (currencyRef.current && !currencyRef.current.contains(e.target as Node)) setCurrencyOpen(false);
+      if (languageRef.current && !languageRef.current.contains(e.target as Node)) setLanguageOpen(false);
     }
-    if (currencyOpen) {
+    if (currencyOpen || languageOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [currencyOpen]);
+  }, [currencyOpen, languageOpen]);
 
   const activeNavName = currentPage === 'home' ? 'Home' : currentPage === 'buy' ? 'Buy' : currentPage === 'rent' ? 'Rent' : currentPage === 'consultation' ? 'Consultation' : currentPage === 'category' ? 'Rent' : currentPage === 'blog' ? 'Blog' : currentPage === 'about' ? 'About' : activeNav;
 
@@ -66,11 +71,11 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
   };
 
   const navItems = [
-    { name: 'Home', href: '#' },
-    { name: 'Buy', href: '#properties' },
-    { name: 'Rent', href: '#properties' },
-    { name: 'Blog', href: '#' },
-    { name: 'About', href: '#why-us', hasDropdown: true },
+    { name: 'Home', label: t('nav.home'), href: '#' },
+    { name: 'Buy', label: t('nav.buy'), href: '#properties' },
+    { name: 'Rent', label: t('nav.rent'), href: '#properties' },
+    { name: 'Blog', label: t('nav.blog'), href: '#' },
+    { name: 'About', label: t('nav.about'), href: '#why-us', hasDropdown: true },
   ];
 
   return (
@@ -87,7 +92,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
               }}
               className="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity h-full"
             >
-              <img src="/logo4.png" alt="Tokyo Expat Housing" className="h-16 md:h-20 w-auto object-contain" />
+              <img src="/logo4.png" alt="Tokyo Expat Housing" className="h-12 md:h-14 w-auto object-contain mix-blend-multiply" />
             </button>
 
             {/* Desktop Navigation - Pill Container */}
@@ -107,7 +112,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                     }
                   `}
                 >
-                  {item.name}
+                  {item.label}
                   {item.hasDropdown && (
                     <ChevronDown className="w-3.5 h-3.5 opacity-70" />
                   )}
@@ -118,10 +123,41 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
             {/* Right Section - Utilities & CTAs */}
             <div className="hidden lg:flex items-center gap-3">
               {/* Language Selector */}
-              <button className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors">
-                EN
-                <ChevronDown className="w-3.5 h-3.5 opacity-70" />
-              </button>
+              <div className="relative" ref={languageRef}>
+                <button
+                  type="button"
+                  onClick={() => setLanguageOpen((o) => !o)}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  {language === 'en' ? 'EN' : '中文'}
+                  <ChevronDown className={`w-3.5 h-3.5 opacity-70 transition-transform ${languageOpen ? 'rotate-180' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {languageOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      className="absolute right-0 top-full mt-1 py-1 min-w-[100px] bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => { setLanguage('en'); setLanguageOpen(false); }}
+                        className={`w-full px-4 py-2 text-left text-sm font-medium ${language === 'en' ? 'bg-gray-100 text-[#C1121F]' : 'text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        English
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setLanguage('zh'); setLanguageOpen(false); }}
+                        className={`w-full px-4 py-2 text-left text-sm font-medium ${language === 'zh' ? 'bg-gray-100 text-[#C1121F]' : 'text-gray-700 hover:bg-gray-50'}`}
+                      >
+                        中文
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Currency Selector */}
               <div className="relative" ref={currencyRef}>
@@ -207,7 +243,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                 onClick={() => onNavigate?.('consultation')}
                 className="px-5 py-2 text-sm font-semibold text-[#C1121F] border-2 border-[#C1121F] rounded-full hover:bg-[#C1121F] hover:text-white transition-all duration-200"
               >
-                Free Consultation
+                {t('nav.consultation')}
               </button>
 
               {/* ログイン中: ハート（お気に入り）＋人（アカウント）。未ログイン: My account */}
@@ -225,10 +261,10 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                 type="button"
                 onClick={() => onNavigate?.(user ? 'account' : 'account')}
                 className={`flex items-center gap-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-full hover:border-gray-400 hover:bg-gray-50 transition-all duration-200 ${user ? 'p-2' : 'px-4 py-2'}`}
-                aria-label={user ? 'My account' : 'My account'}
+                aria-label={user ? t('nav.account') : t('nav.signin')}
               >
                 <User className="w-4 h-4 flex-shrink-0" />
-                {!user && <span>My account</span>}
+                {!user && <span>{t('nav.signin')}</span>}
               </button>
             </div>
 
@@ -278,7 +314,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                       }
                     `}
                   >
-                    {item.name}
+                    {item.label}
                     {item.hasDropdown && (
                       <ChevronDown className="w-4 h-4 opacity-70" />
                     )}

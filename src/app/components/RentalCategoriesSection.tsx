@@ -11,6 +11,7 @@ import {
   Baby 
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 interface Category {
   id: string;
@@ -66,7 +67,19 @@ export interface RentalCategoriesSectionProps {
   onCategoryClick?: (categoryId: string) => void;
 }
 
+const CATEGORY_I18N_KEYS: Record<string, string> = {
+  'luxury': 'category.luxury',
+  'pet-friendly': 'category.pet_friendly',
+  'furnished': 'category.furnished',
+  'top-floor': 'category.high_rise',
+  'no-key-money': 'category.no_key_money',
+  'for-students': 'category.students',
+  'designers': 'category.designers',
+  'for-families': 'category.families',
+};
+
 export function RentalCategoriesSection({ onCategoryClick }: RentalCategoriesSectionProps) {
+  const { t } = useLanguage();
   const [categories, setCategories] = useState<Category[]>(() =>
     CATEGORIES.map((c) => ({ ...c, count: 0 }))
   );
@@ -146,7 +159,7 @@ export function RentalCategoriesSection({ onCategoryClick }: RentalCategoriesSec
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-            Search by Categories
+            {t('section.categories.title')}
           </h2>
         </motion.div>
 
@@ -184,10 +197,10 @@ export function RentalCategoriesSection({ onCategoryClick }: RentalCategoriesSec
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-gray-900 mb-0.5">
-                    {category.name}
+                    {CATEGORY_I18N_KEYS[category.id] ? t(CATEGORY_I18N_KEYS[category.id]) : category.name}
                   </h3>
                   <p className="text-xs text-gray-600">
-                    {category.count} Properties
+                    {t('section.categories.properties_count').replace('{n}', String(category.count))}
                   </p>
                 </div>
               </div>

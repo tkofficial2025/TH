@@ -5,8 +5,10 @@ import 'leaflet/dist/leaflet.css';
 import Supercluster from 'supercluster';
 import { geocodeAddresses, type Coordinates } from '@/lib/geocoding';
 import { type Property } from '@/lib/properties';
+import type { PropertyTranslationResult } from '@/lib/translate-property';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getStationDisplay, type Language } from '@/lib/stationNames';
 import { getTileLayerConfig, getMaptilerApiKey } from '@/lib/mapTiles';
 import { MapTilerLayer } from '@/app/components/MapTilerLayer';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
@@ -25,16 +27,27 @@ interface PropertiesMapViewProps {
   onPropertyClick?: (propertyId: number) => void;
   className?: string;
   height?: string;
+  translationMap?: Map<number, PropertyTranslationResult>;
 }
 
 /**
  * 地図の表示範囲を自動調整するコンポーネント
+ * bounds に NaN が含まれる場合は fitBounds を呼ばない（Invalid LatLng エラー防止）
  */
 function MapBoundsUpdater({ bounds }: { bounds: L.LatLngBounds | null }) {
   const map = useMap();
   useEffect(() => {
-    if (bounds) {
+    if (!bounds) return;
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
+    const valid =
+      Number.isFinite(sw.lat) && Number.isFinite(sw.lng) &&
+      Number.isFinite(ne.lat) && Number.isFinite(ne.lng);
+    if (!valid) return;
+    try {
       map.fitBounds(bounds);
+    } catch {
+      // Invalid LatLng (NaN) など Leaflet 内部で発生する例外を握りつぶし、クラッシュを防ぐ
     }
   }, [map, bounds]);
   return null;
@@ -45,10 +58,14 @@ function MapBoundsUpdater({ bounds }: { bounds: L.LatLngBounds | null }) {
  */
 function ClusterUpdater({ 
   cluster, 
-  onPropertyClick 
+  onPropertyClick,
+  language,
+  translationMap,
 }: { 
   cluster: Supercluster; 
   onPropertyClick?: (propertyId: number) => void;
+  language: Language;
+  translationMap?: Map<number, PropertyTranslationResult>;
 }) {
   const map = useMap();
   const { formatPrice } = useCurrency();
@@ -141,6 +158,12 @@ function ClusterUpdater({
         } else {
           // 個別の物件マーカー
           const property = point.properties.property as Property;
+          const displayTitle = language === 'zh' && translationMap?.get(property.id)?.title_zh
+            ? translationMap.get(property.id)!.title_zh
+            : property.title;
+          const displayAddress = language === 'zh' && translationMap?.get(property.id)?.address_zh
+            ? translationMap.get(property.id)!.address_zh
+            : property.address;
           const priceText = formatPrice(property.price, property.type === 'rent' ? 'rent' : 'buy');
           // テーマ色に統一
           const themeColor = '#C1121F';
@@ -174,7 +197,7 @@ function ClusterUpdater({
 
           // ホバー用のTooltip（HTML文字列）
           const imageHtml = property.image 
-            ? `<img src="${property.image}" alt="${property.title}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; flex-shrink: 0;" onerror="this.style.display='none';" />`
+            ? `<img src="${property.image}" alt="${displayTitle}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; flex-shrink: 0;" onerror="this.style.display='none';" />`
             : '';
           const tooltipHtml = `
             <div style="min-width: 280px; max-width: 400px; padding: 10px; box-sizing: border-box; word-wrap: break-word; overflow-wrap: break-word;">
@@ -182,16 +205,16 @@ function ClusterUpdater({
                 ${imageHtml ? `<div style="flex-shrink: 0;">${imageHtml}</div>` : ''}
                 <div style="flex: 1; min-width: 0;">
                   <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px; line-height: 1.4; word-wrap: break-word;">
-                    ${property.title}
+                    ${displayTitle}
                   </div>
                   <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px; line-height: 1.4; word-wrap: break-word;">
-                    ${property.address}
+                    ${displayAddress}
                   </div>
                   <div style="font-size: 14px; font-weight: 600; color: #C1121F; margin-bottom: 4px;">
                     ${priceText}
                   </div>
                   <div style="font-size: 12px; color: #6b7280; line-height: 1.4; word-wrap: break-word;">
-                    ${property.beds} bed • ${property.size} m²${property.station ? ` • ${property.station}` : ''}
+                    ${property.beds} bed • ${property.size} m²${property.station ? ` • ${getStationDisplay(property.station, language)}` : ''}
                   </div>
                 </div>
               </div>
@@ -216,8 +239,8 @@ function ClusterUpdater({
               </Tooltip>
               <Popup>
                 <div className="min-w-[250px] max-w-[300px]">
-                  <h3 className="font-semibold text-sm mb-1 line-clamp-2">{property.title}</h3>
-                  <p className="text-xs text-gray-600 mb-2 line-clamp-1">{property.address}</p>
+                  <h3 className="font-semibold text-sm mb-1 line-clamp-2">{displayTitle}</h3>
+                  <p className="text-xs text-gray-600 mb-2 line-clamp-1">{displayAddress}</p>
                   <p className="text-sm font-semibold text-[#C1121F] mb-2">
                     {priceText}
                   </p>
@@ -228,7 +251,7 @@ function ClusterUpdater({
                     {property.station && (
                       <>
                         <span>•</span>
-                        <span>{property.station}</span>
+                        <span>{getStationDisplay(property.station, language)}</span>
                       </>
                     )}
                   </div>
@@ -255,7 +278,8 @@ export function PropertiesMapView({
   properties, 
   onPropertyClick, 
   className = '', 
-  height = '600px' 
+  height = '600px',
+  translationMap,
 }: PropertiesMapViewProps) {
   const { formatPrice } = useCurrency();
   const { t, language } = useLanguage();
@@ -366,10 +390,12 @@ export function PropertiesMapView({
     );
   }
 
-  // すべての座標から境界を計算
-  const coordsArray = Array.from(propertyCoordinates.values());
+  // すべての座標から境界を計算（NaN を除外して Invalid LatLng を防ぐ）
+  const coordsArray = Array.from(propertyCoordinates.values()).filter(
+    (c: Coordinates) => Number.isFinite(c.lat) && Number.isFinite(c.lng)
+  );
   const bounds = coordsArray.length > 0
-    ? L.latLngBounds(coordsArray.map(c => [c.lat, c.lng] as [number, number]))
+    ? L.latLngBounds(coordsArray.map((c: Coordinates) => [c.lat, c.lng] as [number, number]))
     : null;
 
   // デフォルトの中心（東京）
@@ -435,7 +461,7 @@ export function PropertiesMapView({
             <TileLayer attribution={tileConfig.attribution} url={tileConfig.url} />
           )}
           {bounds && <MapBoundsUpdater bounds={bounds} />}
-          {cluster && <ClusterUpdater cluster={cluster} onPropertyClick={onPropertyClick} />}
+          {cluster && <ClusterUpdater cluster={cluster} onPropertyClick={onPropertyClick} language={language} />}
         </MapContainer>
       </div>
     </>

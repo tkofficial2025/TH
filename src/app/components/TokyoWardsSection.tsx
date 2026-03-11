@@ -162,7 +162,7 @@ export function TokyoWardsSection({ onWardClick, title, subtitle }: TokyoWardsSe
                 <div className="absolute inset-0 overflow-hidden">
                   <ImageWithFallback
                     src={ward.image}
-                    alt={`${ward.name} ward`}
+                    alt={t('ward.' + ward.name)}
                     className="w-full h-full object-cover"
                   />
                   {/* Gradient Overlay */}
@@ -174,7 +174,7 @@ export function TokyoWardsSection({ onWardClick, title, subtitle }: TokyoWardsSe
                   <div></div>
                   <div>
                     <h3 className="text-2xl lg:text-3xl font-bold text-white mb-1">
-                      {ward.name}
+                      {t('ward.' + ward.name)}
                     </h3>
                   <p className="text-white/90 text-sm mb-3">
                     {t('section.areas.properties_count').replace('{n}', String(ward.properties))}

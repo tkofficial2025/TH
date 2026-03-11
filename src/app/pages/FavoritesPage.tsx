@@ -10,6 +10,8 @@ import { SelectedAreaFilter } from '@/app/components/SelectedAreaFilter';
 import { filterPropertiesByAreas } from '@/lib/wards';
 import type { Page } from '@/lib/routes';
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getStationDisplay } from '@/lib/stationNames';
+import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
 
 interface FavoritesPageProps {
   onNavigate: (page: Page) => void;
@@ -47,6 +49,8 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
   const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const moreFiltersRef = useRef<HTMLDivElement>(null);
   const { currency, formatPrice } = useCurrency();
+  const { t, language } = useLanguage();
+  const [translationMap, setTranslationMap] = useState<Map<number, PropertyTranslationResult>>(new Map());
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -134,6 +138,19 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
 
   const filteredRent = applyFilters(favoritesRent);
   const filteredBuy = applyFilters(favoritesBuy);
+  const displayList = activeTab === 'rent' ? filteredRent : filteredBuy;
+  const displayIdsKey = displayList.map((p) => p.id).sort((a, b) => a - b).join(',');
+  useEffect(() => {
+    if (language !== 'zh' || displayList.length === 0) {
+      setTranslationMap(new Map());
+      return;
+    }
+    let cancelled = false;
+    fetchTranslationsForProperties(displayList, language).then((map) => {
+      if (!cancelled) setTranslationMap(map);
+    });
+    return () => { cancelled = true; };
+  }, [language, displayIdsKey]);
 
   useEffect(() => {
     async function loadUserAndFavorites() {
@@ -278,7 +295,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
             <Search className="w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search"
+              placeholder={t('filter.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent border-none outline-none text-sm w-32"
@@ -308,34 +325,34 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
             <option value="4">4+</option>
           </select>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600 whitespace-nowrap">Price:</span>
+            <span className="text-xs text-gray-600 whitespace-nowrap">{t('filter.price')}:</span>
             <input
               type="text"
-              placeholder="Min ¥"
+              placeholder={t('filter.min_yen')}
               value={priceMin}
               onChange={(e) => setPriceMin(e.target.value)}
               className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
             />
             <input
               type="text"
-              placeholder="Max ¥"
+              placeholder={t('filter.max_yen')}
               value={priceMax}
               onChange={(e) => setPriceMax(e.target.value)}
               className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
             />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600 whitespace-nowrap">Size:</span>
+            <span className="text-xs text-gray-600 whitespace-nowrap">{t('filter.size')}:</span>
             <input
               type="number"
-              placeholder="Min m²"
+              placeholder={t('filter.min_sqm')}
               value={sizeMin}
               onChange={(e) => setSizeMin(e.target.value)}
               className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
             />
             <input
               type="number"
-              placeholder="Max m²"
+              placeholder={t('filter.max_sqm')}
               value={sizeMax}
               onChange={(e) => setSizeMax(e.target.value)}
               className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
@@ -379,35 +396,35 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                   </label>
                 </div>
                 <div className="pt-3 border-t border-gray-200 mt-3">
-                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Categories</h4>
+                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('filter.categories')}</h4>
                   <div className="space-y-3">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={luxury} onChange={(e) => setLuxury(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
-                      <span className="text-sm font-medium text-gray-700">Luxury</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.luxury')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={furnished} onChange={(e) => setFurnished(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
-                      <span className="text-sm font-medium text-gray-700">Furnished</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.furnished')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={highRiseResidence} onChange={(e) => setHighRiseResidence(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
-                      <span className="text-sm font-medium text-gray-700">High-Rise Residence</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.high_rise')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={noKeyMoney} onChange={(e) => setNoKeyMoney(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
-                      <span className="text-sm font-medium text-gray-700">No key money</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.no_key_money')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={forStudents} onChange={(e) => setForStudents(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
-                      <span className="text-sm font-medium text-gray-700">For students</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.students')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={designers} onChange={(e) => setDesigners(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
-                      <span className="text-sm font-medium text-gray-700">Designers</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.designers')}</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input type="checkbox" checked={forFamilies} onChange={(e) => setForFamilies(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
-                      <span className="text-sm font-medium text-gray-700">For families</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.families')}</span>
                     </label>
                   </div>
                 </div>
@@ -444,7 +461,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                   <div className="relative aspect-[4/3] bg-gray-100">
                     <ImageWithFallback
                       src={property.image}
-                      alt={property.title}
+                      alt={language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}
                       className="w-full h-full object-cover"
                     />
                     <span className="absolute top-3 left-3 px-2 py-1 bg-white text-gray-900 text-xs font-semibold rounded-lg">
@@ -452,8 +469,8 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                     </span>
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">{property.title}</h3>
-                    <p className="text-sm text-gray-500 mb-2 line-clamp-1">{property.address}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">{language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}</h3>
+                    <p className="text-sm text-gray-500 mb-2 line-clamp-1">{language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address}</p>
                     <p className="font-semibold text-[#C1121F] mb-2">{formatPrice(property.price, 'rent')}</p>
                     <div className="flex items-center gap-2 text-xs text-gray-600">
                       <Bed className="w-3.5 h-3.5" />
@@ -465,7 +482,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                     <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
                       <StationLineLogo stationName={property.station} size={14} className="flex-shrink-0" />
                       <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span>{property.station} • {property.walkingMinutes} min</span>
+                      <span>{getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}</span>
                     </div>
                   </div>
                 </div>
@@ -496,7 +513,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                 <div className="relative aspect-[4/3] bg-gray-100">
                   <ImageWithFallback
                     src={property.image}
-                    alt={property.title}
+                    alt={language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}
                     className="w-full h-full object-cover"
                   />
                   <span className="absolute top-3 left-3 px-2 py-1 bg-[#C1121F] text-white text-xs font-semibold rounded-lg">
@@ -504,8 +521,8 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                   </span>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">{property.title}</h3>
-                  <p className="text-sm text-gray-500 mb-2 line-clamp-1">{property.address}</p>
+                  <h3 className="font-semibold text-gray-900 mb-1 line-clamp-1">{language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}</h3>
+                  <p className="text-sm text-gray-500 mb-2 line-clamp-1">{language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address}</p>
                   <p className="font-semibold text-[#C1121F] mb-2">{formatPrice(property.price, 'buy')}</p>
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <Bed className="w-3.5 h-3.5" />
@@ -517,7 +534,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                   <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
                     <StationLineLogo stationName={property.station} size={14} className="flex-shrink-0" />
                     <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span>{property.station} • {property.walkingMinutes} min</span>
+                    <span>{getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}</span>
                   </div>
                 </div>
               </div>

@@ -11,6 +11,8 @@ import {
 } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getStationDisplay } from '@/lib/stationNames';
+import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
 
 export interface FeaturedPropertiesCarouselProps {
   onSelectProperty?: (id: number, source: 'rent' | 'buy') => void;
@@ -19,12 +21,13 @@ export interface FeaturedPropertiesCarouselProps {
 }
 
 export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }: FeaturedPropertiesCarouselProps = {}) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [properties, setProperties] = useState<FeaturedProperty[]>([]);
   const [loading, setLoading] = useState(true);
+  const [translationMap, setTranslationMap] = useState<Map<number, PropertyTranslationResult>>(new Map());
   const { formatPrice } = useCurrency();
   const displayTitle = title ?? t('section.featured.title');
   const displaySubtitle = subtitle ?? t('section.featured.subtitle');
@@ -64,6 +67,19 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }
     fetchFeaturedProperties();
   }, []);
 
+  const propertiesIdsKey = properties.map((p) => p.id).sort((a, b) => a - b).join(',');
+  useEffect(() => {
+    if (language !== 'zh' || properties.length === 0) {
+      setTranslationMap(new Map());
+      return;
+    }
+    let cancelled = false;
+    fetchTranslationsForProperties(properties, language).then((map) => {
+      if (!cancelled) setTranslationMap(map);
+    });
+    return () => { cancelled = true; };
+  }, [language, propertiesIdsKey]);
+
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
       const scrollAmount = 400;
@@ -94,8 +110,8 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">Featured Properties</h2>
-            <p className="text-lg text-gray-600">Handpicked homes for rent and sale in Japan</p>
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
+            <p className="text-lg text-gray-600">{displaySubtitle}</p>
           </motion.div>
 
           <motion.a
@@ -106,7 +122,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <span className="font-medium">View all</span>
+            <span className="font-medium">{t('section.featured.view_all')}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </motion.a>
         </div>
@@ -178,7 +194,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }
                   <div className="relative h-56 overflow-hidden">
                     <ImageWithFallback
                       src={property.image}
-                      alt={property.title}
+                      alt={language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}
                       className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500"
                     />
                     {/* Type Badge */}
@@ -189,22 +205,22 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }
                           : 'bg-white text-gray-900'
                       }`}
                     >
-                      {property.type === 'Rent' ? 'For Rent' : 'For Sale'}
+                      {property.type === 'Rent' ? t('activity.for_rent') : t('activity.for_sale')}
                     </div>
                   </div>
 
                   {/* Property Details */}
                   <div className="p-6">
                     <h3 className="text-xl font-semibold text-gray-900 mb-1 group-hover/card:text-[#C1121F] transition-colors">
-                      {property.title}
+                      {language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}
                     </h3>
                     <p className="text-sm text-gray-500 mb-4">{property.location}</p>
 
                     {/* Property Stats */}
                     <div className="flex items-center gap-3 text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100">
-                      <span>{property.beds} bed</span>
+                      <span>{property.beds} {t('property.bed')}</span>
                       <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                      <span>{property.baths} bath</span>
+                      <span>{property.baths} {t('property.bath')}</span>
                       <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                       <span>{property.size}</span>
                     </div>
@@ -226,8 +242,8 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }
                         />
                         <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         <span className="text-sm text-gray-600">
-                          {property.station}
-                          {property.walkingMinutes && ` • ${property.walkingMinutes} min walk`}
+                          {getStationDisplay(property.station, language)}
+                          {property.walkingMinutes && ` • ${property.walkingMinutes} ${t('property.walk.min')}`}
                         </span>
                       </div>
                     )}
@@ -247,7 +263,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <span className="font-medium">View all properties</span>
+          <span className="font-medium">{t('section.featured.view_all_properties')}</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </motion.a>
       </div>

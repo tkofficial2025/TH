@@ -33,17 +33,10 @@ import {
   pushState,
   replaceState,
 } from '@/lib/routes';
-import { CurrencyProvider } from './contexts/CurrencyContext';
-import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { useLanguage } from './contexts/LanguageContext';
 
 export default function App() {
-  return (
-    <LanguageProvider>
-      <CurrencyProvider>
-        <AppContent />
-      </CurrencyProvider>
-    </LanguageProvider>
-  );
+  return <AppContent />;
 }
 
 function AppContent() {
@@ -537,10 +530,10 @@ function AppContent() {
                   5
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">Screening or Negotiation</h3>
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step5.heading')}</h3>
                   <p className="text-gray-600 leading-relaxed">
-                    <strong>Rentals:</strong> Landlord screening (2–5 business days).<br />
-                    <strong>Purchases:</strong> Price negotiation and agreement on terms.
+                    {t('process.step5.desc_rent')}<br />
+                    {t('process.step5.desc_buy')}
                   </p>
                 </div>
               </div>
@@ -586,7 +579,7 @@ function AppContent() {
                     {t('process.step7.desc_buy')}
                   </p>
                   <p className="text-gray-600 leading-relaxed">
-                    We guide you through every payment step.
+                    {t('process.step7.guide')}
                   </p>
                 </div>
               </div>
@@ -625,7 +618,7 @@ function AppContent() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">Why Tokyo Expat Housing</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{t('section.why.title')}</h2>
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
@@ -731,11 +724,11 @@ function AppContent() {
               {/* Company Info */}
               <div className="mb-6">
                 <p className="text-gray-300 font-medium mb-2">
-                  Operated by Jokyo Property Co., Ltd.　上京プロパティ株式会社
+                  {t('footer.operated_by')}
                 </p>
                 <div className="flex items-center gap-2 text-gray-400 text-sm mb-4">
                   <Award className="w-4 h-4 text-[#C1121F] flex-shrink-0" />
-                  <span>Tokyo Governor License (1) No. 113518</span>
+                  <span>{t('footer.license')}</span>
                 </div>
               </div>
 
@@ -834,7 +827,7 @@ function AppContent() {
             <div>
               <h4 className="font-semibold mb-6 flex items-center gap-2">
                 <Home className="w-5 h-5 text-[#C1121F]" />
-                Services
+                {t('footer.services')}
               </h4>
               <ul className="space-y-3">
                 <li>
@@ -843,7 +836,7 @@ function AppContent() {
                     className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
                   >
                     <div className="w-1.5 h-1.5 bg-[#C1121F] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <span>Buy Property</span>
+                    <span>{t('footer.buy_property')}</span>
                   </button>
                 </li>
                 <li>
@@ -852,7 +845,7 @@ function AppContent() {
                     className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
                   >
                     <div className="w-1.5 h-1.5 bg-[#C1121F] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <span>Rent & Live</span>
+                    <span>{t('footer.rent_live')}</span>
                   </button>
                 </li>
               </ul>
@@ -861,7 +854,7 @@ function AppContent() {
             <div>
               <h4 className="font-semibold mb-6 flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-[#C1121F]" />
-                Company
+                {t('footer.company')}
               </h4>
               <ul className="space-y-3">
                 <li>
@@ -870,20 +863,24 @@ function AppContent() {
                     className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group w-full text-left"
                   >
                     <div className="w-1.5 h-1.5 bg-[#C1121F] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <span>About Us</span>
+                    <span>{t('about.title')}</span>
                   </button>
                 </li>
                 <li>
                   <a href="#" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
                     <div className="w-1.5 h-1.5 bg-[#C1121F] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <span>Contact</span>
+                    <span>{t('footer.contact')}</span>
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate('blog')}
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group w-full text-left bg-transparent border-none cursor-pointer p-0"
+                  >
                     <div className="w-1.5 h-1.5 bg-[#C1121F] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <span>Blog</span>
-                  </a>
+                    <span>{t('nav.blog')}</span>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -891,11 +888,11 @@ function AppContent() {
 
           <div className="border-t border-gray-800 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-gray-400 text-sm">© 2026 TK LLC. All Rights Reserved.</p>
+              <p className="text-gray-400 text-sm">{t('footer.copyright')}</p>
               <div className="flex gap-6 text-sm">
-                <button type="button" onClick={() => handleNavigate('privacy')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">Privacy Policy</button>
-                <button type="button" onClick={() => handleNavigate('terms')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">Terms of Service</button>
-                <button type="button" onClick={() => handleNavigate('cookie')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">Cookie Policy</button>
+                <button type="button" onClick={() => handleNavigate('privacy')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">{t('footer.privacy_policy')}</button>
+                <button type="button" onClick={() => handleNavigate('terms')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">{t('footer.terms_of_service')}</button>
+                <button type="button" onClick={() => handleNavigate('cookie')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">{t('footer.cookie_policy')}</button>
               </div>
             </div>
           </div>

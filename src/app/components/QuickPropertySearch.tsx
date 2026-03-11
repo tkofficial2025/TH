@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, ChevronDown, SlidersHorizontal } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { AREA_OPTIONS } from '@/lib/wards';
 import type { HeroSearchParams } from '@/lib/searchFilters';
 import { useLanguage } from '@/app/contexts/LanguageContext';
@@ -18,28 +18,31 @@ type PropertyType = typeof propertyTypes[number];
 /** Area: 東京23区＋23区外（QuickPropertySearch 用・複数選択） */
 const areas: DropdownOption[] = AREA_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }));
 
-const buyBudgets: DropdownOption[] = [
-  { value: '0-50m', label: 'Under ¥50M' },
-  { value: '50m-80m', label: '¥50M – ¥80M' },
-  { value: '80m-120m', label: '¥80M – ¥120M' },
-  { value: '120m-200m', label: '¥120M – ¥200M' },
-  { value: '200m+', label: 'Over ¥200M' },
+/** Budget options for buy: value + i18n key */
+const buyBudgetKeys = [
+  { value: '0-50m', key: 'search.budget.under_50m' },
+  { value: '50m-80m', key: 'search.budget.50m_80m' },
+  { value: '80m-120m', key: 'search.budget.80m_120m' },
+  { value: '120m-200m', key: 'search.budget.120m_200m' },
+  { value: '200m+', key: 'search.budget.over_200m' },
 ];
 
-const rentBudgets: DropdownOption[] = [
-  { value: '0-150k', label: 'Under ¥150,000' },
-  { value: '150k-250k', label: '¥150,000 – ¥250,000' },
-  { value: '250k-400k', label: '¥250,000 – ¥400,000' },
-  { value: '400k-600k', label: '¥400,000 – ¥600,000' },
-  { value: '600k+', label: 'Over ¥600,000' },
+/** Budget options for rent: value + i18n key */
+const rentBudgetKeys = [
+  { value: '0-150k', key: 'search.budget.under_150k' },
+  { value: '150k-250k', key: 'search.budget.150k_250k' },
+  { value: '250k-400k', key: 'search.budget.250k_400k' },
+  { value: '400k-600k', key: 'search.budget.400k_600k' },
+  { value: '600k+', key: 'search.budget.over_600k' },
 ];
 
-const bedrooms: DropdownOption[] = [
-  { value: 'studio', label: 'Studio' },
-  { value: '1br', label: '1 BR' },
-  { value: '2br', label: '2 BR' },
-  { value: '3br', label: '3 BR' },
-  { value: '4br+', label: '4 BR+' },
+/** Bedroom options: value + i18n key */
+const bedroomKeys = [
+  { value: 'studio', key: 'search.bedrooms.studio' },
+  { value: '1br', key: 'search.bedrooms.1br' },
+  { value: '2br', key: 'search.bedrooms.2br' },
+  { value: '3br', key: 'search.bedrooms.3br' },
+  { value: '4br+', key: 'search.bedrooms.4br_plus' },
 ];
 
 interface DropdownProps {
@@ -117,13 +120,15 @@ function Dropdown({ label, options, value, onChange, placeholder }: DropdownProp
   );
 }
 
-/** Area 用: 複数選択・チェックボックス・スクロール可能 */
+/** Area 用: 複数選択・チェックボックス・スクロール可能（areas は翻訳済みラベル） */
 interface AreaMultiSelectProps {
   selectedAreas: Set<string>;
   onChange: (selected: Set<string>) => void;
+  areas: DropdownOption[];
 }
 
-function AreaMultiSelect({ selectedAreas, onChange }: AreaMultiSelectProps) {
+function AreaMultiSelect({ selectedAreas, onChange, areas }: AreaMultiSelectProps) {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [areaSearch, setAreaSearch] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -155,7 +160,7 @@ function AreaMultiSelect({ selectedAreas, onChange }: AreaMultiSelectProps) {
     : areas;
 
   const count = selectedAreas.size;
-  const displayText = count === 0 ? 'Select area' : count === 1 ? areas.find((a) => a.value === [...selectedAreas][0])?.label ?? '1 area' : `${count} areas`;
+  const displayText = count === 0 ? t('search.area.select') : count === 1 ? areas.find((a) => a.value === [...selectedAreas][0])?.label ?? t('search.area.one') : t('search.area.many').replace('{n}', String(count));
 
   return (
     <div className="relative flex-1 min-w-[140px]" ref={dropdownRef}>
@@ -165,7 +170,7 @@ function AreaMultiSelect({ selectedAreas, onChange }: AreaMultiSelectProps) {
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex-1 min-w-0">
-          <div className="text-xs text-gray-500 mb-0.5">Area</div>
+          <div className="text-xs text-gray-500 mb-0.5">{t('search.area.label_short')}</div>
           <div className="text-sm text-gray-900 font-medium truncate">{displayText}</div>
         </div>
         <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -182,7 +187,7 @@ function AreaMultiSelect({ selectedAreas, onChange }: AreaMultiSelectProps) {
             style={{ maxHeight: AREA_DROPDOWN_MAX_HEIGHT }}
           >
             <div className="flex-shrink-0 px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">
-              Tokyo 23 wards + Outer 23 wards
+              {t('search.area.header')}
             </div>
             <div className="flex-shrink-0 p-2 border-b border-gray-100">
               <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
@@ -191,14 +196,14 @@ function AreaMultiSelect({ selectedAreas, onChange }: AreaMultiSelectProps) {
                   type="text"
                   value={areaSearch}
                   onChange={(e) => setAreaSearch(e.target.value)}
-                  placeholder="Search area..."
+                  placeholder={t('search.area.search_placeholder')}
                   className="flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-gray-900 placeholder:text-gray-400"
                 />
               </div>
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain py-1">
               {filteredAreas.length === 0 ? (
-                <div className="px-4 py-3 text-sm text-gray-500">No matching area</div>
+                <div className="px-4 py-3 text-sm text-gray-500">{t('search.area.no_match')}</div>
               ) : (
                 filteredAreas.map((option) => (
                   <label
@@ -249,13 +254,21 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
   const [designers, setDesigners] = useState(false);
   const [forFamilies, setForFamilies] = useState(false);
 
-  const budgetOptions = 
-    propertyType === 'buy' ? buyBudgets : 
-    rentBudgets;
+  const budgetOptions: DropdownOption[] = useMemo(() => {
+    const keys = propertyType === 'buy' ? buyBudgetKeys : rentBudgetKeys;
+    return keys.map(({ value, key }) => ({ value, label: t(key) }));
+  }, [propertyType, t]);
 
-  const budgetLabel = 
-    propertyType === 'buy' ? 'Price' :
-    'Monthly Rent';
+  const bedroomOptions: DropdownOption[] = useMemo(() => {
+    return bedroomKeys.map(({ value, key }) => ({ value, label: t(key) }));
+  }, [t]);
+
+  const budgetLabel = propertyType === 'buy' ? t('search.budget.price') : t('search.budget.monthly_rent');
+
+  const areaOptions: DropdownOption[] = useMemo(
+    () => AREA_OPTIONS.map((opt) => ({ value: opt.value, label: t('ward.' + opt.value) })),
+    [t]
+  );
 
   const handleSearch = () => {
     const params: HeroSearchParams = {
@@ -322,7 +335,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Search by title, address, station..."
+              placeholder={t('search.placeholder.keyword')}
               className="flex-1 border-none outline-none text-base text-gray-900 placeholder-gray-400 bg-transparent"
             />
           </div>
@@ -340,14 +353,14 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
             transition={{ duration: 0.3 }}
             className="flex flex-col lg:flex-row items-stretch divide-y lg:divide-y-0 lg:divide-x divide-gray-100"
           >
-            <AreaMultiSelect selectedAreas={selectedAreas} onChange={setSelectedAreas} />
+            <AreaMultiSelect selectedAreas={selectedAreas} onChange={setSelectedAreas} areas={areaOptions} />
             
             <Dropdown
-              label="Bedrooms"
-              options={bedrooms}
+              label={t('search.bedrooms.label')}
+              options={bedroomOptions}
               value={bedroomCount}
               onChange={setBedroomCount}
-              placeholder="Any"
+              placeholder={t('search.budget.any')}
             />
             
             <Dropdown
@@ -355,7 +368,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
               options={budgetOptions}
               value={budget}
               onChange={setBudget}
-              placeholder="Any budget"
+              placeholder={t('search.budget.any_budget')}
             />
 
             <div className="lg:flex-shrink-0">
@@ -364,7 +377,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                 className="w-full lg:w-auto px-8 py-3 lg:py-[18px] bg-[#C1121F] text-white font-semibold rounded-none lg:rounded-r-xl hover:bg-[#A00F1A] transition-all hover:scale-[1.02] flex items-center justify-center gap-2 group"
               >
                 <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span className="lg:inline">Search</span>
+                <span className="lg:inline">{t('search.btn_short')}</span>
               </button>
             </div>
           </motion.div>
@@ -399,32 +412,32 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                 {/* Property Size (m²) — 広さの範囲を手動で指定 */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Property Size (m²)
+                    {t('search.size.label')}
                   </label>
                   <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-                      <span className="text-sm text-gray-500 whitespace-nowrap">From</span>
+                      <span className="text-sm text-gray-500 whitespace-nowrap">{t('search.size.from')}</span>
                       <input
                         type="number"
                         min={0}
                         step={1}
                         value={propertySizeMin}
                         onChange={(e) => setPropertySizeMin(e.target.value)}
-                        placeholder="e.g. 30"
+                        placeholder={t('search.size.placeholder_min')}
                         className="flex-1 min-w-0 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C1121F]/20 focus:border-[#C1121F] transition-colors"
                       />
                       <span className="text-sm text-gray-500">m²</span>
                     </div>
                     <span className="text-gray-400">–</span>
                     <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-                      <span className="text-sm text-gray-500 whitespace-nowrap">To</span>
+                      <span className="text-sm text-gray-500 whitespace-nowrap">{t('search.size.to')}</span>
                       <input
                         type="number"
                         min={0}
                         step={1}
                         value={propertySizeMax}
                         onChange={(e) => setPropertySizeMax(e.target.value)}
-                        placeholder="e.g. 80"
+                        placeholder={t('search.size.placeholder_max')}
                         className="flex-1 min-w-0 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C1121F]/20 focus:border-[#C1121F] transition-colors"
                       />
                       <span className="text-sm text-gray-500">m²</span>
@@ -435,7 +448,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                 {/* Categories Section */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Categories
+                    {t('filter.categories')}
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
@@ -445,7 +458,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                         onChange={(e) => setPetFriendly(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">Pet friendly</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.pet_friendly')}</span>
                     </label>
                     <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
@@ -454,7 +467,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                         onChange={(e) => setForeignFriendly(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">Foreign friendly</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.foreign_friendly')}</span>
                     </label>
                     <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
@@ -463,7 +476,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                         onChange={(e) => setLuxury(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">Luxury</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.luxury')}</span>
                     </label>
                     <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
@@ -472,7 +485,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                         onChange={(e) => setFurnished(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">Furnished</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.furnished')}</span>
                     </label>
                     <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
@@ -481,7 +494,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                         onChange={(e) => setHighRiseResidence(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">High-Rise Residence</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.high_rise')}</span>
                     </label>
                     <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
@@ -490,7 +503,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                         onChange={(e) => setNoKeyMoney(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">No key money</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.no_key_money')}</span>
                     </label>
                     <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
@@ -499,7 +512,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                         onChange={(e) => setForStudents(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">For students</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.students')}</span>
                     </label>
                     <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
@@ -508,7 +521,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                         onChange={(e) => setDesigners(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">Designers</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.designers')}</span>
                     </label>
                     <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
@@ -517,7 +530,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                         onChange={(e) => setForFamilies(e.target.checked)}
                         className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">For families</span>
+                      <span className="text-sm font-medium text-gray-700">{t('category.families')}</span>
                     </label>
                   </div>
                 </div>

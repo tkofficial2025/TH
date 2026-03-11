@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getStationDisplay } from '@/lib/stationNames';
+import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { Header } from '@/app/components/Header';
@@ -18,7 +20,7 @@ type TourCandidate = { date: string; timeRange: string };
 type AppliedItem = { property: Property; hasTour: boolean; hasInquiry: boolean; tourCandidates?: TourCandidate[] };
 
 export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [activeTab, setActiveTab] = useState<'rent' | 'buy'>('rent');
@@ -26,6 +28,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
   const [appliedBuy, setAppliedBuy] = useState<AppliedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const { formatPrice } = useCurrency();
+  const [translationMap, setTranslationMap] = useState<Map<number, PropertyTranslationResult>>(new Map());
 
   useEffect(() => {
     async function load() {
@@ -107,6 +110,21 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const appliedList = activeTab === 'rent' ? appliedRent : appliedBuy;
+  const appliedIdsKey = appliedList.map((i) => i.property.id).sort((a, b) => a - b).join(',');
+  useEffect(() => {
+    if (language !== 'zh' || appliedList.length === 0) {
+      setTranslationMap(new Map());
+      return;
+    }
+    const props = appliedList.map((i) => i.property);
+    let cancelled = false;
+    fetchTranslationsForProperties(props, language).then((map) => {
+      if (!cancelled) setTranslationMap(map);
+    });
+    return () => { cancelled = true; };
+  }, [language, appliedIdsKey]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     onNavigate('home');
@@ -150,7 +168,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
             {hasTour && <span className="inline-flex px-2 py-1 text-white text-xs font-medium rounded" style={{ backgroundColor: '#C1121F' }}>{t('activity.room_tour_booked')}</span>}
             {hasInquiry && <span className="inline-flex px-2 py-1 text-white text-xs font-medium rounded" style={{ backgroundColor: '#374151' }}>{t('activity.details_requested')}</span>}
           </div>
-          <p className="text-sm text-gray-500 mb-2 line-clamp-1">{property.address}</p>
+          <p className="text-sm text-gray-500 mb-2 line-clamp-1">{displayAddress}</p>
           <p className="font-semibold text-[#C1121F] mb-2">{formatPrice(property.price, source)}</p>
           <div className="flex items-center gap-2 text-xs text-gray-600">
             <Bed className="w-3.5 h-3.5" />
@@ -162,7 +180,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
           <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
             <StationLineLogo stationName={property.station} size={14} className="flex-shrink-0" />
             <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{property.station} • {property.walkingMinutes} min</span>
+            <span>{getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}</span>
           </div>
 
           {hasTour && tourCandidates && tourCandidates.length > 0 && (

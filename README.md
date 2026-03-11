@@ -30,6 +30,7 @@ Run `npm run dev` to start the development server.
    | `VITE_SUPABASE_URL` | Supabase の Project URL（例: `https://xxxxx.supabase.co`） |
    | `VITE_SUPABASE_ANON_KEY` | Supabase の anon public key |
    | `VITE_MAPTILER_API_KEY` | （任意）MapTiler の API キー。設定すると地図の地名が英語／中国語で表示されます。[MapTiler Cloud](https://cloud.maptiler.com/account/keys/)で取得。 |
+   | `DEEPL_AUTH_KEY` | （任意・サーバー側のみ）DeepL API キー。住所・物件名の翻訳用。**ブラウザに渡さず、Supabase Edge Function 等のサーバーでのみ使用。** |
 
    値は [Supabase Dashboard](https://supabase.com/dashboard) → 対象プロジェクト → **Settings** → **API** で確認できる。
 

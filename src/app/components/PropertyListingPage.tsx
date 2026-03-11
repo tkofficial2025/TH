@@ -25,6 +25,7 @@ import { filterPropertiesByHeroParams, type HeroSearchParams } from '@/lib/searc
 import { searchProperties } from '@/lib/fullTextSearch';
 import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getStationDisplay } from '@/lib/stationNames';
 
 interface PropertyListingPageProps {
   selectedWard?: string | null;
@@ -34,7 +35,7 @@ interface PropertyListingPageProps {
 
 export function PropertyListingPage({ selectedWard, onSelectProperty, initialSearchParams }: PropertyListingPageProps = {}) {
   const { formatPrice } = useCurrency();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showMap, setShowMap] = useState(true);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -66,6 +67,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<'popularity' | 'price-asc' | 'price-desc' | 'size-asc' | 'size-desc' | 'walking-asc' | 'walking-desc' | 'newest' | 'oldest'>('popularity');
   const hasAppliedInitialSearch = useRef(false);
+  const [translationMap, setTranslationMap] = useState<Map<number, PropertyTranslationResult>>(new Map());
 
   // サイドバー幅を35%に初期化
   useEffect(() => {
@@ -278,6 +280,22 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
   // 並び替え適用
   const sortedProperties = sortProperties(properties, sortOption);
 
+  // 中国語表示時は物件名・住所の翻訳を取得（表示中の ID リストが変わったときだけ再取得）
+  const sortedIdsKey = sortedProperties.map((p) => p.id).sort((a, b) => a - b).join(',');
+  useEffect(() => {
+    if (language !== 'zh' || sortedProperties.length === 0) {
+      setTranslationMap(new Map());
+      return;
+    }
+    let cancelled = false;
+    fetchTranslationsForProperties(sortedProperties, language).then((map) => {
+      if (!cancelled) setTranslationMap(map);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [language, sortedIdsKey]);
+
   const toggleFavorite = (id: number) => {
     const newFavorites = new Set(favorites);
     if (newFavorites.has(id)) {
@@ -420,17 +438,17 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
 
             {/* Price */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-600 whitespace-nowrap">Price:</span>
+              <span className="text-xs text-gray-600 whitespace-nowrap">{t('filter.price')}:</span>
               <input
                 type="text"
-                placeholder="Min ¥"
+                placeholder={t('filter.min_yen')}
                 value={priceMin}
                 onChange={(e) => setPriceMin(e.target.value)}
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
               />
               <input
                 type="text"
-                placeholder="Max ¥"
+                placeholder={t('filter.max_yen')}
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
@@ -439,17 +457,17 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
 
             {/* Size */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-600 whitespace-nowrap">Size:</span>
+              <span className="text-xs text-gray-600 whitespace-nowrap">{t('filter.size')}:</span>
               <input
                 type="number"
-                placeholder="Min m²"
+                placeholder={t('filter.min_sqm')}
                 value={sizeMin}
                 onChange={(e) => setSizeMin(e.target.value)}
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
               />
               <input
                 type="number"
-                placeholder="Max m²"
+                placeholder={t('filter.max_sqm')}
                 value={sizeMax}
                 onChange={(e) => setSizeMax(e.target.value)}
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
@@ -640,7 +658,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               {/* Header */}
               <div className="mb-4 pb-4 border-b border-gray-200">
                 <h1 className="text-xl font-bold text-gray-900 mb-1">
-                  {selectedWard ? t('listing.title.ward').replace('{ward}', selectedWard) : t('listing.title')}
+                  {selectedWard ? t('listing.title.ward').replace('{ward}', t('ward.' + selectedWard)) : t('listing.title')}
                 </h1>
                 <p className="text-sm text-gray-600">{t('listing.results').replace('{count}', String(sortedProperties.length))}</p>
               </div>
@@ -674,7 +692,10 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                   {t('listing.empty')}
                 </div>
               )}
-              {!loading && !error && sortedProperties.map((property, index) => (
+              {!loading && !error && sortedProperties.map((property, index) => {
+                const displayTitle = language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title;
+                const displayAddress = language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address;
+                return (
                 <motion.div
                   key={property.id}
                   role="button"
@@ -691,7 +712,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                   <div className="relative h-52 w-full overflow-hidden">
                     <ImageWithFallback
                       src={property.image}
-                      alt={property.title}
+                      alt={displayTitle}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
@@ -732,10 +753,10 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                     {/* Content Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-3">
                       <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>
-                        {property.title}
+                        {displayTitle}
                       </h3>
                       <p className="text-white/80 text-xs mb-2 line-clamp-1">
-                        {property.address}
+                        {displayAddress}
                       </p>
 
                       <div className="text-xl font-bold text-white mb-2">
@@ -772,13 +793,13 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                         />
                         <MapPin className="w-3 h-3 text-white flex-shrink-0" />
                         <span className="text-xs font-medium text-white">
-                          {property.station} • {property.walkingMinutes} min
+                          {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}
                         </span>
                       </div>
                     </div>
                   </div>
                 </motion.div>
-              ))}
+              ); })}
             </div>
 
             {/* Load More */}
@@ -799,6 +820,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               onPropertyClick={onSelectProperty}
               height="100%"
               className="w-full"
+              translationMap={translationMap}
             />
           </div>
         </div>
@@ -809,7 +831,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                {selectedWard ? t('listing.title.ward').replace('{ward}', selectedWard) : t('listing.title')}
+                {selectedWard ? t('listing.title.ward').replace('{ward}', t('ward.' + selectedWard)) : t('listing.title')}
               </h1>
               <p className="text-sm text-gray-600">{t('listing.results').replace('{count}', String(sortedProperties.length))}</p>
             </div>
@@ -843,7 +865,10 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
           )}
           {!loading && !error && sortedProperties.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {sortedProperties.map((property, index) => (
+              {sortedProperties.map((property, index) => {
+                const displayTitle = language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title;
+                const displayAddress = language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address;
+                return (
                 <motion.div
                   key={property.id}
                   role="button"
@@ -860,7 +885,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                   <div className="relative h-52 w-full overflow-hidden">
                     <ImageWithFallback
                       src={property.image}
-                      alt={property.title}
+                      alt={displayTitle}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
@@ -901,10 +926,10 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                     {/* Content Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-3">
                       <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>
-                        {property.title}
+                        {displayTitle}
                       </h3>
                       <p className="text-white/80 text-xs mb-2 line-clamp-1">
-                        {property.address}
+                        {displayAddress}
                       </p>
 
                       <div className="text-xl font-bold text-white mb-2">
@@ -941,13 +966,13 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                         />
                         <MapPin className="w-3 h-3 text-white flex-shrink-0" />
                         <span className="text-xs font-medium text-white">
-                          {property.station} • {property.walkingMinutes} min
+                          {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}
                         </span>
                       </div>
                     </div>
                   </div>
                 </motion.div>
-              ))}
+              ); })}
             </div>
           )}
         </div>

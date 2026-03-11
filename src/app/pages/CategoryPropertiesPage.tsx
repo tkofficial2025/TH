@@ -23,7 +23,9 @@ import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getStationDisplay } from '@/lib/stationNames';
 import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
+import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
 
 interface CategoryPropertiesPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent' | 'consultation' | 'category') => void;
@@ -33,7 +35,7 @@ interface CategoryPropertiesPageProps {
 
 export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectProperty }: CategoryPropertiesPageProps) {
   const { formatPrice } = useCurrency();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showMap, setShowMap] = useState(true);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -65,6 +67,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
   const [sidebarWidth, setSidebarWidth] = useState<number>(384);
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<SortOption>('popularity');
+  const [translationMap, setTranslationMap] = useState<Map<number, PropertyTranslationResult>>(new Map());
 
   // サイドバー幅を35%に初期化
   useEffect(() => {
@@ -267,6 +270,18 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
 
   // ソート適用
   const sortedProperties = sortProperties(properties, sortOption);
+  const sortedIdsKey = sortedProperties.map((p) => p.id).sort((a, b) => a - b).join(',');
+  useEffect(() => {
+    if (language !== 'zh' || sortedProperties.length === 0) {
+      setTranslationMap(new Map());
+      return;
+    }
+    let cancelled = false;
+    fetchTranslationsForProperties(sortedProperties, language).then((map) => {
+      if (!cancelled) setTranslationMap(map);
+    });
+    return () => { cancelled = true; };
+  }, [language, sortedIdsKey]);
 
   const toggleFavorite = (id: number) => {
     setFavorites((prev) => {
@@ -368,7 +383,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
               <div className="flex items-center gap-3 flex-wrap">
                 {/* Listing Type Filter (Rent/Buy) */}
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Listing Type:</label>
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('filter.listing_type')}</label>
                   <select
                     value={listingTypeFilter}
                     onChange={(e) => setListingTypeFilter(e.target.value as 'rent' | 'buy' | '')}
@@ -385,7 +400,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                   <Search className="w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Keyword..."
+                    placeholder={t('filter.keyword_placeholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400 w-40"
@@ -400,26 +415,26 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
 
                 {/* Property Type */}
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Building Type:</label>
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('filter.property_type')}</label>
                   <select
                     value={propertyTypeFilter}
                     onChange={(e) => setPropertyTypeFilter(e.target.value)}
                     className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
                   >
-                    <option value="">All</option>
-                    <option value="apartment">Apartment</option>
-                    <option value="condominium">Condominium</option>
-                    <option value="house">House</option>
-                    <option value="studio">Studio</option>
+                    <option value="">{t('filter.all')}</option>
+                    <option value="apartment">{t('filter.type.apartment')}</option>
+                    <option value="condominium">{t('filter.type.condominium')}</option>
+                    <option value="house">{t('filter.type.house')}</option>
+                    <option value="studio">{t('filter.type.studio')}</option>
                   </select>
                 </div>
 
                 {/* Price Range */}
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Price:</label>
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('filter.price')}:</label>
                   <input
                     type="number"
-                    placeholder="Min ¥"
+                    placeholder={t('filter.min_yen')}
                     value={priceMin}
                     onChange={(e) => setPriceMin(e.target.value)}
                     className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 w-24 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
@@ -427,7 +442,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                   <span className="text-gray-500">-</span>
                   <input
                     type="number"
-                    placeholder="Max ¥"
+                    placeholder={t('filter.max_yen')}
                     value={priceMax}
                     onChange={(e) => setPriceMax(e.target.value)}
                     className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 w-24 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
@@ -449,10 +464,10 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
 
                 {/* Size Range */}
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Size:</label>
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('filter.size')}:</label>
                   <input
                     type="number"
-                    placeholder="Min m²"
+                    placeholder={t('filter.min_sqm')}
                     value={sizeMin}
                     onChange={(e) => setSizeMin(e.target.value)}
                     className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 w-20 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
@@ -460,7 +475,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                   <span className="text-gray-500">-</span>
                   <input
                     type="number"
-                    placeholder="Max m²"
+                    placeholder={t('filter.max_sqm')}
                     value={sizeMax}
                     onChange={(e) => setSizeMax(e.target.value)}
                     className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 w-20 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
@@ -472,7 +487,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                   <MapPin className="w-4 h-4 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Station..."
+                    placeholder={t('filter.station_placeholder')}
                     value={stationFilter}
                     onChange={(e) => setStationFilter(e.target.value)}
                     className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400 w-32"
@@ -533,7 +548,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
 
                       {/* Categories Section */}
                       <div className="pt-3 border-t border-gray-200">
-                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Categories</h4>
+                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('filter.categories')}</h4>
                         <div className="space-y-3">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -542,7 +557,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                               onChange={(e) => setLuxury(e.target.checked)}
                               className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                             />
-                            <span className="text-sm font-medium text-gray-700">Luxury</span>
+                            <span className="text-sm font-medium text-gray-700">{t('category.luxury')}</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -551,7 +566,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                               onChange={(e) => setFurnished(e.target.checked)}
                               className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                             />
-                            <span className="text-sm font-medium text-gray-700">Furnished</span>
+                            <span className="text-sm font-medium text-gray-700">{t('category.furnished')}</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -560,7 +575,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                               onChange={(e) => setHighRiseResidence(e.target.checked)}
                               className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                             />
-                            <span className="text-sm font-medium text-gray-700">High-Rise Residence</span>
+                            <span className="text-sm font-medium text-gray-700">{t('category.high_rise')}</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -569,7 +584,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                               onChange={(e) => setNoKeyMoney(e.target.checked)}
                               className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                             />
-                            <span className="text-sm font-medium text-gray-700">No key money</span>
+                            <span className="text-sm font-medium text-gray-700">{t('category.no_key_money')}</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -578,7 +593,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                               onChange={(e) => setForStudents(e.target.checked)}
                               className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                             />
-                            <span className="text-sm font-medium text-gray-700">For students</span>
+                            <span className="text-sm font-medium text-gray-700">{t('category.students')}</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -587,7 +602,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                               onChange={(e) => setDesigners(e.target.checked)}
                               className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                             />
-                            <span className="text-sm font-medium text-gray-700">Designers</span>
+                            <span className="text-sm font-medium text-gray-700">{t('category.designers')}</span>
                           </label>
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -596,7 +611,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                               onChange={(e) => setForFamilies(e.target.checked)}
                               className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                             />
-                            <span className="text-sm font-medium text-gray-700">For families</span>
+                            <span className="text-sm font-medium text-gray-700">{t('category.families')}</span>
                           </label>
                         </div>
                       </div>
@@ -652,7 +667,10 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
               <div className="text-center py-12 text-red-500">{error}</div>
             ) : !showMap ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {sortedProperties.map((property, index) => (
+                {sortedProperties.map((property, index) => {
+                  const displayTitle = language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title;
+                  const displayAddress = language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address;
+                  return (
                   <motion.div
                     key={property.id}
                     role="button"
@@ -669,7 +687,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                     <div className="relative h-52 w-full overflow-hidden">
                       <ImageWithFallback
                         src={property.image}
-                        alt={property.title}
+                        alt={displayTitle}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
@@ -709,10 +727,10 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                       </button>
                       <div className="absolute bottom-0 left-0 right-0 p-3">
                         <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>
-                          {property.title}
+                          {displayTitle}
                         </h3>
                         <p className="text-white/80 text-xs mb-2 line-clamp-1">
-                          {property.address}
+                          {displayAddress}
                         </p>
                         <div className="text-xl font-bold text-white mb-2">
                           {formatPrice(property.price, property.type)}
@@ -734,17 +752,20 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                           <StationLineLogo stationName={property.station} size={12} className="flex-shrink-0" />
                           <MapPin className="w-3 h-3 text-white flex-shrink-0" />
                           <span className="text-xs font-medium text-white">
-                            {property.station} • {property.walkingMinutes} min
+                            {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}
                           </span>
                         </div>
                       </div>
                     </div>
                   </motion.div>
-                ))}
+                ); })}
               </div>
             ) : (
               <div className="space-y-4">
-                {sortedProperties.map((property, index) => (
+                {sortedProperties.map((property, index) => {
+                  const displayTitle = language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title;
+                  const displayAddress = language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address;
+                  return (
                   <motion.div
                     key={property.id}
                     role="button"
@@ -760,7 +781,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                     <div className="relative h-52 w-full overflow-hidden">
                       <ImageWithFallback
                         src={property.image}
-                        alt={property.title}
+                        alt={displayTitle}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
@@ -800,10 +821,10 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                       </button>
                       <div className="absolute bottom-0 left-0 right-0 p-3">
                         <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>
-                          {property.title}
+                          {displayTitle}
                         </h3>
                         <p className="text-white/80 text-xs mb-2 line-clamp-1">
-                          {property.address}
+                          {displayAddress}
                         </p>
                         <div className="text-xl font-bold text-white mb-2">
                           {formatPrice(property.price, property.type)}
@@ -825,13 +846,13 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                           <StationLineLogo stationName={property.station} size={12} className="flex-shrink-0" />
                           <MapPin className="w-3 h-3 text-white flex-shrink-0" />
                           <span className="text-xs font-medium text-white">
-                            {property.station} • {property.walkingMinutes} min
+                            {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}
                           </span>
                         </div>
                       </div>
                     </div>
                   </motion.div>
-                ))}
+                ); })}
               </div>
             )}
           </div>
@@ -848,6 +869,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                   onSelectProperty?.(propertyId, property.type);
                 }
               }}
+              translationMap={translationMap}
             />
           </div>
         )}

@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import { AREA_OPTIONS } from '@/lib/wards';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 
 const AREA_PANEL_MAX_HEIGHT = 380;
 
@@ -13,11 +14,19 @@ export interface SelectedAreaFilterProps {
 export function SelectedAreaFilter({
   selectedAreas,
   onChange,
-  label = 'Selected Area',
+  label,
 }: SelectedAreaFilterProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [areaSearch, setAreaSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const displayLabel = label ?? t('filter.selected_area');
+
+  const translatedOptions = useMemo(
+    () => AREA_OPTIONS.map((opt) => ({ value: opt.value, label: t('ward.' + opt.value) })),
+    [t]
+  );
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -42,11 +51,11 @@ export function SelectedAreaFilter({
 
   const searchLower = areaSearch.trim().toLowerCase();
   const filteredOptions = searchLower
-    ? AREA_OPTIONS.filter((opt) => opt.label.toLowerCase().includes(searchLower))
-    : AREA_OPTIONS;
+    ? translatedOptions.filter((opt) => opt.label.toLowerCase().includes(searchLower))
+    : translatedOptions;
 
   const count = selectedAreas.size;
-  const buttonLabel = count > 0 ? `${label} (${count})` : label;
+  const buttonLabel = count > 0 ? `${displayLabel} (${count})` : displayLabel;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -69,7 +78,7 @@ export function SelectedAreaFilter({
           style={{ maxHeight: AREA_PANEL_MAX_HEIGHT }}
         >
           <div className="flex-shrink-0 px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">
-            Tokyo 23 wards + Outer 23 wards
+            {t('search.area.header')}
           </div>
           <div className="flex-shrink-0 p-2 border-b border-gray-100">
             <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
@@ -78,14 +87,14 @@ export function SelectedAreaFilter({
                 type="text"
                 value={areaSearch}
                 onChange={(e) => setAreaSearch(e.target.value)}
-                placeholder="Search area..."
+                placeholder={t('search.area.search_placeholder')}
                 className="flex-1 min-w-0 bg-transparent border-none outline-none text-sm text-gray-900 placeholder:text-gray-400"
               />
             </div>
           </div>
           <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
             {filteredOptions.length === 0 ? (
-              <div className="px-4 py-3 text-sm text-gray-500">No matching area</div>
+              <div className="px-4 py-3 text-sm text-gray-500">{t('search.area.no_match')}</div>
             ) : (
               filteredOptions.map((opt) => (
                 <label

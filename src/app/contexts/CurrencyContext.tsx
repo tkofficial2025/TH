@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 
 const FX_CACHE_KEY = 'fx_rates';
 const FX_API = 'https://api.frankfurter.app/latest?from=JPY&to=USD,CNY,KRW,AUD,CAD';
@@ -69,7 +69,8 @@ function saveCachedRate(date: string, jpyPerUsd: number, jpyPerCny: number, jpyP
   }
 }
 
-export function CurrencyProvider({ children }: { children: ReactNode }) {
+/** Language for rent suffix: zh → /月, en → /mo. Pass from parent that has LanguageProvider. */
+export function CurrencyProvider({ children, language = 'en' }: { children: ReactNode; language?: 'en' | 'zh' }) {
   const [currency, setCurrency] = useState<Currency>('JPY');
   const [jpyPerUsd, setJpyPerUsd] = useState<number>(150);
   const [jpyPerCny, setJpyPerCny] = useState<number>(20);
@@ -153,12 +154,14 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const rentSuffix = language === 'zh' ? '/月' : '/mo';
+
   const formatPrice = useCallback<CurrencyContextValue['formatPrice']>(
     (priceYen, type) => {
       if (currency === 'JPY') {
         if (type === 'rent') {
-          if (priceYen >= 100000) return `¥${(priceYen / 1000).toFixed(0)}k/mo`;
-          return `¥${priceYen.toLocaleString()}/mo`;
+          if (priceYen >= 100000) return `¥${(priceYen / 1000).toFixed(0)}k${rentSuffix}`;
+          return `¥${priceYen.toLocaleString()}${rentSuffix}`;
         }
         if (priceYen >= 1000000) return `¥${(priceYen / 1000000).toFixed(1)}M`;
         return `¥${priceYen.toLocaleString()}`;
@@ -167,8 +170,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       if (currency === 'USD') {
         const usd = priceYen / jpyPerUsd;
         if (type === 'rent') {
-          if (usd >= 1000) return `$${(usd / 1000).toFixed(1)}k/mo`;
-          return `$${Math.round(usd).toLocaleString()}/mo`;
+          if (usd >= 1000) return `$${(usd / 1000).toFixed(1)}k${rentSuffix}`;
+          return `$${Math.round(usd).toLocaleString()}${rentSuffix}`;
         }
         if (usd >= 1_000_000) return `$${(usd / 1_000_000).toFixed(2)}M`;
         if (usd >= 1000) return `$${(usd / 1000).toFixed(1)}k`;
@@ -178,8 +181,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       if (currency === 'CNY') {
         const cny = priceYen / jpyPerCny;
         if (type === 'rent') {
-          if (cny >= 10000) return `¥${(cny / 10000).toFixed(1)}万/mo`;
-          return `¥${Math.round(cny).toLocaleString()}/mo`;
+          if (cny >= 10000) return `¥${(cny / 10000).toFixed(1)}万${rentSuffix}`;
+          return `¥${Math.round(cny).toLocaleString()}${rentSuffix}`;
         }
         if (cny >= 1_000_000) return `¥${(cny / 10000).toFixed(1)}万`;
         if (cny >= 10000) return `¥${(cny / 10000).toFixed(1)}万`;
@@ -189,9 +192,9 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       if (currency === 'KRW') {
         const krw = priceYen / jpyPerKrw;
         if (type === 'rent') {
-          if (krw >= 1000000) return `₩${(krw / 1000000).toFixed(1)}M/mo`;
-          if (krw >= 1000) return `₩${(krw / 1000).toFixed(0)}k/mo`;
-          return `₩${Math.round(krw).toLocaleString()}/mo`;
+          if (krw >= 1000000) return `₩${(krw / 1000000).toFixed(1)}M${rentSuffix}`;
+          if (krw >= 1000) return `₩${(krw / 1000).toFixed(0)}k${rentSuffix}`;
+          return `₩${Math.round(krw).toLocaleString()}${rentSuffix}`;
         }
         if (krw >= 100_000_000) return `₩${(krw / 100000000).toFixed(1)}억`;
         if (krw >= 1000000) return `₩${(krw / 1000000).toFixed(1)}M`;
@@ -202,8 +205,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       if (currency === 'AUD') {
         const aud = priceYen / jpyPerAud;
         if (type === 'rent') {
-          if (aud >= 1000) return `A$${(aud / 1000).toFixed(1)}k/mo`;
-          return `A$${Math.round(aud).toLocaleString()}/mo`;
+          if (aud >= 1000) return `A$${(aud / 1000).toFixed(1)}k${rentSuffix}`;
+          return `A$${Math.round(aud).toLocaleString()}${rentSuffix}`;
         }
         if (aud >= 1_000_000) return `A$${(aud / 1_000_000).toFixed(2)}M`;
         if (aud >= 1000) return `A$${(aud / 1000).toFixed(1)}k`;
@@ -213,8 +216,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       if (currency === 'CAD') {
         const cad = priceYen / jpyPerCad;
         if (type === 'rent') {
-          if (cad >= 1000) return `C$${(cad / 1000).toFixed(1)}k/mo`;
-          return `C$${Math.round(cad).toLocaleString()}/mo`;
+          if (cad >= 1000) return `C$${(cad / 1000).toFixed(1)}k${rentSuffix}`;
+          return `C$${Math.round(cad).toLocaleString()}${rentSuffix}`;
         }
         if (cad >= 1_000_000) return `C$${(cad / 1_000_000).toFixed(2)}M`;
         if (cad >= 1000) return `C$${(cad / 1000).toFixed(1)}k`;
@@ -223,7 +226,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       
       return `¥${priceYen.toLocaleString()}`;
     },
-    [currency, jpyPerUsd, jpyPerCny, jpyPerKrw, jpyPerAud, jpyPerCad]
+    [currency, jpyPerUsd, jpyPerCny, jpyPerKrw, jpyPerAud, jpyPerCad, rentSuffix]
   );
 
   const value = useMemo<CurrencyContextValue>(

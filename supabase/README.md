@@ -31,6 +31,35 @@ supabase functions deploy send-request-emails --no-verify-jwt
 
 ---
 
+### Edge Function（翻訳 translate-property）
+
+物件名・住所の中国語翻訳用。DeepL API を使います。
+
+**デプロイ（プロジェクトはすでにリンク済みならこれだけでOK）:**
+
+```bash
+cd "c:\Users\user\Dropbox\My PC (DESKTOP-Q5M3N18)\Desktop\Premium Real Estate Website"
+npx supabase functions deploy translate-property --no-verify-jwt
+```
+
+**初回だけ** ログイン・リンクが必要な場合:
+
+```bash
+npx supabase login
+npx supabase link --project-ref mpvkdbfvaqrwayzntkdg
+npx supabase functions deploy translate-property --no-verify-jwt
+```
+
+**シークレット:** Dashboard → **Project Settings** → **Edge Functions** → **Secrets** で次を追加して Save。
+
+| 名前 | 説明 |
+|------|------|
+| `DEEPL_AUTH_KEY` | [DeepL](https://www.deepl.com/pro-api) の認証キー（無料プラン可） |
+
+※ `SUPABASE_URL` と `SUPABASE_SERVICE_ROLE_KEY` は Supabase が自動で渡すため、手動設定不要です。
+
+---
+
 ## ⚠️ 物件が一切取得されない場合（毎回ここを実行）
 
 **Featured・賃貸・売却・詳細が 0 件になる**ときは、ほぼ **Row Level Security (RLS)** で `properties` の SELECT がブロックされています。

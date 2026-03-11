@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
   Heart,
-  FileText,
   MapPin,
   Bed,
   Maximize2,
@@ -23,6 +22,8 @@ import { sendRequestEmails } from '@/lib/send-request-emails';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getStationDisplay } from '@/lib/stationNames';
+import { getPropertyTranslation } from '@/lib/translate-property';
 
 interface PropertyDetailPageProps {
   propertyId: number;
@@ -33,7 +34,7 @@ interface PropertyDetailPageProps {
 
 export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: PropertyDetailPageProps) {
   const { formatPrice } = useCurrency();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +54,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
   const [inquiryLoading, setInquiryLoading] = useState(false);
   const [inquirySent, setInquirySent] = useState(false);
   const [inquiryError, setInquiryError] = useState<string | null>(null);
+  const [translation, setTranslation] = useState<{ title_zh: string; address_zh: string } | null>(null);
 
   useEffect(() => {
     async function fetchProperty() {
@@ -117,6 +119,21 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
     }
     checkAlreadyRequested();
   }, [propertyId, loading]);
+
+  // 中国語表示時は物件名・住所を DeepL で翻訳
+  useEffect(() => {
+    if (language !== 'zh' || !property) {
+      setTranslation(null);
+      return;
+    }
+    let cancelled = false;
+    getPropertyTranslation(property.id, property.title, property.address).then((res) => {
+      if (!cancelled) setTranslation(res);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [language, property?.id, property?.title, property?.address, property]);
 
   const toggleFavorite = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -213,6 +230,8 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
   const breadcrumbLabel = source === 'rent' ? t('search.rent') : t('search.buy');
   const priceLabel = source === 'rent' ? t('property.price.rent') : t('property.price.buy');
   const priceDisplay = formatPrice(property.price, source);
+  const displayTitle = language === 'zh' && translation?.title_zh ? translation.title_zh : property.title;
+  const displayAddress = language === 'zh' && translation?.address_zh ? translation.address_zh : property.address;
 
   const allPhotos = [property.image, ...(property.images ?? [])].filter(Boolean) as string[];
   const featureFlags = [
@@ -238,7 +257,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
           <ChevronRight className="w-4 h-4" />
           <span>{breadcrumbLabel}</span>
           <ChevronRight className="w-4 h-4" />
-          <span className="text-gray-900 truncate max-w-[200px]">{property.title}</span>
+          <span className="text-gray-900 truncate max-w-[200px]">{displayTitle}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -249,7 +268,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
               <div className="col-span-4 md:col-span-3 relative aspect-[16/10] rounded-xl overflow-hidden bg-gray-200">
                 <ImageWithFallback
                   src={allPhotos[0] ?? property.image}
-                  alt={property.title}
+                  alt={displayTitle}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -270,9 +289,9 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
             <p className="text-xs text-gray-500">{t('property.photo.disclaimer')}</p>
 
             {/* Location + Title + Station */}
-            <p className="text-gray-600">{property.address}</p>
+            <p className="text-gray-600">{displayAddress}</p>
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{property.title}</h1>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">{displayTitle}</h1>
               <div className="flex gap-2">
                 <button
                   type="button"
@@ -282,9 +301,6 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                   aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
                 >
                   <Heart className={`w-5 h-5 ${favorite ? 'fill-[#C1121F] text-[#C1121F]' : 'text-gray-600'}`} />
-                </button>
-                <button type="button" className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm font-medium">
-                  <FileText className="w-4 h-4" /> {t('property.brochure')}
                 </button>
               </div>
               {favoriteMessage === 'added' && (
@@ -305,7 +321,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                   className="flex-shrink-0" 
                 />
                 <MapPin className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                <span>{property.station} • {property.walkingMinutes} min walk</span>
+                <span>{getStationDisplay(property.station, language)} • {property.walkingMinutes} min walk</span>
               </div>
             </div>
 
@@ -401,8 +417,8 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
               <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('property.information')}</h3>
               <p className="text-gray-600 text-sm leading-relaxed">
                 {descriptionExpanded
-                  ? `${property.title} offers a comfortable living space of ${property.size} m² in ${property.address}, with ${property.beds} bedroom(s) and ${property.layout} layout. Located ${property.walkingMinutes} ${t('property.walk.min')} from ${property.station}, this property provides easy access to transport and local amenities.`
-                  : `${property.title} offers a comfortable living space of ${property.size} m² in ${property.address}...`}
+                  ? `${displayTitle} offers a comfortable living space of ${property.size} m² in ${displayAddress}, with ${property.beds} bedroom(s) and ${property.layout} layout. Located ${property.walkingMinutes} ${t('property.walk.min')} from ${getStationDisplay(property.station, language)}, this property provides easy access to transport and local amenities.`
+                  : `${displayTitle} offers a comfortable living space of ${property.size} m² in ${displayAddress}...`}
               </p>
               <button
                 type="button"
@@ -432,8 +448,8 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('property.location')}</h3>
                 <PropertyMap 
-                  address={property.address} 
-                  title={property.title}
+                  address={displayAddress} 
+                  title={displayTitle}
                   height="400px"
                 />
               </div>
@@ -454,10 +470,10 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                 <div className="space-y-4">
                   {tourCandidates.map((candidate, index) => (
                     <div key={index} className="p-3 border border-gray-200 rounded-lg space-y-2">
-                      <span className="text-xs font-medium text-gray-600">Option {index + 1}</span>
+                      <span className="text-xs font-medium text-gray-600">{t('property.tour.option_n').replace('{n}', String(index + 1))}</span>
                       <div className="flex flex-wrap gap-2 items-end">
                         <div className="flex-1 min-w-[120px]">
-                          <label className="block text-xs text-gray-500 mb-1">Date</label>
+                          <label className="block text-xs text-gray-500 mb-1">{t('property.tour.date')}</label>
                           <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-2 py-1.5">
                             <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
                             <input
@@ -548,7 +564,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                     disabled={!tourCandidates.every((c) => c.date.trim() !== '')}
                     className="w-full py-3 bg-[#C1121F] text-white font-semibold rounded-lg hover:bg-[#A00F1A] transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#C1121F]"
                   >
-                    Confirm
+                    {t('property.tour.confirm')}
                   </button>
                 </div>
                 </>
@@ -557,14 +573,14 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
 
               {/* Check Availability and Request Property Details */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Check Availability and Request Property Details</h3>
-                <p className="text-xs text-gray-500 mb-3">Enter your name and email address. We will send you availability and full details for this property. You can check anytime.</p>
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('property.check_availability.title')}</h3>
+                <p className="text-xs text-gray-500 mb-3">{t('property.check_availability.desc')}</p>
                 {inquirySent ? (
                   <p className="text-sm text-green-600 py-2">Property details request already submitted. A staff member will contact you within 24 hours.</p>
                 ) : (
                   <form onSubmit={handleInquirySubmit} className="space-y-3">
                     <div>
-                      <label htmlFor="inquiry-name" className="block text-xs text-gray-500 mb-1">Name</label>
+                      <label htmlFor="inquiry-name" className="block text-xs text-gray-500 mb-1">{t('property.check_availability.name')}</label>
                       <input
                         id="inquiry-name"
                         type="text"
@@ -575,13 +591,13 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                       />
                     </div>
                     <div>
-                      <label htmlFor="inquiry-email" className="block text-xs text-gray-500 mb-1">Email address</label>
+                      <label htmlFor="inquiry-email" className="block text-xs text-gray-500 mb-1">{t('property.check_availability.email')}</label>
                       <input
                         id="inquiry-email"
                         type="email"
                         value={inquiryEmail}
                         onChange={(e) => setInquiryEmail(e.target.value)}
-                        placeholder="your@email.com"
+                        placeholder={t('property.placeholder.email')}
                         required
                         className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
                       />
@@ -610,7 +626,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
             onClick={onBack}
             className="text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1"
           >
-            ← 一覧に戻る
+            ← {t('property.back_to_list')}
           </button>
         </div>
       </div>

@@ -26,6 +26,8 @@ import { filterPropertiesByHeroParams, type HeroSearchParams } from '@/lib/searc
 import { searchProperties } from '@/lib/fullTextSearch';
 import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getStationDisplay } from '@/lib/stationNames';
+import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
 
 interface RentPropertiesPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent') => void;
@@ -35,7 +37,7 @@ interface RentPropertiesPageProps {
 }
 
 export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty, initialSearchParams }: RentPropertiesPageProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showMap, setShowMap] = useState(true);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -67,6 +69,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<'popularity' | 'price-asc' | 'price-desc' | 'size-asc' | 'size-desc' | 'walking-asc' | 'walking-desc' | 'newest' | 'oldest'>('popularity');
   const hasAppliedInitialSearch = useRef(false);
+  const [translationMap, setTranslationMap] = useState<Map<number, PropertyTranslationResult>>(new Map());
   const { formatPrice } = useCurrency();
 
   // サイドバー幅を35%に初期化
@@ -279,6 +282,18 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
 
   // 並び替え適用
   const sortedProperties = sortProperties(properties, sortOption);
+  const sortedIdsKey = sortedProperties.map((p) => p.id).sort((a, b) => a - b).join(',');
+  useEffect(() => {
+    if (language !== 'zh' || sortedProperties.length === 0) {
+      setTranslationMap(new Map());
+      return;
+    }
+    let cancelled = false;
+    fetchTranslationsForProperties(sortedProperties, language).then((map) => {
+      if (!cancelled) setTranslationMap(map);
+    });
+    return () => { cancelled = true; };
+  }, [language, sortedIdsKey]);
 
   const toggleFavorite = (id: number) => {
     const newFavorites = new Set(favorites);
@@ -375,7 +390,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
               <Search className="w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search"
+                placeholder={t('filter.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm w-32"
@@ -402,7 +417,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
             <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors">
               <input
                 type="text"
-                placeholder="Station"
+                placeholder={t('filter.station_placeholder')}
                 value={stationFilter}
                 onChange={(e) => setStationFilter(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm w-24"
@@ -434,7 +449,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
               />
               <input
                 type="text"
-                placeholder="Max ¥"
+                placeholder={t('filter.max_yen')}
                 value={priceMax}
                 onChange={(e) => setPriceMax(e.target.value)}
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
@@ -443,17 +458,17 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
 
             {/* Size */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-600 whitespace-nowrap">Size:</span>
+              <span className="text-xs text-gray-600 whitespace-nowrap">{t('filter.size')}:</span>
               <input
                 type="number"
-                placeholder="Min m²"
+                placeholder={t('filter.min_sqm')}
                 value={sizeMin}
                 onChange={(e) => setSizeMin(e.target.value)}
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
               />
               <input
                 type="number"
-                placeholder="Max m²"
+                placeholder={t('filter.max_sqm')}
                 value={sizeMax}
                 onChange={(e) => setSizeMax(e.target.value)}
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
@@ -533,7 +548,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
 
                   {/* Categories Section */}
                   <div className="pt-3 border-t border-gray-200">
-                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Categories</h4>
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('filter.categories')}</h4>
                     <div className="space-y-3">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -542,7 +557,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                           onChange={(e) => setLuxury(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">Luxury</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.luxury')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -551,7 +566,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                           onChange={(e) => setFurnished(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">Furnished</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.furnished')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -560,7 +575,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                           onChange={(e) => setHighRiseResidence(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">High-Rise Residence</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.high_rise')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -569,7 +584,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                           onChange={(e) => setNoKeyMoney(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">No key money</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.no_key_money')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -578,7 +593,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                           onChange={(e) => setForStudents(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">For students</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.students')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -587,7 +602,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                           onChange={(e) => setDesigners(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">Designers</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.designers')}</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -596,7 +611,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                           onChange={(e) => setForFamilies(e.target.checked)}
                           className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                         />
-                        <span className="text-sm font-medium text-gray-700">For families</span>
+                        <span className="text-sm font-medium text-gray-700">{t('category.families')}</span>
                       </label>
                     </div>
                   </div>
@@ -644,7 +659,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
               {/* Header */}
               <div className="mb-4 pb-4 border-b border-gray-200">
                 <h1 className="text-xl font-bold text-gray-900 mb-1">
-                  {selectedWard ? `Properties for rent in ${selectedWard}` : 'Properties for rent'}
+                  {selectedWard ? t('listing.title.rent.ward').replace('{ward}', t('ward.' + selectedWard)) : t('listing.title.rent')}
                 </h1>
                 <p className="text-sm text-gray-600">{sortedProperties.length} results</p>
               </div>
@@ -678,7 +693,10 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                   物件がありません。
                 </div>
               )}
-              {!loading && !error && sortedProperties.map((property, index) => (
+              {!loading && !error && sortedProperties.map((property, index) => {
+                const displayTitle = language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title;
+                const displayAddress = language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address;
+                return (
                 <motion.div
                   key={property.id}
                   role="button"
@@ -695,7 +713,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                   <div className="relative h-52 w-full overflow-hidden">
                     <ImageWithFallback
                       src={property.image}
-                      alt={property.title}
+                      alt={displayTitle}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
@@ -736,10 +754,10 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                     {/* Content Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-3">
                       <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>
-                        {property.title}
+                        {displayTitle}
                       </h3>
                       <p className="text-white/80 text-xs mb-2 line-clamp-1">
-                        {property.address}
+                        {displayAddress}
                       </p>
 
                       <div className="text-xl font-bold text-white mb-2">
@@ -776,13 +794,13 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                         />
                         <MapPin className="w-3 h-3 text-white flex-shrink-0" />
                         <span className="text-xs font-medium text-white">
-                          {property.station} • {property.walkingMinutes} min
+                          {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}
                         </span>
                       </div>
                     </div>
                   </div>
                 </motion.div>
-              ))}
+              ); })}
             </div>
 
             {/* Load More */}
@@ -803,6 +821,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
               onPropertyClick={onSelectProperty}
               height="100%"
               className="w-full"
+              translationMap={translationMap}
             />
           </div>
         </div>
@@ -813,7 +832,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
           <div className="mb-6 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                {selectedWard ? t('listing.title.rent.ward').replace('{ward}', selectedWard) : t('listing.title.rent')}
+                {selectedWard ? t('listing.title.rent.ward').replace('{ward}', t('ward.' + selectedWard)) : t('listing.title.rent')}
               </h1>
               <p className="text-sm text-gray-600">{t('listing.results_count').replace('{count}', String(sortedProperties.length))}</p>
             </div>
@@ -847,7 +866,10 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
           )}
           {!loading && !error && sortedProperties.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {sortedProperties.map((property, index) => (
+              {sortedProperties.map((property, index) => {
+                const displayTitle = language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title;
+                const displayAddress = language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address;
+                return (
                 <motion.div
                   key={property.id}
                   role="button"
@@ -864,7 +886,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                   <div className="relative h-52 w-full overflow-hidden">
                     <ImageWithFallback
                       src={property.image}
-                      alt={property.title}
+                      alt={displayTitle}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
 
@@ -905,10 +927,10 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                     {/* Content Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-3">
                       <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>
-                        {property.title}
+                        {displayTitle}
                       </h3>
                       <p className="text-white/80 text-xs mb-2 line-clamp-1">
-                        {property.address}
+                        {displayAddress}
                       </p>
 
                       <div className="text-xl font-bold text-white mb-2">
@@ -945,13 +967,13 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
                         />
                         <MapPin className="w-3 h-3 text-white flex-shrink-0" />
                         <span className="text-xs font-medium text-white">
-                          {property.station} • {property.walkingMinutes} min
+                          {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}
                         </span>
                       </div>
                     </div>
                   </div>
                 </motion.div>
-              ))}
+              ); })}
             </div>
           )}
         </div>

@@ -769,7 +769,7 @@ function AppContent() {
               <div className="mt-6 pt-6 border-t border-gray-800" id="contact-social">
                 <p className="text-gray-400 text-sm mb-2">{t('footer.follow')}</p>
                 <p className="text-white font-medium mb-4">{t('hero.btn.social')}</p>
-                <div className="grid grid-cols-2 gap-4 mb-4 max-w-[280px]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-[3.75rem] sm:gap-[5rem] mb-4 pl-6 sm:pl-8">
                   {/* Instagram */}
                   <div className="flex flex-col items-center p-3 bg-gray-800/50 rounded-xl">
                     <p className="text-gray-300 text-xs font-medium mb-2">Instagram</p>
@@ -801,6 +801,44 @@ function AppContent() {
                     </div>
                     <a
                       href="https://lin.ee/iT6Bnyb"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                    >
+                      {t('footer.social.open')}
+                    </a>
+                  </div>
+                  {/* WhatsApp */}
+                  <div className="flex flex-col items-center p-3 bg-gray-800/50 rounded-xl">
+                    <p className="text-gray-300 text-xs font-medium mb-2">WhatsApp</p>
+                    <div className="w-[120px] h-[120px] rounded-lg bg-white p-1 mb-2 overflow-hidden flex items-center justify-center">
+                      <img
+                        src="/whatsapplogo.jpg"
+                        alt="WhatsApp"
+                        className="w-full h-full object-cover rounded-md"
+                      />
+                    </div>
+                    <a
+                      href="https://wa.me/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                    >
+                      {t('footer.social.open')}
+                    </a>
+                  </div>
+                  {/* WeChat */}
+                  <div className="flex flex-col items-center p-3 bg-gray-800/50 rounded-xl">
+                    <p className="text-gray-300 text-xs font-medium mb-2">WeChat</p>
+                    <div className="w-[120px] h-[120px] rounded-lg bg-white p-1 mb-2 overflow-hidden flex items-center justify-center">
+                      <img
+                        src="/wechat.jpg"
+                        alt="WeChat"
+                        className="w-full h-full object-cover rounded-md"
+                      />
+                    </div>
+                    <a
+                      href="https://weixin.qq.com/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"

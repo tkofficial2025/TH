@@ -208,6 +208,7 @@ const translations: Translations = {
   'cta.book': { en: 'Book Free Consultation', zh: '预约免费咨询' },
   'cta.browse': { en: 'Browse Properties', zh: '浏览房源' },
   'footer.follow': { en: 'Follow Us', zh: '关注我们' },
+  'footer.social.open': { en: 'Open', zh: '打开' },
   'footer.mailto.subject': { en: 'Inquiry', zh: '咨询' },
   'footer.mailto.body': { en: 'Hello,\n\n', zh: '您好，\n\n' },
   'about.mailto.subject': { en: 'Inquiry', zh: '咨询' },

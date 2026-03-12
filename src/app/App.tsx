@@ -305,10 +305,13 @@ function AppContent() {
               <button
                 type="button"
                 onClick={() => {
-                  // フッターのソーシャルメディアセクションまでスクロール
-                  const footer = document.querySelector('footer');
-                  if (footer) {
-                    footer.scrollIntoView({ behavior: 'smooth' });
+                  // フッターの「Contact Us on Social Media」セクションまでスクロール
+                  const el = document.getElementById('contact-social');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
+                  } else {
+                    const footer = document.querySelector('footer');
+                    if (footer) footer.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
                 className="px-8 py-4 bg-white/90 backdrop-blur-sm text-gray-900 rounded-xl font-semibold hover:bg-white transition-all hover:scale-105 hover:shadow-xl shadow-lg border border-white/20"
@@ -762,12 +765,54 @@ function AppContent() {
                 </div>
               </div>
 
-              {/* Social Media Icons */}
-              <div className="mt-6 pt-6 border-t border-gray-800">
-                <p className="text-gray-400 text-sm mb-3">{t('footer.follow')}</p>
-                <div className="flex gap-3">
+              {/* Contact Us on Social Media - QR codes + links */}
+              <div className="mt-6 pt-6 border-t border-gray-800" id="contact-social">
+                <p className="text-gray-400 text-sm mb-2">{t('footer.follow')}</p>
+                <p className="text-white font-medium mb-4">{t('hero.btn.social')}</p>
+                <div className="grid grid-cols-2 gap-4 mb-4 max-w-[280px]">
+                  {/* Instagram */}
+                  <div className="flex flex-col items-center p-3 bg-gray-800/50 rounded-xl">
+                    <p className="text-gray-300 text-xs font-medium mb-2">Instagram</p>
+                    <div className="w-[120px] h-[120px] rounded-lg bg-white p-1 mb-2 overflow-hidden flex items-center justify-center">
+                      <img
+                        src="/instalogo.jpg"
+                        alt="Instagram"
+                        className="w-full h-full object-cover rounded-md"
+                      />
+                    </div>
+                    <a
+                      href="https://www.instagram.com/toky.oestate?igsh=MWpjMW8yMjQydzh2NA%3D%3D&utm_source=qr"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                    >
+                      <Instagram className="w-4 h-4" /> {t('footer.social.open')}
+                    </a>
+                  </div>
+                  {/* LINE */}
+                  <div className="flex flex-col items-center p-3 bg-gray-800/50 rounded-xl">
+                    <p className="text-gray-300 text-xs font-medium mb-2">LINE</p>
+                    <div className="w-[120px] h-[120px] rounded-lg bg-white p-1 mb-2 overflow-hidden flex items-center justify-center">
+                      <img
+                        src="/linelogo.png"
+                        alt="LINE"
+                        className="w-full h-full object-cover rounded-md"
+                      />
+                    </div>
+                    <a
+                      href="https://lin.ee/iT6Bnyb"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                    >
+                      {t('footer.social.open')}
+                    </a>
+                  </div>
+                </div>
+                {/* Icon links (same as before, for quick access) */}
+                <div className="flex gap-3 flex-wrap">
                   <a 
-                    href="https://www.instagram.com/" 
+                    href="https://www.instagram.com/toky.oestate?igsh=MWpjMW8yMjQydzh2NA%3D%3D&utm_source=qr" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#C1121F] transition-colors group"
@@ -776,7 +821,7 @@ function AppContent() {
                     <Instagram className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
                   </a>
                   <a 
-                    href="https://line.me/" 
+                    href="https://lin.ee/iT6Bnyb" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#C1121F] transition-colors group"

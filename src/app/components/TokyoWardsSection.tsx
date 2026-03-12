@@ -126,8 +126,8 @@ export function TokyoWardsSection({ onWardClick, title, subtitle }: TokyoWardsSe
   const visibleWards23 = showAll ? wards23 : wards23.slice(0, 6);
 
   return (
-    <section className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section className="py-24 bg-white overflow-x-hidden w-full">
+      <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 box-border">
         {/* Section Header */}
         <motion.div
           className="mb-12"
@@ -147,12 +147,12 @@ export function TokyoWardsSection({ onWardClick, title, subtitle }: TokyoWardsSe
         {/* 23 Wards Grid */}
         <div className="mb-12">
           <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('section.areas.wards23')}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-w-0 w-full">
             <AnimatePresence mode="popLayout">
               {visibleWards23.map((ward, index) => (
               <motion.div
                 key={ward.name}
-                className="group relative overflow-hidden rounded-2xl aspect-[3/1.3] min-h-[200px] cursor-default"
+                className="group relative overflow-hidden rounded-2xl aspect-[3/1.3] min-h-[200px] cursor-default min-w-0 w-full"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -237,9 +237,9 @@ export function TokyoWardsSection({ onWardClick, title, subtitle }: TokyoWardsSe
         {/* Outer 23 Wards - Single Card */}
         <div className="mb-12">
           <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('section.areas.outer')}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-w-0 w-full">
             <motion.div
-              className="group relative overflow-hidden rounded-2xl aspect-[3/1.3] min-h-[200px] cursor-default"
+              className="group relative overflow-hidden rounded-2xl aspect-[3/1.3] min-h-[200px] cursor-default min-w-0 w-full"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

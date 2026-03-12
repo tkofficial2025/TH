@@ -13,14 +13,9 @@ import { getTileLayerConfig, getMaptilerApiKey } from '@/lib/mapTiles';
 import { MapTilerLayer } from '@/app/components/MapTilerLayer';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
+import { fixLeafletDefaultIcon } from '@/lib/leafletDefaultIcon';
 
-// Leafletのデフォルトアイコンの問題を修正
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+fixLeafletDefaultIcon();
 
 interface PropertiesMapViewProps {
   properties: Property[];

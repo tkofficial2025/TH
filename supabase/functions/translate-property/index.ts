@@ -8,7 +8,7 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 const DEEPL_FREE = true; // 無料プランは api-free.deepl.com
 
-type SingleRequest = { propertyId: number; title: string; address: string };
+type SingleRequest = { propertyId: number; title: string; address: string; property_information?: string };
 type BatchRequest = { items: SingleRequest[] };
 
 async function translateWithDeepL(texts: string[]): Promise<string[]> {
@@ -86,33 +86,46 @@ serve(async (req) => {
     });
   }
 
+  try {
   const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
     ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
     : null;
 
-  const results: { propertyId: number; title_zh: string; address_zh: string }[] = [];
+  // 一括で property_translations を取得（1クエリで全件分のキャッシュを読む）
+  type CacheRow = { property_id: number; field: string; value: string };
+  const cacheByPropertyId = new Map<number, Map<string, string>>();
+  if (supabase && items.length > 0) {
+    const ids = [...new Set(items.map((i) => i.propertyId))];
+    const { data: rows } = await supabase
+      .from('property_translations')
+      .select('property_id, field, value')
+      .in('property_id', ids)
+      .eq('lang', 'zh');
+    for (const r of (rows ?? []) as CacheRow[]) {
+      let m = cacheByPropertyId.get(r.property_id);
+      if (!m) {
+        m = new Map();
+        cacheByPropertyId.set(r.property_id, m);
+      }
+      m.set(r.field, r.value ?? '');
+    }
+  }
+
+  const results: { propertyId: number; title_zh: string; address_zh: string; property_information_zh: string }[] = [];
 
   for (const item of items) {
-    const { propertyId, title, address } = item;
+    const { propertyId, title, address, property_information } = item;
     const titleStr = String(title ?? '').trim();
     const addressStr = String(address ?? '').trim();
+    const infoStr = property_information != null ? String(property_information).trim() : '';
 
-    let titleZh = '';
-    let addressZh = '';
-
-    if (supabase) {
-      const { data: rows } = await supabase
-        .from('property_translations')
-        .select('field, value')
-        .eq('property_id', propertyId)
-        .eq('lang', 'zh');
-      const map = new Map((rows ?? []).map((r: { field: string; value: string }) => [r.field, r.value]));
-      titleZh = map.get('title') ?? '';
-      addressZh = map.get('address') ?? '';
-    }
+    const cached = cacheByPropertyId.get(propertyId);
+    let titleZh = cached?.get('title') ?? '';
+    let addressZh = cached?.get('address') ?? '';
+    let propertyInformationZh = cached?.get('property_information') ?? '';
 
     const toTranslate: string[] = [];
-    const indices: ('title' | 'address')[] = [];
+    const indices: ('title' | 'address' | 'property_information')[] = [];
     if (!titleZh && titleStr) {
       toTranslate.push(titleStr);
       indices.push('title');
@@ -121,6 +134,10 @@ serve(async (req) => {
       toTranslate.push(addressStr);
       indices.push('address');
     }
+    if (!propertyInformationZh && infoStr) {
+      toTranslate.push(infoStr);
+      indices.push('property_information');
+    }
 
     if (toTranslate.length > 0 && DEEPL_AUTH_KEY) {
       const translated = await translateWithDeepL(toTranslate);
@@ -128,7 +145,8 @@ serve(async (req) => {
       for (const field of indices) {
         const value = translated[i++] ?? '';
         if (field === 'title') titleZh = value;
-        else addressZh = value;
+        else if (field === 'address') addressZh = value;
+        else propertyInformationZh = value;
         if (supabase && value) {
           await supabase.from('property_translations').upsert(
             { property_id: propertyId, field, lang: 'zh', value },
@@ -142,12 +160,13 @@ serve(async (req) => {
       propertyId,
       title_zh: titleZh || titleStr,
       address_zh: addressZh || addressStr,
+      property_information_zh: propertyInformationZh || infoStr,
     });
   }
 
   const isSingle = items.length === 1;
   const payload = isSingle
-    ? { title_zh: results[0].title_zh, address_zh: results[0].address_zh }
+    ? { title_zh: results[0].title_zh, address_zh: results[0].address_zh, property_information_zh: results[0].property_information_zh }
     : { translations: results };
 
   return new Response(JSON.stringify(payload), {

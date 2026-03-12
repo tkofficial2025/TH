@@ -342,7 +342,7 @@ function AppContent() {
       </section>
 
       {/* Featured Properties Carousel */}
-      <FeaturedPropertiesCarousel onSelectProperty={handleSelectProperty} title={t('section.featured.title')} subtitle={t('section.featured.subtitle')} />
+      <FeaturedPropertiesCarousel onSelectProperty={handleSelectProperty} onViewAllClick={() => handleNavigate('category', { categoryId: 'featured' })} title={t('section.featured.title')} subtitle={t('section.featured.subtitle')} />
 
       {/* Rental Categories Section */}
       <RentalCategoriesSection onCategoryClick={(categoryId) => {

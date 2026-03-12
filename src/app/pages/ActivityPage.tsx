@@ -39,7 +39,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
       }
       const first = (user.user_metadata?.first_name as string) ?? '';
       const last = (user.user_metadata?.last_name as string) ?? '';
-      setUserName([first, last].filter(Boolean).join(' ') || user.email || 'User');
+      setUserName([first, last].filter(Boolean).join(' ') || user.email || '');
       setUserEmail(user.email ?? '');
 
       setLoading(true);
@@ -151,7 +151,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
         className="text-left rounded-xl overflow-hidden border border-gray-200 hover:shadow-lg hover:border-gray-300 transition-all relative cursor-pointer"
       >
         <div className="relative aspect-[4/3] bg-gray-100">
-          <ImageWithFallback src={property.image} alt={property.title} className="w-full h-full object-cover" />
+          <ImageWithFallback src={property.image} alt={language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title} className="w-full h-full object-cover" />
         </div>
         <div className="p-4">
           <div className="mb-3">
@@ -163,12 +163,12 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
               {source === 'rent' ? 'For Rent' : 'For Sale'}
             </span>
           </div>
-          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{property.title}</h3>
+          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}</h3>
           <div className="flex flex-wrap gap-1.5 mb-2">
             {hasTour && <span className="inline-flex px-2 py-1 text-white text-xs font-medium rounded" style={{ backgroundColor: '#C1121F' }}>{t('activity.room_tour_booked')}</span>}
             {hasInquiry && <span className="inline-flex px-2 py-1 text-white text-xs font-medium rounded" style={{ backgroundColor: '#374151' }}>{t('activity.details_requested')}</span>}
           </div>
-          <p className="text-sm text-gray-500 mb-2 line-clamp-1">{displayAddress}</p>
+          <p className="text-sm text-gray-500 mb-2 line-clamp-1">{language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address}</p>
           <p className="font-semibold text-[#C1121F] mb-2">{formatPrice(property.price, source)}</p>
           <div className="flex items-center gap-2 text-xs text-gray-600">
             <Bed className="w-3.5 h-3.5" />
@@ -180,7 +180,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
           <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
             <StationLineLogo stationName={property.station} size={14} className="flex-shrink-0" />
             <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}</span>
+            <span>{getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}</span>
           </div>
 
           {hasTour && tourCandidates && tourCandidates.length > 0 && (
@@ -208,12 +208,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
       <Header onNavigate={onNavigate} currentPage="account" />
       <div className="flex pt-20">
         <aside className="w-64 min-h-[calc(100vh-5rem)] bg-gray-200 border-r border-gray-300 flex flex-col flex-shrink-0">
-          <div className="p-4 border-b border-gray-300">
-            <button type="button" onClick={() => onNavigate('home')} className="hover:opacity-80">
-              <img src="/logo3.png" alt="Tokyo Expat Housing" className="h-10 w-auto object-contain" />
-            </button>
-          </div>
-          <nav className="p-3 flex-1">
+          <nav className="p-3 flex-1 pt-6">
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">{t('account.user')}</div>
             <button
               type="button"
@@ -286,10 +281,10 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
           </div>
 
           {loading ? (
-            <p className="text-gray-500">読み込み中...</p>
+            <p className="text-gray-500">{t('listing.loading')}</p>
           ) : list.length === 0 ? (
             <p className="text-gray-600">
-              {activeTab === 'rent' ? 'No rental properties with tour or inquiry requests.' : 'No properties for sale with tour or inquiry requests.'}
+              {activeTab === 'rent' ? t('activity.no_rent') : t('activity.no_buy')}
             </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

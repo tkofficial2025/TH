@@ -26,6 +26,7 @@ import { searchProperties } from '@/lib/fullTextSearch';
 import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { getStationDisplay } from '@/lib/stationNames';
+import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
 
 interface PropertyListingPageProps {
   selectedWard?: string | null;
@@ -793,7 +794,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                         />
                         <MapPin className="w-3 h-3 text-white flex-shrink-0" />
                         <span className="text-xs font-medium text-white">
-                          {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}
+                          {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}
                         </span>
                       </div>
                     </div>
@@ -966,7 +967,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                         />
                         <MapPin className="w-3 h-3 text-white flex-shrink-0" />
                         <span className="text-xs font-medium text-white">
-                          {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}
+                          {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}
                         </span>
                       </div>
                     </div>

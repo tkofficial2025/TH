@@ -17,6 +17,7 @@ export type PropertyTranslationItem = {
 export type PropertyTranslationResult = {
   title_zh: string;
   address_zh: string;
+  property_information_zh?: string;
 };
 
 const cache = new Map<number, PropertyTranslationResult>();
@@ -25,51 +26,54 @@ async function callTranslateProperty(body: {
   propertyId: number;
   title: string;
   address: string;
+  property_information?: string;
 }): Promise<PropertyTranslationResult>;
 async function callTranslateProperty(body: { items: PropertyTranslationItem[] }): Promise<{ translations: PropertyTranslationResult[] }>;
 async function callTranslateProperty(
   body:
-    | { propertyId: number; title: string; address: string }
+    | { propertyId: number; title: string; address: string; property_information?: string }
     | { items: PropertyTranslationItem[] }
 ): Promise<PropertyTranslationResult | { translations: PropertyTranslationResult[] }> {
-  if (!baseUrl || !anonKey) {
-    if ('items' in body) return { translations: body.items.map((i) => ({ title_zh: i.title, address_zh: i.address })) };
-    return { title_zh: (body as { title: string }).title, address_zh: (body as { address: string }).address };
-  }
-  const url = `${baseUrl.replace(/\/$/, '')}/functions/v1/translate-property`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${anonKey}`,
-    },
-    body: JSON.stringify(body),
-  });
-  const text = await res.text();
-  if (!res.ok) {
-    if (import.meta.env.DEV) console.warn('[translate-property]', res.status, text);
-    if ('items' in body) return { translations: body.items.map((i) => ({ title_zh: i.title, address_zh: i.address })) };
-    const b = body as { title: string; address: string };
-    return { title_zh: b.title, address_zh: b.address };
-  }
+  const fallback = (): PropertyTranslationResult | { translations: PropertyTranslationResult[] } =>
+    'items' in body
+      ? { translations: body.items.map((i) => ({ title_zh: i.title, address_zh: i.address })) }
+      : { title_zh: (body as { title: string }).title, address_zh: (body as { address: string }).address, property_information_zh: (body as { property_information?: string }).property_information ?? '' };
+  if (!baseUrl || !anonKey) return fallback();
+
   try {
+    const url = `${baseUrl.replace(/\/$/, '')}/functions/v1/translate-property`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${anonKey}`,
+      },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    if (!res.ok) return fallback();
     return JSON.parse(text) as PropertyTranslationResult | { translations: PropertyTranslationResult[] };
   } catch {
-    if ('items' in body) return { translations: body.items.map((i) => ({ title_zh: i.title, address_zh: i.address })) };
-    const b = body as { title: string; address: string };
-    return { title_zh: b.title, address_zh: b.address };
+    return fallback();
   }
 }
 
-/** 1件の物件の中国語翻訳を取得（キャッシュあり） */
+/** 1件の物件の中国語翻訳を取得（キャッシュあり）。property_information を渡すと Property Information も翻訳する。 */
 export async function getPropertyTranslation(
   propertyId: number,
   title: string,
-  address: string
+  address: string,
+  propertyInformation?: string
 ): Promise<PropertyTranslationResult> {
   const cached = cache.get(propertyId);
-  if (cached) return cached;
-  const result = (await callTranslateProperty({ propertyId, title, address })) as PropertyTranslationResult;
+  const needInfo = (propertyInformation ?? '').trim().length > 0;
+  if (cached && (!needInfo || cached.property_information_zh != null)) return cached;
+  const result = (await callTranslateProperty({
+    propertyId,
+    title,
+    address,
+    property_information: propertyInformation ?? undefined,
+  })) as PropertyTranslationResult;
   cache.set(propertyId, result);
   return result;
 }

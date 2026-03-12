@@ -317,8 +317,8 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                   ? 'text-gray-900' 
                   : 'text-gray-500 hover:text-gray-700'
               }`}>
-                {type === 'rent' && 'Rent'}
-                {type === 'buy' && 'Buy'}
+                {type === 'rent' && t('search.rent')}
+                {type === 'buy' && t('search.buy')}
               </span>
             </button>
           ))}

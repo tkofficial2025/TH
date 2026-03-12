@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Heart, User, LogOut, Calendar } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Header } from '@/app/components/Header';
+import { useLanguage } from '@/app/contexts/LanguageContext';
 import type { Page } from '@/lib/routes';
 
 interface ProfilePageProps {
@@ -11,6 +12,7 @@ interface ProfilePageProps {
 type ProfileTab = 'information' | 'password';
 
 export function ProfilePage({ onNavigate }: ProfilePageProps) {
+  const { t } = useLanguage();
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -58,7 +60,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       setInfoMessage('error');
       return;
     }
-    setUserName([firstName, lastName].filter(Boolean).join(' ') || userEmail || 'User');
+    setUserName([firstName, lastName].filter(Boolean).join(' ') || userEmail || '');
     setInfoMessage('success');
   };
 
@@ -92,20 +94,15 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       <div className="flex pt-20">
       {/* Sidebar */}
       <aside className="w-64 min-h-[calc(100vh-5rem)] bg-gray-200 border-r border-gray-300 flex flex-col flex-shrink-0">
-        <div className="p-4 border-b border-gray-300">
-          <button type="button" onClick={() => onNavigate('home')} className="hover:opacity-80">
-            <img src="/logo3.png" alt="Tokyo Expat Housing" className="h-10 w-auto object-contain" />
-          </button>
-        </div>
-        <nav className="p-3 flex-1">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">User</div>
+        <nav className="p-3 flex-1 pt-6">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">{t('account.user')}</div>
           <button
             type="button"
             onClick={() => onNavigate('favorites')}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-300/50 mt-1"
           >
             <Heart className="w-5 h-5" />
-            Favorites
+            {t('account.favorites')}
           </button>
           <button
             type="button"
@@ -113,14 +110,14 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-300/50 mt-1"
           >
             <Calendar className="w-5 h-5" />
-            Activity
+            {t('account.activity')}
           </button>
           <button
             type="button"
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-300 text-gray-900 font-medium mt-1"
           >
             <User className="w-5 h-5 text-[#C1121F]" />
-            Profile
+            {t('account.profile')}
           </button>
         </nav>
         <div className="p-3 border-t border-gray-300 mt-auto space-y-2">
@@ -129,7 +126,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
               <User className="w-4 h-4 text-[#C1121F]" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-900 truncate">{userName || 'User'}</p>
+              <p className="text-sm font-medium text-gray-900 truncate">{userName || t('account.user')}</p>
               <p className="text-xs text-gray-500 truncate">{userEmail || '—'}</p>
             </div>
           </div>
@@ -139,14 +136,14 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-300/50 rounded-lg"
           >
             <LogOut className="w-4 h-4" />
-            Logout
+            {t('account.logout')}
           </button>
         </div>
       </aside>
 
       {/* Main content */}
       <main className="flex-1 min-h-[calc(100vh-5rem)] bg-white p-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Profile</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('profile.title')}</h1>
 
         {/* Tabs */}
         <div className="flex gap-8 border-b border-gray-200 mb-8">
@@ -159,7 +156,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            Information
+            {t('profile.tab_information')}
           </button>
           <button
             type="button"
@@ -170,7 +167,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            Password
+            {t('profile.tab_password')}
           </button>
         </div>
 
@@ -180,7 +177,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="profile-firstname" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  First name
+                  {t('profile.first_name')}
                 </label>
                 <input
                   id="profile-firstname"
@@ -188,12 +185,12 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-                  placeholder="First name"
+                  placeholder={t('profile.first_name')}
                 />
               </div>
               <div>
                 <label htmlFor="profile-lastname" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Last name
+                  {t('profile.last_name')}
                 </label>
                 <input
                   id="profile-lastname"
@@ -201,7 +198,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-                  placeholder="Last name"
+                  placeholder={t('profile.last_name')}
                 />
               </div>
             </div>
@@ -209,7 +206,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             {/* Email */}
             <div>
               <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email address
+                {t('profile.email_address')}
               </label>
               <input
                 id="profile-email"
@@ -221,10 +218,10 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
             </div>
 
             {infoMessage === 'success' && (
-              <p className="text-sm text-green-600">Saved successfully.</p>
+              <p className="text-sm text-green-600">{t('profile.saved_success')}</p>
             )}
             {infoMessage === 'error' && (
-              <p className="text-sm text-red-600">Failed to save. Please try again.</p>
+              <p className="text-sm text-red-600">{t('profile.saved_error')}</p>
             )}
 
             <div className="flex justify-end">
@@ -233,7 +230,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 disabled={saving}
                 className="px-6 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 disabled:opacity-60 transition-colors"
               >
-                {saving ? 'Saving...' : 'Save'}
+                {saving ? t('profile.saving') : t('profile.save')}
               </button>
             </div>
           </form>
@@ -243,7 +240,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
           <form onSubmit={handleSavePassword} className="max-w-md space-y-4">
             <div>
               <label htmlFor="profile-current-password" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Current password
+                {t('profile.current_password')}
               </label>
               <input
                 id="profile-current-password"
@@ -251,12 +248,12 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 value={passwordCurrent}
                 onChange={(e) => setPasswordCurrent(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-                placeholder="Current password"
+                placeholder={t('profile.current_password')}
               />
             </div>
             <div>
               <label htmlFor="profile-new-password" className="block text-sm font-medium text-gray-700 mb-1.5">
-                New password
+                {t('profile.new_password')}
               </label>
               <input
                 id="profile-new-password"
@@ -264,12 +261,12 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 value={passwordNew}
                 onChange={(e) => setPasswordNew(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-                placeholder="At least 8 characters"
+                placeholder={t('profile.password_placeholder')}
               />
             </div>
             <div>
               <label htmlFor="profile-confirm-password" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Confirm new password
+                {t('profile.confirm_password')}
               </label>
               <input
                 id="profile-confirm-password"
@@ -277,14 +274,14 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 value={passwordConfirm}
                 onChange={(e) => setPasswordConfirm(e.target.value)}
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-                placeholder="Confirm new password"
+                placeholder={t('profile.confirm_password')}
               />
             </div>
             {passwordMessage === 'success' && (
-              <p className="text-sm text-green-600">Password updated successfully.</p>
+              <p className="text-sm text-green-600">{t('profile.password_success')}</p>
             )}
             {passwordMessage === 'error' && (
-              <p className="text-sm text-red-600">Failed to update. Check current password or use at least 8 characters.</p>
+              <p className="text-sm text-red-600">{t('profile.password_error')}</p>
             )}
             <div className="flex justify-end">
               <button
@@ -292,7 +289,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
                 disabled={saving}
                 className="px-6 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-800 disabled:opacity-60 transition-colors"
               >
-                {saving ? 'Updating...' : 'Update password'}
+                {saving ? t('profile.updating') : t('profile.update_password')}
               </button>
             </div>
           </form>

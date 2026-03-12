@@ -16,11 +16,12 @@ import { fetchTranslationsForProperties, type PropertyTranslationResult } from '
 
 export interface FeaturedPropertiesCarouselProps {
   onSelectProperty?: (id: number, source: 'rent' | 'buy') => void;
+  onViewAllClick?: () => void;
   title?: string;
   subtitle?: string;
 }
 
-export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }: FeaturedPropertiesCarouselProps = {}) {
+export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, title, subtitle }: FeaturedPropertiesCarouselProps = {}) {
   const { t, language } = useLanguage();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -74,7 +75,8 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }
       return;
     }
     let cancelled = false;
-    fetchTranslationsForProperties(properties, language).then((map) => {
+    const items = properties.map((p) => ({ id: p.id, title: p.title, address: p.location }));
+    fetchTranslationsForProperties(items, language).then((map) => {
       if (!cancelled) setTranslationMap(map);
     });
     return () => { cancelled = true; };
@@ -116,7 +118,8 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }
 
           <motion.a
             href="#"
-            className="hidden md:flex items-center gap-2 text-gray-600 hover:text-[#C1121F] transition-colors group"
+            onClick={onViewAllClick ? (e) => { e.preventDefault(); onViewAllClick(); } : undefined}
+            className="hidden md:flex items-center gap-2 text-gray-600 hover:text-[#C1121F] transition-colors group cursor-pointer"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -214,7 +217,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }
                     <h3 className="text-xl font-semibold text-gray-900 mb-1 group-hover/card:text-[#C1121F] transition-colors">
                       {language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-4">{property.location}</p>
+                    <p className="text-sm text-gray-500 mb-4">{language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.location) : property.location}</p>
 
                     {/* Property Stats */}
                     <div className="flex items-center gap-3 text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100">
@@ -257,7 +260,8 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, title, subtitle }
         {/* Mobile View All Link */}
         <motion.a
           href="#"
-          className="flex md:hidden items-center justify-center gap-2 text-gray-600 hover:text-[#C1121F] transition-colors group mt-8"
+          onClick={onViewAllClick ? (e) => { e.preventDefault(); onViewAllClick(); } : undefined}
+          className="flex md:hidden items-center justify-center gap-2 text-gray-600 hover:text-[#C1121F] transition-colors group mt-8 cursor-pointer"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

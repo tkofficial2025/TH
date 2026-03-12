@@ -1,19 +1,13 @@
 import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { geocodeAddress, type Coordinates } from '@/lib/geocoding';
 import { getTileLayerConfig, getMaptilerApiKey } from '@/lib/mapTiles';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { MapTilerLayer } from '@/app/components/MapTilerLayer';
+import { fixLeafletDefaultIcon } from '@/lib/leafletDefaultIcon';
 
-// Leafletのデフォルトアイコンの問題を修正
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+fixLeafletDefaultIcon();
 
 interface PropertyMapProps {
   address: string;

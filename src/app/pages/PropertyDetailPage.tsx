@@ -54,7 +54,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
   const [inquiryLoading, setInquiryLoading] = useState(false);
   const [inquirySent, setInquirySent] = useState(false);
   const [inquiryError, setInquiryError] = useState<string | null>(null);
-  const [translation, setTranslation] = useState<{ title_zh: string; address_zh: string } | null>(null);
+  const [translation, setTranslation] = useState<{ title_zh: string; address_zh: string; property_information_zh?: string } | null>(null);
 
   useEffect(() => {
     async function fetchProperty() {
@@ -120,20 +120,20 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
     checkAlreadyRequested();
   }, [propertyId, loading]);
 
-  // 中国語表示時は物件名・住所を DeepL で翻訳
+  // 中国語表示時は物件名・住所・Property Information を DeepL で翻訳
   useEffect(() => {
     if (language !== 'zh' || !property) {
       setTranslation(null);
       return;
     }
     let cancelled = false;
-    getPropertyTranslation(property.id, property.title, property.address).then((res) => {
+    getPropertyTranslation(property.id, property.title, property.address, property.propertyInformation).then((res) => {
       if (!cancelled) setTranslation(res);
     });
     return () => {
       cancelled = true;
     };
-  }, [language, property?.id, property?.title, property?.address, property]);
+  }, [language, property?.id, property?.title, property?.address, property?.propertyInformation, property]);
 
   const toggleFavorite = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -321,7 +321,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                   className="flex-shrink-0" 
                 />
                 <MapPin className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                <span>{getStationDisplay(property.station, language)} • {property.walkingMinutes} min walk</span>
+                <span>{getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}</span>
               </div>
             </div>
 
@@ -412,21 +412,50 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
               </div>
             )}
 
-            {/* Property Information */}
+            {/* Property Information (Supabase の property_information があれば表示、中国語時は DeepL 翻訳) */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('property.information')}</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                {descriptionExpanded
-                  ? `${displayTitle} offers a comfortable living space of ${property.size} m² in ${displayAddress}, with ${property.beds} bedroom(s) and ${property.layout} layout. Located ${property.walkingMinutes} ${t('property.walk.min')} from ${getStationDisplay(property.station, language)}, this property provides easy access to transport and local amenities.`
-                  : `${displayTitle} offers a comfortable living space of ${property.size} m² in ${displayAddress}...`}
-              </p>
-              <button
-                type="button"
-                onClick={() => setDescriptionExpanded(!descriptionExpanded)}
-                className="mt-2 text-sm font-medium text-[#C1121F] flex items-center gap-1"
-              >
-                {descriptionExpanded ? t('property.showLess') : t('property.readMore')} <ChevronDown className={`w-4 h-4 transition-transform ${descriptionExpanded ? 'rotate-180' : ''}`} />
-              </button>
+              {property.propertyInformation && property.propertyInformation.trim() ? (
+                <>
+                  <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
+                    {language === 'zh' && translation?.property_information_zh
+                      ? (descriptionExpanded
+                          ? translation.property_information_zh
+                          : translation.property_information_zh.length > 200
+                            ? `${translation.property_information_zh.slice(0, 200)}...`
+                            : translation.property_information_zh)
+                      : (descriptionExpanded
+                          ? property.propertyInformation.trim()
+                          : property.propertyInformation.trim().length > 200
+                            ? `${property.propertyInformation.trim().slice(0, 200)}...`
+                            : property.propertyInformation.trim())}
+                  </p>
+                  {(language === 'zh' ? translation?.property_information_zh?.length ?? 0 : property.propertyInformation.trim().length) > 200 && (
+                    <button
+                      type="button"
+                      onClick={() => setDescriptionExpanded(!descriptionExpanded)}
+                      className="mt-2 text-sm font-medium text-[#C1121F] flex items-center gap-1"
+                    >
+                      {descriptionExpanded ? t('property.showLess') : t('property.readMore')} <ChevronDown className={`w-4 h-4 transition-transform ${descriptionExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {descriptionExpanded
+                      ? `${displayTitle} offers a comfortable living space of ${property.size} m² in ${displayAddress}, with ${property.beds} bedroom(s) and ${property.layout} layout. Located ${property.walkingMinutes} ${t('property.walk.min')} from ${getStationDisplay(property.station, language)}, this property provides easy access to transport and local amenities.`
+                      : `${displayTitle} offers a comfortable living space of ${property.size} m² in ${displayAddress}...`}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setDescriptionExpanded(!descriptionExpanded)}
+                    className="mt-2 text-sm font-medium text-[#C1121F] flex items-center gap-1"
+                  >
+                    {descriptionExpanded ? t('property.showLess') : t('property.readMore')} <ChevronDown className={`w-4 h-4 transition-transform ${descriptionExpanded ? 'rotate-180' : ''}`} />
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Initial fees by card (only when enabled in DB) */}
@@ -519,7 +548,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                       setTourError(null);
                       const { data: { user } } = await supabase.auth.getUser();
                       if (!user) {
-                        setTourError('Please sign in to your account to request a room tour.');
+                        setTourError(t('property.tour.signin_required'));
                         return;
                       }
                       const { data: tourRequest, error: tourError } = await supabase
@@ -576,7 +605,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('property.check_availability.title')}</h3>
                 <p className="text-xs text-gray-500 mb-3">{t('property.check_availability.desc')}</p>
                 {inquirySent ? (
-                  <p className="text-sm text-green-600 py-2">Property details request already submitted. A staff member will contact you within 24 hours.</p>
+                  <p className="text-sm text-green-600 py-2">{t('property.check_availability.success')}</p>
                 ) : (
                   <form onSubmit={handleInquirySubmit} className="space-y-3">
                     <div>

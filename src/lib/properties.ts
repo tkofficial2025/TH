@@ -30,6 +30,7 @@ export interface SupabasePropertyRow {
   deposit?: number | null;
   key_money?: number | null;
   initial_fees_credit_card?: boolean | null;
+  property_information?: string | null;
 }
 
 /**
@@ -63,6 +64,7 @@ export interface Property {
   deposit?: number;
   keyMoney?: number;
   initialFeesCreditCard?: boolean;
+  propertyInformation?: string;
 }
 
 /** 行オブジェクトから値を取得（snake_case / camelCase 両対応） */
@@ -130,6 +132,7 @@ export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<strin
     deposit: toOptionalNumber(get(r, 'deposit')),
     keyMoney: toOptionalNumber(get(r, 'key_money', 'keyMoney')),
     initialFeesCreditCard: toBool(get(r, 'initial_fees_credit_card', 'initialFeesCreditCard')),
+    propertyInformation: get(r, 'property_information', 'propertyInformation') != null ? String(get(r, 'property_information', 'propertyInformation')) : undefined,
   };
 }
 

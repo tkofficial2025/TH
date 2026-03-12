@@ -155,16 +155,24 @@ export function CurrencyProvider({ children, language = 'en' }: { children: Reac
   }, []);
 
   const rentSuffix = language === 'zh' ? '/月' : '/mo';
+  const useWan = language === 'zh'; // 中国語のときは K/M ではなく万単位
 
   const formatPrice = useCallback<CurrencyContextValue['formatPrice']>(
     (priceYen, type) => {
       if (currency === 'JPY') {
-        if (type === 'rent') {
-          if (priceYen >= 100000) return `¥${(priceYen / 1000).toFixed(0)}k${rentSuffix}`;
-          return `¥${priceYen.toLocaleString()}${rentSuffix}`;
+        if (useWan && priceYen >= 10000) {
+          const wan = priceYen / 10000;
+          const wanStr = wan === Math.floor(wan) ? wan.toFixed(0) : wan.toFixed(1);
+          return type === 'rent' ? `¥${wanStr}万${rentSuffix}` : `¥${wanStr}万`;
         }
-        if (priceYen >= 1000000) return `¥${(priceYen / 1000000).toFixed(1)}M`;
-        return `¥${priceYen.toLocaleString()}`;
+        if (!useWan) {
+          if (type === 'rent') {
+            if (priceYen >= 100000) return `¥${(priceYen / 1000).toFixed(0)}k${rentSuffix}`;
+            return `¥${priceYen.toLocaleString()}${rentSuffix}`;
+          }
+          if (priceYen >= 1000000) return `¥${(priceYen / 1000000).toFixed(1)}M`;
+        }
+        return type === 'rent' ? `¥${priceYen.toLocaleString()}${rentSuffix}` : `¥${priceYen.toLocaleString()}`;
       }
       
       if (currency === 'USD') {
@@ -226,7 +234,7 @@ export function CurrencyProvider({ children, language = 'en' }: { children: Reac
       
       return `¥${priceYen.toLocaleString()}`;
     },
-    [currency, jpyPerUsd, jpyPerCny, jpyPerKrw, jpyPerAud, jpyPerCad, rentSuffix]
+    [currency, jpyPerUsd, jpyPerCny, jpyPerKrw, jpyPerAud, jpyPerCad, rentSuffix, useWan]
   );
 
   const value = useMemo<CurrencyContextValue>(

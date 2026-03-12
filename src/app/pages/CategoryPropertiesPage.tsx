@@ -27,6 +27,18 @@ import { getStationDisplay } from '@/lib/stationNames';
 import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
 import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
 
+const SORT_LABEL_KEYS: Record<SortOption, string> = {
+  'popularity': 'sort.popularity',
+  'price-asc': 'sort.price_asc',
+  'price-desc': 'sort.price_desc',
+  'size-asc': 'sort.size_asc',
+  'size-desc': 'sort.size_desc',
+  'walking-asc': 'sort.walking_asc',
+  'walking-desc': 'sort.walking_desc',
+  'newest': 'sort.newest',
+  'oldest': 'sort.oldest',
+};
+
 interface CategoryPropertiesPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent' | 'consultation' | 'category') => void;
   categoryId?: string;
@@ -82,8 +94,8 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
     const categoryIdFromUrl = params.get('category');
     const categoryIdToUse = categoryId || categoryIdFromUrl;
     
-    if (categoryIdToUse) {
-      // カテゴリーIDをフィルターのstateにマッピング
+    if (categoryIdToUse && categoryIdToUse !== 'featured') {
+      // カテゴリーIDをフィルターのstateにマッピング（featured のときは何も選択しない）
       switch (categoryIdToUse) {
         case 'luxury':
           setLuxury(true);
@@ -137,6 +149,8 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
               const titleLower = (prop.title || '').toLowerCase();
               
               switch (categoryId) {
+                case 'featured':
+                  return prop.isFeatured === true;
                 case 'luxury':
                   return prop.isFeatured === true;
                 case 'pet-friendly':
@@ -344,7 +358,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
             <div className="flex items-center gap-4">
               {/* Show Map Toggle Switch */}
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">Show map</span>
+                <span className="text-sm font-medium text-gray-700">{t('filter.show_map')}</span>
                 <button
                   onClick={() => setShowMap(!showMap)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:ring-offset-2 ${
@@ -364,12 +378,12 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
               >
                 {filterBarOpen ? (
                   <>
-                    <span>Hide</span>
+                    <span>{t('filter.hide')}</span>
                     <ChevronUp className="w-4 h-4" />
                   </>
                 ) : (
                   <>
-                    <span>Show</span>
+                    <span>{t('filter.show')}</span>
                     <ChevronDown className="w-4 h-4" />
                   </>
                 )}
@@ -389,7 +403,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                     onChange={(e) => setListingTypeFilter(e.target.value as 'rent' | 'buy' | '')}
                     className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
                   >
-                    <option value="">All</option>
+                    <option value="">{t('filter.all')}</option>
                     <option value="rent">{t('search.rent')}</option>
                     <option value="buy">{t('search.buy')}</option>
                   </select>
@@ -450,17 +464,20 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                 </div>
 
                 {/* Bedrooms */}
-                <select
-                  value={bedrooms}
-                  onChange={(e) => setBedrooms(e.target.value)}
-                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-                >
-                  <option value="">Bedrooms</option>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('filter.bedrooms')}</label>
+                  <select
+                    value={bedrooms}
+                    onChange={(e) => setBedrooms(e.target.value)}
+                    className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                  >
+                  <option value="">{t('filter.bedrooms.any')}</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
                   <option value="4">4+</option>
-                </select>
+                  </select>
+                </div>
 
                 {/* Size Range */}
                 <div className="flex items-center gap-2">
@@ -620,17 +637,20 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                 </div>
 
                 {/* Sort */}
-                <select
-                  value={sortOption}
-                  onChange={(e) => setSortOption(e.target.value as SortOption)}
-                  className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-                >
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('sort.label')}</label>
+                  <select
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value as SortOption)}
+                    className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                  >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
-                      {option.label}
+                      {t(SORT_LABEL_KEYS[option.value])}
                     </option>
                   ))}
-                </select>
+                  </select>
+                </div>
               </div>
             </div>
           )}
@@ -697,16 +717,16 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                             ? 'text-blue-600 border-2 border-blue-600' 
                             : 'text-green-600 border-2 border-green-600'
                         }`}>
-                          {property.type === 'rent' ? 'RENT' : 'BUY'}
+                          {property.type === 'rent' ? t('search.rent').toUpperCase() : t('search.buy').toUpperCase()}
                         </span>
                         {property.isFeatured && (
                           <span className="px-3 py-1.5 bg-[#C1121F] text-white text-xs font-bold rounded-full shadow-lg">
-                            POPULAR
+                            {t('listing.badge.popular')}
                           </span>
                         )}
                         {property.isNew && (
                           <span className="px-3 py-1.5 bg-white text-gray-900 text-xs font-bold rounded-full shadow-lg">
-                            New
+                            {t('listing.badge.new')}
                           </span>
                         )}
                       </div>
@@ -752,7 +772,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                           <StationLineLogo stationName={property.station} size={12} className="flex-shrink-0" />
                           <MapPin className="w-3 h-3 text-white flex-shrink-0" />
                           <span className="text-xs font-medium text-white">
-                            {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}
+                            {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}
                           </span>
                         </div>
                       </div>
@@ -791,16 +811,16 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                             ? 'text-blue-600 border-2 border-blue-600' 
                             : 'text-green-600 border-2 border-green-600'
                         }`}>
-                          {property.type === 'rent' ? 'RENT' : 'BUY'}
+                          {property.type === 'rent' ? t('search.rent').toUpperCase() : t('search.buy').toUpperCase()}
                         </span>
                         {property.isFeatured && (
                           <span className="px-3 py-1.5 bg-[#C1121F] text-white text-xs font-bold rounded-full shadow-lg">
-                            POPULAR
+                            {t('listing.badge.popular')}
                           </span>
                         )}
                         {property.isNew && (
                           <span className="px-3 py-1.5 bg-white text-gray-900 text-xs font-bold rounded-full shadow-lg">
-                            New
+                            {t('listing.badge.new')}
                           </span>
                         )}
                       </div>
@@ -846,7 +866,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                           <StationLineLogo stationName={property.station} size={12} className="flex-shrink-0" />
                           <MapPin className="w-3 h-3 text-white flex-shrink-0" />
                           <span className="text-xs font-medium text-white">
-                            {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min_short')}
+                            {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}
                           </span>
                         </div>
                       </div>

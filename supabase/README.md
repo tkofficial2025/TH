@@ -58,6 +58,12 @@ npx supabase functions deploy translate-property --no-verify-jwt
 
 ※ `SUPABASE_URL` と `SUPABASE_SERVICE_ROLE_KEY` は Supabase が自動で渡すため、手動設定不要です。
 
+**翻訳キャッシュ（一度翻訳した結果を保存）:**  
+Edge Function は DeepL で翻訳した結果を `property_translations` テーブルに保存します。同じ物件を再度表示するときは DB から読み、DeepL API を呼びません。キャッシュを使うには、次のマイグレーションを適用してください。
+
+- **初回:** SQL Editor で `supabase/migrations/add_property_translations.sql` の内容を実行
+- **property_information の翻訳も使う場合:** 続けて `supabase/migrations/add_property_translations_property_information.sql` を実行
+
 ---
 
 ## ⚠️ 物件が一切取得されない場合（毎回ここを実行）

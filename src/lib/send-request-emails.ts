@@ -1,13 +1,11 @@
 /**
  * Edge Function send-request-emails を fetch で直接呼ぶ（メール送信）
- * supabase.functions.invoke だと JWT 検証で 401 になることがあるため、確実に届くように fetch + anon key で呼ぶ
+ * Supabase URL / Anon Key は .env の VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY から読み取る（supabase-config 経由）
  */
 import { supabaseUrl, supabaseAnonKey } from './supabase-config';
 
-const envUrl = (import.meta.env.VITE_SUPABASE_URL as string)?.trim();
-const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string)?.trim();
-const baseUrl = (envUrl || supabaseUrl || '').trim();
-const anonKey = (envKey || supabaseAnonKey || '').trim();
+const baseUrl = supabaseUrl;
+const anonKey = supabaseAnonKey;
 
 export type SendRequestEmailsBody =
   | { type: 'tour'; userEmail: string; userName: string; propertyId: number; propertyTitle?: string; candidateDates?: { date: string; timeRange: string }[] }

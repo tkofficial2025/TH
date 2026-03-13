@@ -50,7 +50,8 @@ interface RentPropertiesPageProps {
 
 export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty, initialSearchParams }: RentPropertiesPageProps) {
   const { t, language } = useLanguage();
-  const [showMap, setShowMap] = useState(false);
+  // デスクトップは地図表示ON、モバイルはOFF
+  const [showMap, setShowMap] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -163,13 +164,21 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
   }, [searchQuery, language]);
 
   useEffect(() => {
-    if (initialSearchParams?.selectedAreas?.length && !hasAppliedInitialSearch.current) {
-      setSelectedAreas(new Set(initialSearchParams.selectedAreas));
+    if (!initialSearchParams || initialSearchParams.propertyType !== 'rent') return;
+    if (!hasAppliedInitialSearch.current) {
+      if (initialSearchParams.selectedAreas?.length) setSelectedAreas(new Set(initialSearchParams.selectedAreas));
       hasAppliedInitialSearch.current = true;
     }
-    if (initialSearchParams?.keyword) {
-      setSearchQuery(initialSearchParams.keyword);
-    }
+    if (initialSearchParams.keyword != null) setSearchQuery(initialSearchParams.keyword);
+    if (initialSearchParams.luxury) setLuxury(true);
+    if (initialSearchParams.petFriendly) setPetFriendly(true);
+    if (initialSearchParams.foreignFriendly) setForeignFriendly(true);
+    if (initialSearchParams.furnished) setFurnished(true);
+    if (initialSearchParams.highRiseResidence) setHighRiseResidence(true);
+    if (initialSearchParams.noKeyMoney) setNoKeyMoney(true);
+    if (initialSearchParams.forStudents) setForStudents(true);
+    if (initialSearchParams.designers) setDesigners(true);
+    if (initialSearchParams.forFamilies) setForFamilies(true);
   }, [initialSearchParams]);
 
   const baseList =

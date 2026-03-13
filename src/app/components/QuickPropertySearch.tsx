@@ -279,6 +279,15 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
       sizeMin: propertySizeMin ? Number(propertySizeMin) || undefined : undefined,
       sizeMax: propertySizeMax ? Number(propertySizeMax) || undefined : undefined,
       keyword: keyword.trim() || undefined,
+      luxury: luxury || undefined,
+      petFriendly: petFriendly || undefined,
+      foreignFriendly: foreignFriendly || undefined,
+      furnished: furnished || undefined,
+      highRiseResidence: highRiseResidence || undefined,
+      noKeyMoney: noKeyMoney || undefined,
+      forStudents: forStudents || undefined,
+      designers: designers || undefined,
+      forFamilies: forFamilies || undefined,
     };
     onSearch?.(params);
   };
@@ -288,7 +297,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 0.6 }}
-      className="w-[92%] max-w-[92%] md:w-full md:max-w-5xl mx-auto"
+      className="w-[92%] max-w-[92%] md:w-full md:max-w-5xl mx-auto overflow-visible"
     >
       {/* Property Type Segmented Control */}
       <div className="flex justify-center mb-3 md:mb-4">
@@ -351,7 +360,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-row flex-nowrap items-stretch divide-x divide-gray-100 min-w-0 overflow-x-auto"
+            className="flex flex-row flex-nowrap items-stretch divide-x divide-gray-100 min-w-0 overflow-visible"
           >
             <div className="flex-1 min-w-[90px] sm:min-w-0 overflow-visible flex-shrink-0">
               <AreaMultiSelect selectedAreas={selectedAreas} onChange={setSelectedAreas} areas={areaOptions} />

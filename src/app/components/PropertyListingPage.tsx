@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { toast } from 'sonner';
 import { motion } from 'motion/react';
 import {
   Search,
@@ -27,6 +28,7 @@ import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperti
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { getStationDisplay } from '@/lib/stationNames';
 import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
+import { PropertyCardSkeleton } from '@/app/components/PropertyCardSkeleton';
 
 interface PropertyListingPageProps {
   selectedWard?: string | null;
@@ -37,7 +39,8 @@ interface PropertyListingPageProps {
 export function PropertyListingPage({ selectedWard, onSelectProperty, initialSearchParams }: PropertyListingPageProps = {}) {
   const { formatPrice } = useCurrency();
   const { t, language } = useLanguage();
-  const [showMap, setShowMap] = useState(false);
+  // デスクトップは地図表示ON、モバイルはOFF
+  const [showMap, setShowMap] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +72,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
   const [sortOption, setSortOption] = useState<'popularity' | 'price-asc' | 'price-desc' | 'size-asc' | 'size-desc' | 'walking-asc' | 'walking-desc' | 'newest' | 'oldest'>('popularity');
   const hasAppliedInitialSearch = useRef(false);
   const [translationMap, setTranslationMap] = useState<Map<number, PropertyTranslationResult>>(new Map());
+  const [retryTrigger, setRetryTrigger] = useState(0);
 
   // サイドバー幅を35%に初期化
   useEffect(() => {
@@ -114,48 +118,53 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
     }
   }, []);
 
-  useEffect(() => {
-    async function fetchBuyProperties() {
-      setLoading(true);
-      setError(null);
-      
-      // キーワード検索: 英語はDBのFull Text Search、中国語は全件取得してクライアントで title_zh/address_zh を照合
-      const useKeywordSearch = searchQuery.trim() && language !== 'zh';
-      if (useKeywordSearch) {
-        try {
-          const results = await searchProperties(searchQuery, 'buy', 1000);
-          setAllProperties(results);
-          setLoading(false);
-          return;
-        } catch (err) {
-          console.error('Full text search error:', err);
-          // エラー時は通常のクエリにフォールバック
-        }
+  const fetchBuyProperties = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    const useKeywordSearch = searchQuery.trim() && language !== 'zh';
+    if (useKeywordSearch) {
+      try {
+        const results = await searchProperties(searchQuery, 'buy', 1000);
+        setAllProperties(results);
+        setLoading(false);
+        return;
+      } catch (err) {
+        console.error('Full text search error:', err);
       }
-      
-      // 通常のクエリ（中国語キーワード時も全件取得し、一覧フィルターで title/address/title_zh/address_zh を照合）
-      const { data: raw, error: err } = await supabase.from('properties').select('*').eq('type', 'buy');
-      const data = Array.isArray(raw) ? raw : [];
-      if (import.meta.env.DEV) console.log('[Buy] Supabase', { data, error: err });
-      if (err) {
-        setError(err.message);
-        setAllProperties([]);
-      } else {
-        setAllProperties((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
-      }
-      setLoading(false);
     }
-    fetchBuyProperties();
-  }, [searchQuery, language]);
+    const { data: raw, error: err } = await supabase.from('properties').select('*').eq('type', 'buy');
+    const data = Array.isArray(raw) ? raw : [];
+    if (import.meta.env.DEV) console.log('[Buy] Supabase', { data, error: err });
+    if (err) {
+      setError(err.message);
+      setAllProperties([]);
+      toast.error(t('error.fetch_failed'));
+    } else {
+      setAllProperties((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
+    }
+    setLoading(false);
+  }, [searchQuery, language, t]);
 
   useEffect(() => {
-    if (initialSearchParams?.selectedAreas?.length && !hasAppliedInitialSearch.current) {
-      setSelectedAreas(new Set(initialSearchParams.selectedAreas));
+    fetchBuyProperties();
+  }, [fetchBuyProperties, retryTrigger]);
+
+  useEffect(() => {
+    if (!initialSearchParams || initialSearchParams.propertyType !== 'buy') return;
+    if (!hasAppliedInitialSearch.current) {
+      if (initialSearchParams.selectedAreas?.length) setSelectedAreas(new Set(initialSearchParams.selectedAreas));
       hasAppliedInitialSearch.current = true;
     }
-    if (initialSearchParams?.keyword) {
-      setSearchQuery(initialSearchParams.keyword);
-    }
+    if (initialSearchParams.keyword != null) setSearchQuery(initialSearchParams.keyword);
+    if (initialSearchParams.luxury) setLuxury(true);
+    if (initialSearchParams.petFriendly) setPetFriendly(true);
+    if (initialSearchParams.foreignFriendly) setForeignFriendly(true);
+    if (initialSearchParams.furnished) setFurnished(true);
+    if (initialSearchParams.highRiseResidence) setHighRiseResidence(true);
+    if (initialSearchParams.noKeyMoney) setNoKeyMoney(true);
+    if (initialSearchParams.forStudents) setForStudents(true);
+    if (initialSearchParams.designers) setDesigners(true);
+    if (initialSearchParams.forFamilies) setForFamilies(true);
   }, [initialSearchParams]);
 
   const baseList =
@@ -690,10 +699,24 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               {/* Property Listings */}
               <div className="space-y-4">
               {loading && (
-                <div className="py-16 text-center text-gray-500 text-sm">{t('listing.loading')}</div>
+                <div className="space-y-4" aria-busy="true" aria-label={t('listing.loading')}>
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <PropertyCardSkeleton key={i} />
+                  ))}
+                </div>
               )}
               {error && (
-                <div className="py-16 text-center text-red-600 text-sm">{t('listing.error').replace('{error}', error)}</div>
+                <div className="py-8 text-center">
+                  <p className="text-red-600 text-sm mb-2">{t('listing.error').replace('{error}', error)}</p>
+                  <p className="text-gray-500 text-xs mb-4">{t('error.fetch_failed')}</p>
+                  <button
+                    type="button"
+                    onClick={() => setRetryTrigger((n) => n + 1)}
+                    className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm font-medium"
+                  >
+                    {t('common.retry')}
+                  </button>
+                </div>
               )}
               {!loading && !error && sortedProperties.length === 0 && (
                 <div className="py-16 text-center text-gray-500 text-sm">
@@ -856,10 +879,24 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
 
           {/* Property Grid */}
           {loading && (
-            <div className="py-16 text-center text-gray-500 text-sm">{t('listing.loading')}</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" aria-busy="true" aria-label={t('listing.loading')}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <PropertyCardSkeleton key={i} />
+              ))}
+            </div>
           )}
           {error && (
-            <div className="py-16 text-center text-red-600 text-sm">{t('listing.error').replace('{error}', error)}</div>
+            <div className="py-16 text-center">
+              <p className="text-red-600 text-sm mb-2">{t('listing.error').replace('{error}', error)}</p>
+              <p className="text-gray-500 text-sm mb-4">{t('error.fetch_failed')}</p>
+              <button
+                type="button"
+                onClick={() => setRetryTrigger((n) => n + 1)}
+                className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 text-sm font-medium"
+              >
+                {t('common.retry')}
+              </button>
+            </div>
           )}
           {!loading && !error && sortedProperties.length === 0 && (
             <div className="py-16 text-center text-gray-500 text-sm">

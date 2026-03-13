@@ -20,7 +20,7 @@ export default defineConfig({
     dedupe: ['react', 'react-dom'],
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'motion', 'leaflet', 'react-leaflet'],
+    include: ['react', 'react-dom', 'motion', 'leaflet', 'react-leaflet', 'sonner'],
     force: true, // 504 Outdated Optimize Dep 対策。解消したら false に戻してよい
   },
 })

@@ -48,7 +48,8 @@ interface CategoryPropertiesPageProps {
 export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectProperty }: CategoryPropertiesPageProps) {
   const { formatPrice } = useCurrency();
   const { t, language } = useLanguage();
-  const [showMap, setShowMap] = useState(false);
+  // デスクトップは地図表示ON、モバイルはOFF
+  const [showMap, setShowMap] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);

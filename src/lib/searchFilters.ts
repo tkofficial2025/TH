@@ -10,6 +10,16 @@ export interface HeroSearchParams {
   sizeMin?: number;
   sizeMax?: number;
   keyword?: string;
+  /** Advanced filters（ヒーローでチェックした条件） */
+  luxury?: boolean;
+  petFriendly?: boolean;
+  foreignFriendly?: boolean;
+  furnished?: boolean;
+  highRiseResidence?: boolean;
+  noKeyMoney?: boolean;
+  forStudents?: boolean;
+  designers?: boolean;
+  forFamilies?: boolean;
 }
 
 /** 予算文字列を [min, max] 円に変換（buy: 百万円、rent: 円/月） */
@@ -84,6 +94,36 @@ export function filterPropertiesByHeroParams(
   }
   if (params.sizeMax != null && params.sizeMax > 0) {
     list = list.filter((p) => p.size <= params.sizeMax!);
+  }
+
+  if (params.petFriendly) list = list.filter((p) => p.petFriendly === true);
+  if (params.foreignFriendly) list = list.filter((p) => p.foreignFriendly === true);
+  if (params.luxury) list = list.filter((p) => p.isFeatured === true);
+  if (params.furnished) {
+    list = list.filter((p) => {
+      const t = (p.title ?? '').toLowerCase();
+      return t.includes('furnished') || t.includes('家具付き');
+    });
+  }
+  if (params.highRiseResidence) list = list.filter((p) => (p.floor ?? 0) >= 5);
+  if (params.noKeyMoney) list = list.filter((p) => p.keyMoney != null && p.keyMoney === 0);
+  if (params.forStudents) {
+    list = list.filter((p) => {
+      const t = (p.title ?? '').toLowerCase();
+      return t.includes('student') || t.includes('学生');
+    });
+  }
+  if (params.designers) {
+    list = list.filter((p) => {
+      const t = (p.title ?? '').toLowerCase();
+      return t.includes('design') || t.includes('デザイナー');
+    });
+  }
+  if (params.forFamilies) {
+    list = list.filter((p) => {
+      const t = (p.title ?? '').toLowerCase();
+      return t.includes('family') || t.includes('家族') || (p.beds ?? 0) >= 2;
+    });
   }
 
   // キーワードは Rent/Buy 一覧側で実施（中国語 title_zh/address_zh を参照するため）

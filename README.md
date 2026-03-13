@@ -6,6 +6,16 @@ This is a code bundle for Premium Real Estate Website. The original project is a
 
 Run `npm i` to install the dependencies.
 
+**環境変数（ローカル）**: ルートの `env.example` をコピーして `.env` を作成し、`VITE_SUPABASE_URL` と `VITE_SUPABASE_ANON_KEY` を設定してください。地図・翻訳用のキーは任意です。
+
+```bash
+# Windows
+copy env.example .env
+
+# Mac / Linux
+cp env.example .env
+```
+
 Run `npm run dev` to start the development server.
 
 **地図の表示言語**: サイトの言語（英語/中国語）に合わせて地図を切り替えています。  

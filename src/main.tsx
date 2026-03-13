@@ -1,5 +1,6 @@
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { Toaster } from "sonner";
 import App from "./app/App.tsx";
 import { LanguageProvider, useLanguage } from "./app/contexts/LanguageContext";
 import { CurrencyProvider } from "./app/contexts/CurrencyContext";
@@ -24,7 +25,10 @@ function render() {
   root!.render(
     <LanguageProvider>
       <CurrencyProviderWithLanguage>
-        <App />
+        <>
+          <App />
+          <Toaster richColors position="top-center" closeButton />
+        </>
       </CurrencyProviderWithLanguage>
     </LanguageProvider>
   );

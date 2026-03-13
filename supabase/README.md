@@ -1,5 +1,80 @@
 # Supabase
 
+## あなたのステップ（やること一覧）
+
+### ローカル（PC 上）
+
+1. **環境変数**  
+   プロジェクトのルートで `.env` を作成し、Supabase の値を入れる。  
+   - `copy env.example .env`（Windows）または `cp env.example .env`（Mac/Linux）  
+   - `.env` を開き、`VITE_SUPABASE_URL` と `VITE_SUPABASE_ANON_KEY` を Supabase の値に書き換える。  
+   - 地図を使うなら `VITE_MAPTILER_API_KEY` も任意で設定。
+
+---
+
+### Supabase ダッシュボードでやること
+
+**[Supabase Dashboard](https://supabase.com/dashboard)** を開き、自分のプロジェクトを選んでから次を実行する。
+
+2. **API の値を確認**  
+   - 左メニュー **Project Settings** → **API**  
+   - **Project URL** と **anon public** のキーをコピーし、ローカルの `.env` の `VITE_SUPABASE_URL` と `VITE_SUPABASE_ANON_KEY` に貼る（まだなら）。
+
+3. **必要なテーブル・RLS を用意（SQL Editor）**  
+   - 左メニュー **SQL Editor** → **New query**  
+   - 次のファイルの中身を**順番に**コピーして貼り付け、**Run** する。  
+     - `supabase/migrations/add_user_favorites.sql`（お気に入り）  
+     - `supabase/migrations/add_property_inquiries.sql`（問い合わせ）  
+     - `supabase/migrations/add_property_tour_requests.sql`、続けて `add_property_tour_requests_candidates.sql`（内見リクエスト）  
+     - **RLS と管理者用:** `supabase/migrations/add_rls_privacy_and_admin_policies.sql`  
+   - すでに実行済みのマイグレーションは飛ばしてよい。
+
+4. **最初の管理者を 1 人登録（RLS を入れた場合だけ）**  
+   - **SQL Editor** で次を実行（`あなたの管理者メール` を実際のメールに変える）。  
+   ```sql
+   INSERT INTO public.admin_users (id)
+   SELECT id FROM auth.users WHERE email = 'あなたの管理者メール' LIMIT 1;
+   ```  
+   - そのメールでサインアップまたはログインしたあとで実行すること。
+
+5. **メール送信（Edge Function）のシークレット**  
+   - **Project Settings** → **Edge Functions** → **Secrets**  
+   - 次を追加して **Save**。  
+     - `RESEND_API_KEY` … Resend の API キー  
+     - `OWNER_EMAIL` … 管理者が受け取るメールアドレス  
+     - `FROM_EMAIL` … 送信元（例: `Tokyo Expat Housing <information@tkofficial.net>`）。Resend でドメイン認証したアドレスにすること。
+
+6. **（任意）翻訳用のシークレット**  
+   - 中国語翻訳を使う場合、同じ **Secrets** で `DEEPL_AUTH_KEY` を追加。
+
+7. **（任意）サインアップですぐログインできるようにする**  
+   - **Authentication** → **Providers** → **Email** で **Confirm email** をオフにする。
+
+---
+
+### ターミナル（Edge Function のデプロイ）
+
+8. **メール送信 Function をデプロイ**  
+   プロジェクトのルートで:  
+   ```bash
+   npx supabase login
+   npx supabase link --project-ref <あなたのプロジェクトID>
+   npx supabase functions deploy send-request-emails --no-verify-jwt
+   ```  
+   プロジェクト ID は Dashboard の **Settings** → **General** の **Reference ID**。
+
+9. **（任意）翻訳 Function をデプロイ**  
+   ```bash
+   npx supabase functions deploy translate-property --no-verify-jwt
+   ```
+
+---
+
+**まとめ:**  
+ローカルでは `.env` の設定、Supabase では「SQL の実行」「Secrets の設定」「必要なら管理者の追加」と「Confirm email オフ」、ターミナルでは `send-request-emails`（と必要なら `translate-property`）のデプロイをすれば動く状態になります。
+
+---
+
 ## デプロイの流れ
 
 ### フロント（サイト本体）
@@ -83,7 +158,24 @@ ALTER TABLE public.properties DISABLE ROW LEVEL SECURITY;
 
 4. ブラウザでサイトを再読み込みする
 
-**注意:** 別のマイグレーションやダッシュボード操作で RLS が再度有効になった場合は、上記をもう一度実行してください。
+**注意:** `add_rls_privacy_and_admin_policies.sql` を適用している場合は、`properties` は RLS 有効のまま「誰でも SELECT」ポリシーで読めるため、上記の RLS 無効化は不要です。
+
+---
+
+## RLS と管理者（add_rls_privacy_and_admin_policies）
+
+マイグレーション `add_rls_privacy_and_admin_policies.sql` で以下を適用します。
+
+- **properties**: 誰でも SELECT 可能。管理者は全操作可能。
+- **user_favorites / property_tour_requests / property_tour_request_candidates**: 作成者（`auth.uid()`）のみ SELECT・INSERT・UPDATE・DELETE。管理者は全操作可能。
+- **property_inquiries**: 誰でも INSERT 可能（未ログインは `user_id` なし、ログイン時は自動で `user_id` をセット）。SELECT・UPDATE・DELETE は作成者または管理者のみ。
+
+**最初の管理者の追加:** Dashboard → SQL Editor で実行（service_role で RLS をバイパス）。
+
+```sql
+INSERT INTO public.admin_users (id)
+SELECT id FROM auth.users WHERE email = 'あなたの管理者メール' LIMIT 1;
+```
 
 ---
 

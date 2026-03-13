@@ -1,12 +1,11 @@
 /**
  * Edge Function translate-property を呼び出し、物件名・住所の中国語翻訳を取得する
+ * Supabase URL / Anon Key は .env の VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY から読み取る（supabase-config 経由）
  */
 import { supabaseUrl, supabaseAnonKey } from './supabase-config';
 
-const envUrl = (import.meta.env.VITE_SUPABASE_URL as string)?.trim();
-const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string)?.trim();
-const baseUrl = (envUrl || supabaseUrl || '').trim();
-const anonKey = (envKey || supabaseAnonKey || '').trim();
+const baseUrl = supabaseUrl;
+const anonKey = supabaseAnonKey;
 
 export type PropertyTranslationItem = {
   propertyId: number;

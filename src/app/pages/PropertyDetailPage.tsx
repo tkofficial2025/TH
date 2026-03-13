@@ -24,6 +24,9 @@ import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { getStationDisplay } from '@/lib/stationNames';
 import { getPropertyTranslation } from '@/lib/translate-property';
+import { getPropertyImageUrl } from '@/lib/propertyImageUrl';
+import { PropertyDetailPageSkeleton } from '@/app/components/PropertyDetailPageSkeleton';
+import { toast } from 'sonner';
 
 interface PropertyDetailPageProps {
   propertyId: number;
@@ -68,6 +71,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
       if (err) {
         setError(err.message);
         setProperty(null);
+        toast.error(t('error.fetch_failed'));
       } else if (data) {
         setProperty(mapSupabaseRowToProperty(data as SupabasePropertyRow));
       } else {
@@ -269,9 +273,10 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
               {/* モバイル: メイン画像1枚 */}
               <div className="md:hidden relative aspect-[16/10] rounded-xl overflow-hidden bg-gray-200 w-full">
                 <ImageWithFallback
-                  src={allPhotos[0] ?? property.image}
+                  src={getPropertyImageUrl(allPhotos[0] ?? property.image, 'detail')}
                   alt={displayTitle}
                   className="w-full h-full object-cover"
+                  loading="eager"
                 />
               </div>
               {/* モバイル: 2枚目以降を横スクロール */}
@@ -280,7 +285,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                   <div className="flex gap-2 min-w-0">
                     {allPhotos.slice(1).map((url, i) => (
                       <div key={i} className="flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden bg-gray-200">
-                        <ImageWithFallback src={url} alt="" className="w-full h-full object-cover" />
+                        <ImageWithFallback src={getPropertyImageUrl(url, 'detail')} alt="" className="w-full h-full object-cover" />
                       </div>
                     ))}
                   </div>
@@ -290,16 +295,17 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
               <div className="hidden md:grid grid-cols-4 gap-2">
                 <div className="col-span-3 relative aspect-[16/10] rounded-xl overflow-hidden bg-gray-200">
                   <ImageWithFallback
-                    src={allPhotos[0] ?? property.image}
+                    src={getPropertyImageUrl(allPhotos[0] ?? property.image, 'detail')}
                     alt={displayTitle}
                     className="w-full h-full object-cover"
+                    loading="eager"
                   />
                 </div>
                 <div className="col-span-1 grid grid-rows-3 gap-2">
                   {allPhotos.slice(1, 4).length > 0
                     ? allPhotos.slice(1, 4).map((url, i) => (
                         <div key={i} className="rounded-lg overflow-hidden bg-gray-200">
-                          <ImageWithFallback src={url} alt="" className="w-full h-full object-cover min-h-[80px]" />
+                          <ImageWithFallback src={getPropertyImageUrl(url, 'detail')} alt="" className="w-full h-full object-cover min-h-[80px]" />
                         </div>
                       ))
                     : [1, 2, 3].map((i) => (

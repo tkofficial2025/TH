@@ -246,8 +246,8 @@ function AppContent() {
       {/* Navigation */}
       <Header onNavigate={handleNavigate} currentPage={currentPage} />
 
-      {/* Hero Section（モバイルは正四角形・コンパクト、PCは従来） */}
-      <section className="relative min-h-[100vw] md:min-h-screen flex items-center justify-center pt-14 md:pt-20">
+      {/* Hero Section（overflow-visible で検索プルダウンが切れないように） */}
+      <section className="relative min-h-[100vw] md:min-h-screen flex items-center justify-center pt-14 md:pt-20 overflow-visible">
         {/* Background: tokyo.jpg（この中だけ overflow-hidden で背景の scale をクリップ） */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <div
@@ -259,9 +259,9 @@ function AppContent() {
           />
         </div>
 
-        {/* Hero Content（モバイルは余白・サイズ感を画像参考に調整、PCは従来） */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-5 md:py-32 md:pb-48">
-          <div className="max-w-4xl mx-auto text-center">
+        {/* Hero Content（overflow-visible でプルダウンが切れないように） */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-5 md:py-32 md:pb-48 overflow-visible">
+          <div className="max-w-4xl mx-auto text-center overflow-visible">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}

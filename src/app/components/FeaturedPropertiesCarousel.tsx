@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, ArrowRight, MapPin } from 'lucide-react';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
+import { getPropertyImageUrl } from '@/lib/propertyImageUrl';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { useRef, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -203,9 +204,10 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
                   {/* Property Image */}
                   <div className="relative h-56 overflow-hidden">
                     <ImageWithFallback
-                      src={property.image}
+                      src={getPropertyImageUrl(property.image, 'listing')}
                       alt={language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}
                       className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500"
+                      loading="lazy"
                     />
                     {/* Type Badge */}
                     <div

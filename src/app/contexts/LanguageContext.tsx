@@ -304,6 +304,8 @@ const translations: Translations = {
           'property.floor': { en: 'Floor', zh: '楼层' },
           'property.station': { en: 'Station', zh: '车站' },
           'property.notfound': { en: 'Property not found', zh: '未找到房源' },
+          'error.fetch_failed': { en: 'Unable to load. Please check your connection and try again.', zh: '无法加载。请检查网络后重试。' },
+          'common.retry': { en: 'Retry', zh: '重试' },
           'property.price.rent': { en: 'Monthly rent', zh: '月租金' },
           'property.price.buy': { en: 'Price', zh: '售价' },
           'property.feature.pet': { en: 'Pet-friendly', zh: '允许养宠物' },

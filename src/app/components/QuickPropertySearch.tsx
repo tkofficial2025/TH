@@ -70,20 +70,20 @@ function Dropdown({ label, options, value, onChange, placeholder }: DropdownProp
   const selectedOption = options.find(opt => opt.value === value);
 
   return (
-    <div className="relative flex-1 min-w-[140px]" ref={dropdownRef}>
+    <div className="relative flex-1 min-w-0" ref={dropdownRef}>
       <button
         type="button"
-        className="w-full px-4 py-3 text-left flex items-center justify-between gap-2 hover:bg-gray-50 transition-colors rounded-lg group"
+        className="w-full px-2 sm:px-4 py-2 md:py-3 text-left flex items-center justify-between gap-1 sm:gap-2 hover:bg-gray-50 transition-colors rounded-lg group"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="flex-1">
-          <div className="text-xs text-gray-500 mb-0.5">{label}</div>
-          <div className="text-sm text-gray-900 font-medium">
+        <div className="flex-1 min-w-0">
+          <div className="text-[10px] md:text-xs text-gray-500 mb-0.5 truncate">{label}</div>
+          <div className="text-xs md:text-sm text-gray-900 font-medium truncate">
             {selectedOption ? selectedOption.label : placeholder}
           </div>
         </div>
         <ChevronDown 
-          className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+          className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
         />
       </button>
 
@@ -163,15 +163,15 @@ function AreaMultiSelect({ selectedAreas, onChange, areas }: AreaMultiSelectProp
   const displayText = count === 0 ? t('search.area.select') : count === 1 ? areas.find((a) => a.value === [...selectedAreas][0])?.label ?? t('search.area.one') : t('search.area.many').replace('{n}', String(count));
 
   return (
-    <div className="relative flex-1 min-w-[140px]" ref={dropdownRef}>
+    <div className="relative flex-1 min-w-0" ref={dropdownRef}>
       <button
         type="button"
-        className="w-full px-4 py-3 text-left flex items-center justify-between gap-2 hover:bg-gray-50 transition-colors rounded-lg group"
+        className="w-full px-2 sm:px-4 py-2 md:py-3 text-left flex items-center justify-between gap-1 sm:gap-2 hover:bg-gray-50 transition-colors rounded-lg group"
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex-1 min-w-0">
-          <div className="text-xs text-gray-500 mb-0.5">{t('search.area.label_short')}</div>
-          <div className="text-sm text-gray-900 font-medium truncate">{displayText}</div>
+          <div className="text-[10px] md:text-xs text-gray-500 mb-0.5 truncate">{t('search.area.label_short')}</div>
+          <div className="text-xs md:text-sm text-gray-900 font-medium truncate">{displayText}</div>
         </div>
         <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -288,11 +288,11 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 0.6 }}
-      className="w-full max-w-5xl mx-auto"
+      className="w-[92%] max-w-[92%] md:w-full md:max-w-5xl mx-auto"
     >
       {/* Property Type Segmented Control */}
-      <div className="flex justify-center mb-4">
-        <div className="inline-flex bg-white/95 backdrop-blur-sm rounded-full p-1.5 shadow-lg border border-gray-100">
+      <div className="flex justify-center mb-3 md:mb-4">
+        <div className="inline-flex bg-white/95 backdrop-blur-sm rounded-full p-1 md:p-1.5 shadow-md md:shadow-lg border border-gray-100">
           {propertyTypes.map((type) => (
             <button
               key={type}
@@ -300,7 +300,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                 setPropertyType(type);
                 setBudget(''); // Reset budget when type changes
               }}
-              className="relative px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-300"
+              className="relative px-4 py-1.5 md:px-6 md:py-2.5 rounded-full font-semibold text-xs md:text-sm transition-all duration-300"
             >
               {/* Active background */}
               {propertyType === type && (
@@ -326,24 +326,24 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
       </div>
 
       {/* Keyword Search - 独立した行 */}
-      <div className="mb-4">
-        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
+      <div className="mb-3 md:mb-4">
+        <div className="bg-white/95 backdrop-blur-sm rounded-lg md:rounded-xl shadow-md md:shadow-lg border border-gray-100 px-3 py-2 md:px-4 md:py-3">
+          <div className="flex items-center gap-2 md:gap-3">
+            <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400 flex-shrink-0" />
             <input
               type="text"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder={t('search.placeholder.keyword')}
-              className="flex-1 border-none outline-none text-base text-gray-900 placeholder-gray-400 bg-transparent"
+              className="flex-1 border-none outline-none text-sm md:text-base text-gray-900 placeholder-gray-400 bg-transparent"
             />
           </div>
         </div>
       </div>
 
       {/* Main Search Bar（overflow-visible で Selected Area ドロップダウンが切れないように） */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-visible">
+      <div className="bg-white rounded-lg md:rounded-xl shadow-md md:shadow-lg border border-gray-100 overflow-visible">
         <AnimatePresence mode="wait">
           <motion.div
             key={propertyType}
@@ -351,32 +351,38 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col lg:flex-row items-stretch divide-y lg:divide-y-0 lg:divide-x divide-gray-100"
+            className="flex flex-row flex-nowrap items-stretch divide-x divide-gray-100"
           >
-            <AreaMultiSelect selectedAreas={selectedAreas} onChange={setSelectedAreas} areas={areaOptions} />
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <AreaMultiSelect selectedAreas={selectedAreas} onChange={setSelectedAreas} areas={areaOptions} />
+            </div>
             
-            <Dropdown
-              label={t('search.bedrooms.label')}
-              options={bedroomOptions}
-              value={bedroomCount}
-              onChange={setBedroomCount}
-              placeholder={t('search.budget.any')}
-            />
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <Dropdown
+                label={t('search.bedrooms.label')}
+                options={bedroomOptions}
+                value={bedroomCount}
+                onChange={setBedroomCount}
+                placeholder={t('search.budget.any')}
+              />
+            </div>
             
-            <Dropdown
-              label={budgetLabel}
-              options={budgetOptions}
-              value={budget}
-              onChange={setBudget}
-              placeholder={t('search.budget.any_budget')}
-            />
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <Dropdown
+                label={budgetLabel}
+                options={budgetOptions}
+                value={budget}
+                onChange={setBudget}
+                placeholder={t('search.budget.any_budget')}
+              />
+            </div>
 
-            <div className="lg:flex-shrink-0">
+            <div className="flex-shrink-0">
               <button
                 onClick={handleSearch}
-                className="w-full lg:w-auto px-8 py-3 lg:py-[18px] bg-[#C1121F] text-white font-semibold rounded-none lg:rounded-r-xl hover:bg-[#A00F1A] transition-all hover:scale-[1.02] flex items-center justify-center gap-2 group"
+                className="w-full lg:w-auto px-2.5 sm:px-6 lg:px-8 py-2 md:py-3 lg:py-[18px] bg-[#C1121F] text-white font-semibold rounded-none lg:rounded-r-xl hover:bg-[#A00F1A] transition-all hover:scale-[1.02] flex items-center justify-center gap-1 sm:gap-2 group text-sm md:text-base"
               >
-                <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <Search className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" />
                 <span className="lg:inline">{t('search.btn_short')}</span>
               </button>
             </div>
@@ -384,16 +390,16 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
         </AnimatePresence>
 
         {/* Advanced Filters Toggle */}
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
+        <div className="px-3 py-2 md:px-4 md:py-3 bg-gray-50 border-t border-gray-100">
           <button
             type="button"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#C1121F] transition-colors"
+            className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-gray-600 hover:text-[#C1121F] transition-colors"
           >
-            <SlidersHorizontal className="w-4 h-4" />
+            <SlidersHorizontal className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
             <span>{t('search.advanced_filters')}</span>
             <ChevronDown 
-              className={`w-4 h-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} 
+              className={`w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} 
             />
           </button>
         </div>
@@ -408,15 +414,15 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
               transition={{ duration: 0.3, ease: 'easeOut' }}
               className="overflow-hidden border-t border-gray-100"
             >
-              <div className="p-6 bg-white grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-3 md:p-6 bg-white grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
                 {/* Property Size (m²) — 広さの範囲を手動で指定 */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1.5 md:mb-2">
                     {t('search.size.label')}
                   </label>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-                      <span className="text-sm text-gray-500 whitespace-nowrap">{t('search.size.from')}</span>
+                  <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                    <div className="flex items-center gap-1.5 md:gap-2 flex-1 min-w-[90px] md:min-w-[120px]">
+                      <span className="text-xs md:text-sm text-gray-500 whitespace-nowrap">{t('search.size.from')}</span>
                       <input
                         type="number"
                         min={0}
@@ -424,13 +430,13 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                         value={propertySizeMin}
                         onChange={(e) => setPropertySizeMin(e.target.value)}
                         placeholder={t('search.size.placeholder_min')}
-                        className="flex-1 min-w-0 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C1121F]/20 focus:border-[#C1121F] transition-colors"
+                        className="flex-1 min-w-0 px-2.5 py-2 md:px-4 md:py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C1121F]/20 focus:border-[#C1121F] transition-colors"
                       />
-                      <span className="text-sm text-gray-500">m²</span>
+                      <span className="text-xs md:text-sm text-gray-500">m²</span>
                     </div>
-                    <span className="text-gray-400">–</span>
-                    <div className="flex items-center gap-2 flex-1 min-w-[120px]">
-                      <span className="text-sm text-gray-500 whitespace-nowrap">{t('search.size.to')}</span>
+                    <span className="text-gray-400 text-sm">–</span>
+                    <div className="flex items-center gap-1.5 md:gap-2 flex-1 min-w-[90px] md:min-w-[120px]">
+                      <span className="text-xs md:text-sm text-gray-500 whitespace-nowrap">{t('search.size.to')}</span>
                       <input
                         type="number"
                         min={0}
@@ -438,99 +444,99 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
                         value={propertySizeMax}
                         onChange={(e) => setPropertySizeMax(e.target.value)}
                         placeholder={t('search.size.placeholder_max')}
-                        className="flex-1 min-w-0 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C1121F]/20 focus:border-[#C1121F] transition-colors"
+                        className="flex-1 min-w-0 px-2.5 py-2 md:px-4 md:py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C1121F]/20 focus:border-[#C1121F] transition-colors"
                       />
-                      <span className="text-sm text-gray-500">m²</span>
+                      <span className="text-xs md:text-sm text-gray-500">m²</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Categories Section */}
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2 md:mb-3">
                     {t('filter.categories')}
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+                    <label className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
                         type="checkbox"
                         checked={petFriendly}
                         onChange={(e) => setPetFriendly(e.target.checked)}
-                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">{t('category.pet_friendly')}</span>
+                      <span className="text-xs md:text-sm font-medium text-gray-700">{t('category.pet_friendly')}</span>
                     </label>
-                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <label className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
                         type="checkbox"
                         checked={foreignFriendly}
                         onChange={(e) => setForeignFriendly(e.target.checked)}
-                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">{t('category.foreign_friendly')}</span>
+                      <span className="text-xs md:text-sm font-medium text-gray-700">{t('category.foreign_friendly')}</span>
                     </label>
-                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <label className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
                         type="checkbox"
                         checked={luxury}
                         onChange={(e) => setLuxury(e.target.checked)}
-                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">{t('category.luxury')}</span>
+                      <span className="text-xs md:text-sm font-medium text-gray-700">{t('category.luxury')}</span>
                     </label>
-                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <label className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
                         type="checkbox"
                         checked={furnished}
                         onChange={(e) => setFurnished(e.target.checked)}
-                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">{t('category.furnished')}</span>
+                      <span className="text-xs md:text-sm font-medium text-gray-700">{t('category.furnished')}</span>
                     </label>
-                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <label className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
                         type="checkbox"
                         checked={highRiseResidence}
                         onChange={(e) => setHighRiseResidence(e.target.checked)}
-                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">{t('category.high_rise')}</span>
+                      <span className="text-xs md:text-sm font-medium text-gray-700">{t('category.high_rise')}</span>
                     </label>
-                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <label className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
                         type="checkbox"
                         checked={noKeyMoney}
                         onChange={(e) => setNoKeyMoney(e.target.checked)}
-                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">{t('category.no_key_money')}</span>
+                      <span className="text-xs md:text-sm font-medium text-gray-700">{t('category.no_key_money')}</span>
                     </label>
-                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <label className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
                         type="checkbox"
                         checked={forStudents}
                         onChange={(e) => setForStudents(e.target.checked)}
-                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">{t('category.students')}</span>
+                      <span className="text-xs md:text-sm font-medium text-gray-700">{t('category.students')}</span>
                     </label>
-                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <label className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
                         type="checkbox"
                         checked={designers}
                         onChange={(e) => setDesigners(e.target.checked)}
-                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">{t('category.designers')}</span>
+                      <span className="text-xs md:text-sm font-medium text-gray-700">{t('category.designers')}</span>
                     </label>
-                    <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                    <label className="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                       <input
                         type="checkbox"
                         checked={forFamilies}
                         onChange={(e) => setForFamilies(e.target.checked)}
-                        className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                        className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
                       />
-                      <span className="text-sm font-medium text-gray-700">{t('category.families')}</span>
+                      <span className="text-xs md:text-sm font-medium text-gray-700">{t('category.families')}</span>
                     </label>
                   </div>
                 </div>

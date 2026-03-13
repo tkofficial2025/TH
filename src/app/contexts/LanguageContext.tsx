@@ -143,6 +143,7 @@ const translations: Translations = {
   'section.featured.view_all_properties': { en: 'View all properties', zh: '查看全部房源' },
   'section.featured.loading': { en: 'Loading...', zh: '加载中...' },
   'section.featured.empty': { en: 'No featured properties', zh: '暂无精选房源' },
+  'section.featured.swipe': { en: 'Swipe', zh: '滑动' },
   'section.categories.title': { en: 'Search by Categories', zh: '按类别搜索' },
   'section.categories.properties_count': { en: '{n} Properties', zh: '{n} 个房源' },
   'category.pet_friendly': { en: 'Pet friendly', zh: '允许养宠物' },

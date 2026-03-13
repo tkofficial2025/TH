@@ -246,8 +246,8 @@ function AppContent() {
       {/* Navigation */}
       <Header onNavigate={handleNavigate} currentPage={currentPage} />
 
-      {/* Hero Section（overflow-visible で Selected Area ドロップダウンが切れないように） */}
-      <section className="relative min-h-screen flex items-center justify-center pt-14">
+      {/* Hero Section（モバイルは正四角形・コンパクト、PCは従来） */}
+      <section className="relative min-h-[100vw] md:min-h-screen flex items-center justify-center pt-14 md:pt-20">
         {/* Background: tokyo.jpg（この中だけ overflow-hidden で背景の scale をクリップ） */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <div
@@ -259,8 +259,8 @@ function AppContent() {
           />
         </div>
 
-        {/* Hero Content（文字だけ影で見やすく） */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-32 pb-48">
+        {/* Hero Content（モバイルは余白・サイズ感を画像参考に調整、PCは従来） */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-5 md:py-32 md:pb-48">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -268,7 +268,7 @@ function AppContent() {
               transition={{ duration: 0.8 }}
             >
               <h1
-                className="text-6xl lg:text-7xl font-bold text-white mb-6 tracking-tight"
+                className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-3 md:mb-6 tracking-tight leading-tight"
                 style={{ textShadow: '0 6px 12px rgba(0,0,0,0.5)' }}
               >
                 {t('hero.title.1') ? (
@@ -280,7 +280,7 @@ function AppContent() {
             </motion.div>
             
             <motion.p
-              className="text-xl lg:text-2xl text-white/95 mb-12 leading-relaxed"
+              className="text-xs sm:text-sm md:text-xl lg:text-2xl text-white/95 mb-5 md:mb-12 leading-snug md:leading-relaxed px-1"
               style={{ textShadow: '0 6px 12px rgba(0,0,0,0.6)' }}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -290,7 +290,7 @@ function AppContent() {
             </motion.p>
 
             <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              className="flex flex-row flex-wrap gap-2 md:gap-4 justify-center items-center mb-4 md:mb-0"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
@@ -298,14 +298,13 @@ function AppContent() {
               <button
                 type="button"
                 onClick={() => handleNavigate('consultation')}
-                className="px-8 py-4 bg-[#C1121F] text-white rounded-xl font-semibold hover:bg-[#A00F1A] transition-all hover:scale-105 hover:shadow-xl shadow-lg"
+                className="px-3 py-2 md:px-8 md:py-4 text-xs md:text-base bg-[#C1121F] text-white rounded-lg md:rounded-xl font-semibold hover:bg-[#A00F1A] transition-all hover:scale-105 hover:shadow-xl shadow-lg whitespace-nowrap"
               >
                 {t('hero.btn.consultation')}
               </button>
               <button
                 type="button"
                 onClick={() => {
-                  // フッターの「Contact Us on Social Media」セクションまでスクロール
                   const el = document.getElementById('contact-social');
                   if (el) {
                     el.scrollIntoView({ behavior: 'smooth' });
@@ -314,7 +313,7 @@ function AppContent() {
                     if (footer) footer.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
-                className="px-8 py-4 bg-white/90 backdrop-blur-sm text-gray-900 rounded-xl font-semibold hover:bg-white transition-all hover:scale-105 hover:shadow-xl shadow-lg border border-white/20"
+                className="px-3 py-2 md:px-8 md:py-4 text-xs md:text-base bg-white/90 backdrop-blur-sm text-gray-900 rounded-lg md:rounded-xl font-semibold hover:bg-white transition-all hover:scale-105 hover:shadow-xl shadow-lg border border-white/20 whitespace-nowrap"
                 style={{ textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}
               >
                 {t('hero.btn.social')}
@@ -322,15 +321,15 @@ function AppContent() {
             </motion.div>
 
             {/* Quick Property Search Module */}
-            <div className="mt-8">
+            <div className="mt-4 md:mt-8">
               <QuickPropertySearch onSearch={handleHeroSearch} />
             </div>
           </div>
         </div>
 
-        {/* Scroll Indicator */}
+        {/* Scroll Indicator（モバイルは非表示でコンパクトに） */}
         <motion.div
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+          className="hidden md:block absolute bottom-8 left-1/2 transform -translate-x-1/2"
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
@@ -356,82 +355,82 @@ function AppContent() {
       <TokyoWardsSection onWardClick={handleWardClick} title={t('section.areas.title')} subtitle={t('section.areas.subtitle')} />
 
       {/* Trust Indicators */}
-      <section className="py-20 bg-gray-50 border-y border-gray-100">
+      <section className="py-10 md:py-20 bg-gray-50 border-y border-gray-100">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
             <motion.div
-              className="flex flex-col items-center text-center p-8"
+              className="flex flex-col items-center text-center p-4 md:p-8"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <div className="w-16 h-16 bg-[#C1121F]/10 rounded-full flex items-center justify-center mb-4">
-                <Shield className="w-8 h-8 text-[#C1121F]" />
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-[#C1121F]/10 rounded-full flex items-center justify-center mb-3 md:mb-4">
+                <Shield className="w-6 h-6 md:w-8 md:h-8 text-[#C1121F]" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('trust.brokerage.title')}</h3>
-              <p className="text-gray-600">{t('trust.brokerage.desc')}</p>
+              <h3 className="text-base md:text-xl font-semibold text-gray-900 mb-1.5 md:mb-2">{t('trust.brokerage.title')}</h3>
+              <p className="text-gray-600 text-sm md:text-base">{t('trust.brokerage.desc')}</p>
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center text-center p-8"
+              className="flex flex-col items-center text-center p-4 md:p-8"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <div className="w-16 h-16 bg-[#C1121F]/10 rounded-full flex items-center justify-center mb-4">
-                <Globe className="w-8 h-8 text-[#C1121F]" />
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-[#C1121F]/10 rounded-full flex items-center justify-center mb-3 md:mb-4">
+                <Globe className="w-6 h-6 md:w-8 md:h-8 text-[#C1121F]" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('trust.multilingual.title')}</h3>
-              <p className="text-gray-600">{t('trust.multilingual.desc')}</p>
+              <h3 className="text-base md:text-xl font-semibold text-gray-900 mb-1.5 md:mb-2">{t('trust.multilingual.title')}</h3>
+              <p className="text-gray-600 text-sm md:text-base">{t('trust.multilingual.desc')}</p>
             </motion.div>
 
             <motion.div
-              className="flex flex-col items-center text-center p-8"
+              className="flex flex-col items-center text-center p-4 md:p-8"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <div className="w-16 h-16 bg-[#C1121F]/10 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-8 h-8 text-[#C1121F]" />
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-[#C1121F]/10 rounded-full flex items-center justify-center mb-3 md:mb-4">
+                <CheckCircle2 className="w-6 h-6 md:w-8 md:h-8 text-[#C1121F]" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('trust.specialist.title')}</h3>
-              <p className="text-gray-600">{t('trust.specialist.desc')}</p>
+              <h3 className="text-base md:text-xl font-semibold text-gray-900 mb-1.5 md:mb-2">{t('trust.specialist.title')}</h3>
+              <p className="text-gray-600 text-sm md:text-base">{t('trust.specialist.desc')}</p>
             </motion.div>
           </div>
         </div>
       </section>
 
       {/* Services and Processes Section */}
-      <section id="services" className="py-24 bg-gray-50">
+      <section id="services" className="py-12 md:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-8 md:mb-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{t('process.title')}</h2>
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 md:mb-4">{t('process.title')}</h2>
           </motion.div>
 
-          <div className="space-y-8">
+          <div className="space-y-4 md:space-y-8">
             {/* Step 1 */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-lg"
+              className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-lg"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-lg">
+              <div className="flex items-start gap-4 md:gap-6">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-base md:text-lg">
                   1
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step1.title')}</h3>
-                  <p className="text-gray-600 leading-relaxed">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2 md:mb-3">{t('process.step1.title')}</h3>
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                     {t('process.step1.desc')}
                   </p>
                 </div>
@@ -440,36 +439,36 @@ function AppContent() {
 
             {/* Step 2 */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-lg"
+              className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-lg"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-lg">
+              <div className="flex items-start gap-4 md:gap-6">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-base md:text-lg">
                   2
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step2.title')}</h3>
-                  <p className="text-gray-600 leading-relaxed mb-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2 md:mb-3">{t('process.step2.title')}</h3>
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-2 md:mb-3">
                     {t('process.step2.desc')}
                   </p>
-                  <ul className="space-y-2 text-gray-600">
+                  <ul className="space-y-1.5 md:space-y-2 text-gray-600 text-sm md:text-base">
                     <li className="flex items-start gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
                       <span>{t('process.step2.list1')}</span>
                     </li>
                     <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
                       <span>{t('process.step2.list2')}</span>
                 </li>
                     <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
                       <span>{t('process.step2.list3')}</span>
                 </li>
                     <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F] mt-0.5 flex-shrink-0" />
                       <span>{t('process.step2.list4')}</span>
                 </li>
               </ul>
@@ -479,19 +478,19 @@ function AppContent() {
 
             {/* Step 3 */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-lg"
+              className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-lg"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-lg">
+              <div className="flex items-start gap-4 md:gap-6">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-base md:text-lg">
                   3
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step3.heading')}</h3>
-                  <p className="text-gray-600 leading-relaxed">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2 md:mb-3">{t('process.step3.heading')}</h3>
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                     {t('process.step3.desc_long')}
                   </p>
                 </div>
@@ -500,19 +499,19 @@ function AppContent() {
 
             {/* Step 4 */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-lg"
+              className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-lg"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-lg">
+              <div className="flex items-start gap-4 md:gap-6">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-base md:text-lg">
                   4
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step4.heading')}</h3>
-                  <p className="text-gray-600 leading-relaxed">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2 md:mb-3">{t('process.step4.heading')}</h3>
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                     {t('process.step4.desc_rent')}<br />
                     {t('process.step4.desc_buy')}
                   </p>
@@ -522,19 +521,19 @@ function AppContent() {
 
             {/* Step 5 */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-lg"
+              className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-lg"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-lg">
+              <div className="flex items-start gap-4 md:gap-6">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-base md:text-lg">
                   5
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step5.heading')}</h3>
-                  <p className="text-gray-600 leading-relaxed">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2 md:mb-3">{t('process.step5.heading')}</h3>
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                     {t('process.step5.desc_rent')}<br />
                     {t('process.step5.desc_buy')}
                   </p>
@@ -544,19 +543,19 @@ function AppContent() {
 
             {/* Step 6 */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-lg"
+              className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-lg"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.5 }}
             >
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-lg">
+              <div className="flex items-start gap-4 md:gap-6">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-base md:text-lg">
                   6
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step6.heading')}</h3>
-                  <p className="text-gray-600 leading-relaxed">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2 md:mb-3">{t('process.step6.heading')}</h3>
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                     {t('process.step6.desc')}
                   </p>
                 </div>
@@ -565,23 +564,23 @@ function AppContent() {
 
             {/* Step 7 */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-lg"
+              className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-lg"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.6 }}
             >
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-lg">
+              <div className="flex items-start gap-4 md:gap-6">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-base md:text-lg">
                   7
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step7.heading')}</h3>
-                  <p className="text-gray-600 leading-relaxed mb-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2 md:mb-3">{t('process.step7.heading')}</h3>
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-2 md:mb-3">
                     {t('process.step7.desc_rent')}<br />
                     {t('process.step7.desc_buy')}
                   </p>
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                     {t('process.step7.guide')}
                   </p>
                 </div>
@@ -590,19 +589,19 @@ function AppContent() {
 
             {/* Step 8 */}
             <motion.div
-              className="bg-white rounded-2xl p-8 shadow-lg"
+              className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-lg"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.7 }}
             >
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-lg">
+              <div className="flex items-start gap-4 md:gap-6">
+                <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#C1121F] text-white rounded-full flex items-center justify-center font-bold text-base md:text-lg">
                   8
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t('process.step8.heading')}</h3>
-                  <p className="text-gray-600 leading-relaxed">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2 md:mb-3">{t('process.step8.heading')}</h3>
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                     {t('process.step8.desc')}
                   </p>
                 </div>
@@ -613,28 +612,28 @@ function AppContent() {
       </section>
 
       {/* Why Tokyo Expat Housing Section */}
-      <section id="why-us" className="py-24 bg-gray-50">
+      <section id="why-us" className="py-12 md:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-8 md:mb-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{t('section.why.title')}</h2>
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">{t('section.why.title')}</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-12">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <div className="mb-6">
-                <div className="w-12 h-1 bg-[#C1121F] mb-6"></div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">{t('why.multilingual.title')}</h3>
-                <p className="text-gray-600 leading-relaxed">
+              <div className="mb-4 md:mb-6">
+                <div className="w-10 h-0.5 md:w-12 md:h-1 bg-[#C1121F] mb-3 md:mb-6"></div>
+                <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2 md:mb-4">{t('why.multilingual.title')}</h3>
+                <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                   {t('why.multilingual.desc')}
                 </p>
               </div>
@@ -646,10 +645,10 @@ function AppContent() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <div className="mb-6">
-                <div className="w-12 h-1 bg-[#C1121F] mb-6"></div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">{t('why.approval.title')}</h3>
-                <p className="text-gray-600 leading-relaxed">
+              <div className="mb-4 md:mb-6">
+                <div className="w-10 h-0.5 md:w-12 md:h-1 bg-[#C1121F] mb-3 md:mb-6"></div>
+                <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2 md:mb-4">{t('why.approval.title')}</h3>
+                <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                   {t('why.approval.desc')}
                 </p>
               </div>
@@ -661,10 +660,10 @@ function AppContent() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <div className="mb-6">
-                <div className="w-12 h-1 bg-[#C1121F] mb-6"></div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">{t('why.fast.title')}</h3>
-                <p className="text-gray-600 leading-relaxed">
+              <div className="mb-4 md:mb-6">
+                <div className="w-10 h-0.5 md:w-12 md:h-1 bg-[#C1121F] mb-3 md:mb-6"></div>
+                <h3 className="text-lg md:text-2xl font-semibold text-gray-900 mb-2 md:mb-4">{t('why.fast.title')}</h3>
+                <p className="text-gray-600 text-sm md:text-base leading-relaxed">
                   {t('why.fast.desc')}
                 </p>
               </div>
@@ -674,7 +673,7 @@ function AppContent() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-24 bg-[#C1121F] relative overflow-hidden">
+      <section className="py-12 md:py-24 bg-[#C1121F] relative overflow-hidden">
         <motion.div
           className="absolute inset-0 opacity-10"
           style={{
@@ -689,24 +688,24 @@ function AppContent() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6">
               {t('cta.title')}
             </h2>
-            <p className="text-xl text-white/90 mb-10 leading-relaxed">
+            <p className="text-sm md:text-xl text-white/90 mb-6 md:mb-10 leading-relaxed">
               {t('cta.desc')}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center">
               <button
                 type="button"
                 onClick={() => handleNavigate('consultation')}
-                className="px-8 py-4 bg-white text-[#C1121F] rounded-xl font-semibold hover:bg-gray-100 transition-all hover:scale-105 shadow-xl"
+                className="px-5 py-3 md:px-8 md:py-4 text-sm md:text-base bg-white text-[#C1121F] rounded-lg md:rounded-xl font-semibold hover:bg-gray-100 transition-all hover:scale-105 shadow-xl"
               >
                 {t('cta.book')}
               </button>
               <button
                 type="button"
                 onClick={() => handleNavigate('buy')}
-                className="px-8 py-4 bg-transparent text-white border-2 border-white rounded-xl font-semibold hover:bg-white hover:text-[#C1121F] transition-all hover:scale-105"
+                className="px-5 py-3 md:px-8 md:py-4 text-sm md:text-base bg-transparent text-white border-2 border-white rounded-lg md:rounded-xl font-semibold hover:bg-white hover:text-[#C1121F] transition-all hover:scale-105"
               >
                 {t('cta.browse')}
               </button>
@@ -716,47 +715,47 @@ function AppContent() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
+      <footer className="bg-gray-900 text-white py-8 md:py-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-8 md:mb-12">
             <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center gap-2 mb-6">
-                <span className="text-2xl font-semibold">Tokyo Expat Housing</span>
+              <div className="flex items-center gap-2 mb-4 md:mb-6">
+                <span className="text-xl md:text-2xl font-semibold">Tokyo Expat Housing</span>
               </div>
               
               {/* Company Info */}
-              <div className="mb-6">
-                <p className="text-gray-300 font-medium mb-2">
+              <div className="mb-4 md:mb-6">
+                <p className="text-gray-300 text-sm md:text-base font-medium mb-1.5 md:mb-2">
                   {t('footer.operated_by')}
                 </p>
-                <div className="flex items-center gap-2 text-gray-400 text-sm mb-4">
+                <div className="flex items-center gap-2 text-gray-400 text-xs md:text-sm mb-3 md:mb-4">
                   <Award className="w-4 h-4 text-[#C1121F] flex-shrink-0" />
                   <span>{t('footer.license')}</span>
                 </div>
               </div>
 
               {/* Contact Info */}
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-[#C1121F] flex-shrink-0 mt-0.5" />
-                  <div className="text-gray-400 text-sm">
+              <div className="space-y-2 md:space-y-3">
+                <div className="flex items-start gap-2 md:gap-3">
+                  <MapPin className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F] flex-shrink-0 mt-0.5" />
+                  <div className="text-gray-400 text-xs md:text-sm">
                     <p>77 Space 102, 3-1-5 Kita-Otsuka</p>
                     <p>Toshima-ku, Tokyo 170-0004, Japan</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-[#C1121F] flex-shrink-0" />
-                  <a href="tel:+81359808304" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <Phone className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F] flex-shrink-0" />
+                  <a href="tel:+81359808304" className="text-gray-400 hover:text-white transition-colors text-xs md:text-sm">
                     +81-3-5980-8304
                   </a>
                 </div>
                 
-                <div className="flex items-center gap-3">
-                  <Mail className="w-5 h-5 text-[#C1121F] flex-shrink-0" />
+                <div className="flex items-center gap-2 md:gap-3">
+                  <Mail className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F] flex-shrink-0" />
                   <a 
                     href="mailto:information@tkofficial.net?subject=Inquiry&body=Hello,%0D%0A%0D%0A" 
-                    className="text-gray-400 hover:text-white transition-colors text-sm underline decoration-transparent hover:decoration-white"
+                    className="text-gray-400 hover:text-white transition-colors text-xs md:text-sm underline decoration-transparent hover:decoration-white break-all"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -766,14 +765,14 @@ function AppContent() {
               </div>
 
               {/* Contact Us on Social Media - QR codes + links */}
-              <div className="mt-6 pt-6 border-t border-gray-800" id="contact-social">
-                <p className="text-gray-400 text-sm mb-2">{t('footer.follow')}</p>
-                <p className="text-white font-medium mb-4">{t('hero.btn.social')}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-[3.75rem] sm:gap-[5rem] mb-4 pl-6 sm:pl-8">
+              <div className="mt-4 pt-4 md:mt-6 md:pt-6 border-t border-gray-800" id="contact-social">
+                <p className="text-gray-400 text-xs md:text-sm mb-1.5 md:mb-2">{t('footer.follow')}</p>
+                <p className="text-white text-sm md:text-base font-medium mb-3 md:mb-4">{t('hero.btn.social')}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-[3.75rem] sm:gap-[5rem] mb-3 md:mb-4 pl-4 md:pl-6 sm:pl-8">
                   {/* Instagram */}
-                  <div className="flex flex-col items-center p-3 bg-gray-800/50 rounded-xl">
-                    <p className="text-gray-300 text-xs font-medium mb-2">Instagram</p>
-                    <div className="w-[120px] h-[120px] rounded-lg bg-white p-1 mb-2 overflow-hidden flex items-center justify-center">
+                  <div className="flex flex-col items-center p-2 md:p-3 bg-gray-800/50 rounded-lg md:rounded-xl">
+                    <p className="text-gray-300 text-[10px] md:text-xs font-medium mb-1.5 md:mb-2">Instagram</p>
+                    <div className="w-[90px] h-[90px] md:w-[120px] md:h-[120px] rounded-lg bg-white p-1 mb-1.5 md:mb-2 overflow-hidden flex items-center justify-center">
                       <img
                         src="/instalogo.jpg"
                         alt="Instagram"
@@ -784,15 +783,15 @@ function AppContent() {
                       href="https://www.instagram.com/toky.oestate?igsh=MWpjMW8yMjQydzh2NA%3D%3D&utm_source=qr"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                      className="text-xs md:text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
                     >
-                      <Instagram className="w-4 h-4" /> {t('footer.social.open')}
+                      <Instagram className="w-3.5 h-3.5 md:w-4 md:h-4" /> {t('footer.social.open')}
                     </a>
                   </div>
                   {/* LINE */}
-                  <div className="flex flex-col items-center p-3 bg-gray-800/50 rounded-xl">
-                    <p className="text-gray-300 text-xs font-medium mb-2">LINE</p>
-                    <div className="w-[120px] h-[120px] rounded-lg bg-white p-1 mb-2 overflow-hidden flex items-center justify-center">
+                  <div className="flex flex-col items-center p-2 md:p-3 bg-gray-800/50 rounded-lg md:rounded-xl">
+                    <p className="text-gray-300 text-[10px] md:text-xs font-medium mb-1.5 md:mb-2">LINE</p>
+                    <div className="w-[90px] h-[90px] md:w-[120px] md:h-[120px] rounded-lg bg-white p-1 mb-1.5 md:mb-2 overflow-hidden flex items-center justify-center">
                       <img
                         src="/linelogo.png"
                         alt="LINE"
@@ -803,15 +802,15 @@ function AppContent() {
                       href="https://lin.ee/iT6Bnyb"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                      className="text-xs md:text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
                     >
                       {t('footer.social.open')}
                     </a>
                   </div>
                   {/* WhatsApp */}
-                  <div className="flex flex-col items-center p-3 bg-gray-800/50 rounded-xl">
-                    <p className="text-gray-300 text-xs font-medium mb-2">WhatsApp</p>
-                    <div className="w-[120px] h-[120px] rounded-lg bg-white p-1 mb-2 overflow-hidden flex items-center justify-center">
+                  <div className="flex flex-col items-center p-2 md:p-3 bg-gray-800/50 rounded-lg md:rounded-xl">
+                    <p className="text-gray-300 text-[10px] md:text-xs font-medium mb-1.5 md:mb-2">WhatsApp</p>
+                    <div className="w-[90px] h-[90px] md:w-[120px] md:h-[120px] rounded-lg bg-white p-1 mb-1.5 md:mb-2 overflow-hidden flex items-center justify-center">
                       <img
                         src="/whatsapplogo.jpg"
                         alt="WhatsApp"
@@ -822,15 +821,15 @@ function AppContent() {
                       href="https://wa.me/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                      className="text-xs md:text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
                     >
                       {t('footer.social.open')}
                     </a>
                   </div>
                   {/* WeChat */}
-                  <div className="flex flex-col items-center p-3 bg-gray-800/50 rounded-xl">
-                    <p className="text-gray-300 text-xs font-medium mb-2">WeChat</p>
-                    <div className="w-[120px] h-[120px] rounded-lg bg-white p-1 mb-2 overflow-hidden flex items-center justify-center">
+                  <div className="flex flex-col items-center p-2 md:p-3 bg-gray-800/50 rounded-lg md:rounded-xl">
+                    <p className="text-gray-300 text-[10px] md:text-xs font-medium mb-1.5 md:mb-2">WeChat</p>
+                    <div className="w-[90px] h-[90px] md:w-[120px] md:h-[120px] rounded-lg bg-white p-1 mb-1.5 md:mb-2 overflow-hidden flex items-center justify-center">
                       <img
                         src="/wechat.jpg"
                         alt="WeChat"
@@ -841,22 +840,22 @@ function AppContent() {
                       href="https://weixin.qq.com/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                      className="text-xs md:text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
                     >
                       {t('footer.social.open')}
                     </a>
                   </div>
                 </div>
                 {/* Icon links (same as before, for quick access) */}
-                <div className="flex gap-3 flex-wrap">
+                <div className="flex gap-2 md:gap-3 flex-wrap">
                   <a 
                     href="https://www.instagram.com/toky.oestate?igsh=MWpjMW8yMjQydzh2NA%3D%3D&utm_source=qr" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#C1121F] transition-colors group"
+                    className="w-9 h-9 md:w-10 md:h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#C1121F] transition-colors group"
                     aria-label="Instagram"
                   >
-                    <Instagram className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                    <Instagram className="w-4 h-4 md:w-5 md:h-5 text-gray-400 group-hover:text-white transition-colors" />
                   </a>
                   <a 
                     href="https://lin.ee/iT6Bnyb" 
@@ -908,11 +907,11 @@ function AppContent() {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-6 flex items-center gap-2">
-                <Home className="w-5 h-5 text-[#C1121F]" />
+              <h4 className="text-sm md:text-base font-semibold mb-4 md:mb-6 flex items-center gap-2">
+                <Home className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F]" />
                 {t('footer.services')}
               </h4>
-              <ul className="space-y-3">
+              <ul className="space-y-2 md:space-y-3 text-sm md:text-base">
                 <li>
                   <button
                     onClick={() => handleNavigate('buy')}
@@ -935,11 +934,11 @@ function AppContent() {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-6 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-[#C1121F]" />
+              <h4 className="text-sm md:text-base font-semibold mb-4 md:mb-6 flex items-center gap-2">
+                <Building2 className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F]" />
                 {t('footer.company')}
               </h4>
-              <ul className="space-y-3">
+              <ul className="space-y-2 md:space-y-3 text-sm md:text-base">
                 <li>
                   <button
                     onClick={() => handleNavigate('about')}
@@ -969,13 +968,13 @@ function AppContent() {
             </div>
           </div>
 
-          <div className="border-t border-gray-800 pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-gray-400 text-sm">{t('footer.copyright')}</p>
-              <div className="flex gap-6 text-sm">
-                <button type="button" onClick={() => handleNavigate('privacy')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">{t('footer.privacy_policy')}</button>
-                <button type="button" onClick={() => handleNavigate('terms')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">{t('footer.terms_of_service')}</button>
-                <button type="button" onClick={() => handleNavigate('cookie')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer text-sm">{t('footer.cookie_policy')}</button>
+          <div className="border-t border-gray-800 pt-6 md:pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
+              <p className="text-gray-400 text-xs md:text-sm text-center md:text-left">{t('footer.copyright')}</p>
+              <div className="flex flex-wrap justify-center gap-3 md:gap-6 text-xs md:text-sm">
+                <button type="button" onClick={() => handleNavigate('privacy')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer">{t('footer.privacy_policy')}</button>
+                <button type="button" onClick={() => handleNavigate('terms')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer">{t('footer.terms_of_service')}</button>
+                <button type="button" onClick={() => handleNavigate('cookie')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer">{t('footer.cookie_policy')}</button>
               </div>
             </div>
           </div>

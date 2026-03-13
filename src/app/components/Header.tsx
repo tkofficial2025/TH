@@ -82,7 +82,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100">
         <div className="max-w-[1400px] mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-14 md:h-20">
             {/* Logo - クリックでトップに戻る */}
             <button
               type="button"
@@ -92,7 +92,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
               }}
               className="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity h-full"
             >
-              <img src="/logo4.png" alt="Tokyo Expat Housing" className="h-12 md:h-14 w-auto object-contain mix-blend-multiply" />
+              <img src="/logo4.png" alt="Tokyo Expat Housing" className="h-10 md:h-14 w-auto object-contain mix-blend-multiply" />
             </button>
 
             {/* Desktop Navigation - Pill Container */}

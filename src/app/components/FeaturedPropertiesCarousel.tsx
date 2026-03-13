@@ -102,18 +102,18 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
   };
 
   return (
-    <section className="py-20 bg-white overflow-hidden">
+    <section className="py-10 md:py-20 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex items-end justify-between mb-12">
+        <div className="flex items-end justify-between mb-6 md:mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
-            <p className="text-lg text-gray-600">{displaySubtitle}</p>
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
+            <p className="text-xs md:text-lg text-gray-600">{displaySubtitle}</p>
           </motion.div>
 
           <motion.a
@@ -131,7 +131,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
         </div>
 
         {/* Carousel Container */}
-        <div className="relative group/carousel">
+        <div className="relative group/carousel -mx-2 md:mx-0 px-2 md:px-0">
           {/* Left Arrow */}
           {showLeftArrow && (
             <button
@@ -154,10 +154,17 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
             </button>
           )}
 
+          {/* モバイル: 右端フェード＋スワイプ案内 */}
+          <div className="absolute right-0 top-0 bottom-4 w-16 bg-gradient-to-l from-white to-transparent pointer-events-none z-[1] md:hidden" aria-hidden />
+          <div className="absolute right-3 bottom-6 flex items-center gap-1 text-gray-400 text-xs pointer-events-none z-[1] md:hidden">
+            <span className="font-medium">{t('section.featured.swipe')}</span>
+            <ChevronRight className="w-4 h-4" />
+          </div>
+
           {/* Scrollable Cards Container */}
           <motion.div
             ref={scrollContainerRef}
-            className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory pb-4"
+            className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory pb-4 pl-px"
             onScroll={handleScroll}
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}

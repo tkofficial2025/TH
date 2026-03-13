@@ -126,28 +126,73 @@ export function TokyoWardsSection({ onWardClick, title, subtitle }: TokyoWardsSe
   const visibleWards23 = showAll ? wards23 : wards23.slice(0, 6);
 
   return (
-    <section className="py-24 bg-white overflow-x-hidden w-full">
+    <section className="py-12 md:py-24 bg-white overflow-x-hidden w-full">
       <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 box-border">
         {/* Section Header */}
         <motion.div
-          className="mb-12"
+          className="mb-6 md:mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
             {sectionTitle}
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl">
+          <p className="text-xs md:text-lg text-gray-600 max-w-2xl">
             {sectionDesc}
           </p>
         </motion.div>
 
-        {/* 23 Wards Grid */}
-        <div className="mb-12">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('section.areas.wards23')}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-w-0 w-full">
+        {/* 23 Wards - モバイル: 横スクロール / PC: グリッド */}
+        <div className="mb-6 md:mb-12">
+          <h3 className="text-lg md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">{t('section.areas.wards23')}</h3>
+
+          {/* モバイル: 横スクロール */}
+          <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2 -mx-4 px-4 md:hidden" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {wards23.map((ward, index) => (
+              <motion.div
+                key={ward.name}
+                className="group relative overflow-hidden rounded-2xl aspect-[3/1.3] min-h-[160px] flex-shrink-0 w-[85vw] max-w-[320px] snap-start cursor-default"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.03 }}
+              >
+                <div className="absolute inset-0 overflow-hidden">
+                  <ImageWithFallback src={ward.image} alt={t('ward.' + ward.name)} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/20" />
+                </div>
+                <div className="relative h-full flex flex-col justify-between p-4">
+                  <div></div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-0.5">{t('ward.' + ward.name)}</h3>
+                    <p className="text-white/90 text-xs mb-2">{t('section.areas.properties_count').replace('{n}', String(ward.properties))}</p>
+                    {onWardClick && (
+                      <div className="flex gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); onWardClick(ward.name, 'rent'); }}
+                          className="cursor-pointer px-3 py-2 bg-[#C1121F] hover:bg-[#A00F1A] text-white text-xs font-semibold rounded-lg transition-colors shadow-md"
+                        >
+                          {t('section.areas.view_rentals')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); onWardClick(ward.name, 'buy'); }}
+                          className="cursor-pointer px-3 py-2 bg-white hover:bg-gray-100 text-gray-900 text-xs font-semibold rounded-lg transition-colors shadow-md border border-white/50"
+                        >
+                          {t('section.areas.view_sale')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* PC: グリッド */}
+          <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6 min-w-0 w-full">
             <AnimatePresence mode="popLayout">
               {visibleWards23.map((ward, index) => (
               <motion.div
@@ -158,18 +203,14 @@ export function TokyoWardsSection({ onWardClick, title, subtitle }: TokyoWardsSe
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
               >
-                {/* Background Image（ホバーで動かさない＝クリック可能に見せない） */}
                 <div className="absolute inset-0 overflow-hidden">
                   <ImageWithFallback
                     src={ward.image}
                     alt={t('ward.' + ward.name)}
                     className="w-full h-full object-cover"
                   />
-                  {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/20" />
                 </div>
-
-                {/* Text Content + 常に見えるボタン */}
                 <div className="relative h-full flex flex-col justify-between p-6">
                   <div></div>
                   <div>
@@ -211,10 +252,10 @@ export function TokyoWardsSection({ onWardClick, title, subtitle }: TokyoWardsSe
           </div>
         </div>
 
-        {/* Show More/Less Button - 23区のみ（23区外は常に表示） */}
+        {/* Show More/Less Button - 23区のみ・PCのみ（モバイルは横スクロールで全表示） */}
         {wards23.length > 6 && (
           <motion.div
-            className="flex justify-center mb-12"
+            className="hidden md:flex justify-center mb-6 md:mb-12"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -234,47 +275,44 @@ export function TokyoWardsSection({ onWardClick, title, subtitle }: TokyoWardsSe
           </motion.div>
         )}
 
-        {/* Outer 23 Wards - Single Card */}
-        <div className="mb-12">
-          <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('section.areas.outer')}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-w-0 w-full">
+        {/* Outer 23 Wards - モバイルは23区カードと同じサイズ、PCはグリッド */}
+        <div className="mb-6 md:mb-12">
+          <h3 className="text-lg md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">{t('section.areas.outer')}</h3>
+          <div className="md:grid grid-cols-2 lg:grid-cols-3 gap-6 min-w-0 w-full">
+            {/* モバイル: 23区カードと同じ幅・高さで表示 */}
             <motion.div
-              className="group relative overflow-hidden rounded-2xl aspect-[3/1.3] min-h-[200px] cursor-default min-w-0 w-full"
+              className="group relative overflow-hidden rounded-2xl aspect-[3/1.3] min-h-[160px] md:min-h-[200px] cursor-default w-[85vw] max-w-[320px] md:w-full md:max-w-none"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.3 }}
             >
-              {/* Background Image */}
               <div className="absolute inset-0 overflow-hidden">
                 <ImageWithFallback
                   src="https://unsplash.com/photos/uNvmbsLQ4uU/download?ixlib=rb-4.0.3&auto=format&fit=crop&w=1080&q=80"
                   alt="Outer 23 Wards"
                   className="w-full h-full object-cover"
                 />
-                {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/20" />
               </div>
-
-              {/* Text Content + 常に見えるボタン */}
-              <div className="relative h-full flex flex-col justify-between p-6">
+              <div className="relative h-full flex flex-col justify-between p-4 md:p-6">
                 <div></div>
                 <div>
-                  <h3 className="text-2xl lg:text-3xl font-bold text-white mb-1">
+                  <h3 className="text-xl md:text-2xl lg:text-3xl font-bold text-white mb-0.5 md:mb-1">
                     {t('section.areas.outer')}
                   </h3>
-                  <p className="text-white/90 text-sm mb-3">
+                  <p className="text-white/90 text-xs md:text-sm mb-2 md:mb-3">
                     {t('section.areas.properties_count').replace('{n}', String(outerWardsTotalProperties))}
                   </p>
                   {onWardClick && (
-                    <div className="flex gap-3 flex-wrap">
+                    <div className="flex gap-2 md:gap-3 flex-wrap">
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           onWardClick('Outside23', 'rent');
                         }}
-                        className="cursor-pointer px-4 py-2.5 bg-[#C1121F] hover:bg-[#A00F1A] text-white text-sm font-semibold rounded-lg transition-colors shadow-md"
+                        className="cursor-pointer px-3 py-2 md:px-4 md:py-2.5 bg-[#C1121F] hover:bg-[#A00F1A] text-white text-xs md:text-sm font-semibold rounded-lg transition-colors shadow-md"
                       >
                         {t('section.areas.view_rentals')}
                       </button>
@@ -284,7 +322,7 @@ export function TokyoWardsSection({ onWardClick, title, subtitle }: TokyoWardsSe
                           e.stopPropagation();
                           onWardClick('Outside23', 'buy');
                         }}
-                        className="cursor-pointer px-4 py-2.5 bg-white hover:bg-gray-100 text-gray-900 text-sm font-semibold rounded-lg transition-colors shadow-md border border-white/50"
+                        className="cursor-pointer px-3 py-2 md:px-4 md:py-2.5 bg-white hover:bg-gray-100 text-gray-900 text-xs md:text-sm font-semibold rounded-lg transition-colors shadow-md border border-white/50"
                       >
                         {t('section.areas.view_sale')}
                       </button>

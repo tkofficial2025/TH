@@ -322,13 +322,25 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                 ))}
               </div>
 
-              {/* Mobile Utilities */}
+              {/* Mobile Utilities - 言語・通貨 */}
               <div className="flex items-center gap-2 pb-4 border-b border-gray-100">
-                <button className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-50 rounded-xl">
-                  EN
-                  <ChevronDown className="w-3.5 h-3.5 opacity-70" />
-                </button>
-                <div className="flex-1 flex gap-1 flex-wrap">
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setLanguage('en')}
+                    className={`px-4 py-2.5 text-sm font-medium rounded-xl transition-colors ${language === 'en' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
+                  >
+                    EN
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLanguage('zh')}
+                    className={`px-4 py-2.5 text-sm font-medium rounded-xl transition-colors ${language === 'zh' ? 'bg-[#C1121F] text-white' : 'bg-gray-50 text-gray-700'}`}
+                  >
+                    中文
+                  </button>
+                </div>
+                <div className="flex-1 flex gap-1 flex-wrap min-w-0">
                   <button
                     type="button"
                     onClick={() => setCurrency('JPY')}

@@ -86,5 +86,8 @@ export function filterPropertiesByHeroParams(
     list = list.filter((p) => p.size <= params.sizeMax!);
   }
 
+  // キーワードは Rent/Buy 一覧側で実施（中国語 title_zh/address_zh を参照するため）
+  // params.keyword は initialSearchParams 経由で searchQuery に渡され一覧でフィルタされる
+
   return list;
 }

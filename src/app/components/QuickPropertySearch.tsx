@@ -94,7 +94,7 @@ function Dropdown({ label, options, value, onChange, placeholder }: DropdownProp
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50"
+            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-[100]"
           >
             {options.map((option) => (
               <button
@@ -183,7 +183,7 @@ function AreaMultiSelect({ selectedAreas, onChange, areas }: AreaMultiSelectProp
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 z-50 flex flex-col overflow-hidden"
+            className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl border border-gray-100 z-[100] flex flex-col overflow-hidden min-w-[220px] w-max max-w-[min(100vw,320px)]"
             style={{ maxHeight: AREA_DROPDOWN_MAX_HEIGHT }}
           >
             <div className="flex-shrink-0 px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">
@@ -208,7 +208,7 @@ function AreaMultiSelect({ selectedAreas, onChange, areas }: AreaMultiSelectProp
                 filteredAreas.map((option) => (
                   <label
                     key={option.value}
-                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm text-gray-700 border-b border-gray-50 last:border-b-0"
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm text-gray-700 border-b border-gray-50 last:border-b-0 min-w-0"
                   >
                     <input
                       type="checkbox"
@@ -216,7 +216,7 @@ function AreaMultiSelect({ selectedAreas, onChange, areas }: AreaMultiSelectProp
                       onChange={() => toggle(option.value)}
                       className="w-4 h-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F] flex-shrink-0"
                     />
-                    <span>{option.label}</span>
+                    <span className="min-w-0 break-words">{option.label}</span>
                   </label>
                 ))
               )}
@@ -353,11 +353,11 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
             transition={{ duration: 0.3 }}
             className="flex flex-row flex-nowrap items-stretch divide-x divide-gray-100"
           >
-            <div className="flex-1 min-w-0 overflow-hidden">
+            <div className="flex-1 min-w-0 overflow-visible">
               <AreaMultiSelect selectedAreas={selectedAreas} onChange={setSelectedAreas} areas={areaOptions} />
             </div>
             
-            <div className="flex-1 min-w-0 overflow-hidden">
+            <div className="flex-1 min-w-0 overflow-visible">
               <Dropdown
                 label={t('search.bedrooms.label')}
                 options={bedroomOptions}
@@ -367,7 +367,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
               />
             </div>
             
-            <div className="flex-1 min-w-0 overflow-hidden">
+            <div className="flex-1 min-w-0 overflow-visible">
               <Dropdown
                 label={budgetLabel}
                 options={budgetOptions}

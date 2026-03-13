@@ -133,8 +133,9 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
       setLoading(true);
       setError(null);
       
-      // キーワード検索がある場合はFull Text Searchを使用
-      if (searchQuery.trim()) {
+      // キーワード検索: 英語はDBのFull Text Search、中国語は全件取得してクライアントで title_zh/address_zh を照合
+      const useKeywordSearch = searchQuery.trim() && language !== 'zh';
+      if (useKeywordSearch) {
         try {
           const results = await searchProperties(searchQuery, 'rent', 1000);
           setAllProperties(results);
@@ -146,7 +147,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
         }
       }
       
-      // 通常のクエリ
+      // 通常のクエリ（中国語キーワード時も全件取得し、一覧フィルターで title/address/title_zh/address_zh を照合）
       const { data: raw, error: err } = await supabase.from('properties').select('*').eq('type', 'rent');
       const data = Array.isArray(raw) ? raw : [];
       if (import.meta.env.DEV) console.log('[Rent] Supabase', { data, error: err });
@@ -159,7 +160,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
       setLoading(false);
     }
     fetchRentProperties();
-  }, [searchQuery]);
+  }, [searchQuery, language]);
 
   useEffect(() => {
     if (initialSearchParams?.selectedAreas?.length && !hasAppliedInitialSearch.current) {
@@ -178,12 +179,9 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
 
   // フィルター適用
   const properties = baseList.filter((property) => {
-    // エリアフィルター
+    // エリアフィルター（ward の英語名・日本語住所の両方に対応）
     if (selectedAreas.size > 0) {
-      const matchesArea = Array.from(selectedAreas).some(area => 
-        property.address.includes(area)
-      );
-      if (!matchesArea) return false;
+      if (filterPropertiesByAreas([property], selectedAreas).length === 0) return false;
     }
     
     // 区フィルター
@@ -191,13 +189,20 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
       if (!addressMatchesWard(property.address, selectedWard)) return false;
     }
     
-    // 検索クエリフィルター
+    // 検索クエリフィルター（中国語の場合は title_zh / address_zh も照合）
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      if (
-        !property.title.toLowerCase().includes(query) &&
-        !property.address.toLowerCase().includes(query)
-      ) return false;
+      const titleMatch = (property.title ?? '').toLowerCase().includes(query);
+      const addressMatch = (property.address ?? '').toLowerCase().includes(query);
+      const locationMatch = (property.location ?? '').toLowerCase().includes(query);
+      if (language === 'zh') {
+        const t = translationMap.get(property.id);
+        const titleZhMatch = (t?.title_zh ?? '').toLowerCase().includes(query);
+        const addressZhMatch = (t?.address_zh ?? '').toLowerCase().includes(query);
+        if (!titleMatch && !addressMatch && !locationMatch && !titleZhMatch && !addressZhMatch) return false;
+      } else {
+        if (!titleMatch && !addressMatch && !locationMatch) return false;
+      }
     }
     
     // 価格フィルター

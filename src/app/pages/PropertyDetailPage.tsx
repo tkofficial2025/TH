@@ -264,26 +264,50 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Main Image + Grid (multiple photos from DB) */}
-            <div className="grid grid-cols-4 gap-2">
-              <div className="col-span-4 md:col-span-3 relative aspect-[16/10] rounded-xl overflow-hidden bg-gray-200">
+            {/* モバイル: 1枚メイン表示 + その他は横スクロール / デスクトップ: メイン+3枚縦 */}
+            <div className="space-y-2">
+              {/* モバイル: メイン画像1枚 */}
+              <div className="md:hidden relative aspect-[16/10] rounded-xl overflow-hidden bg-gray-200 w-full">
                 <ImageWithFallback
                   src={allPhotos[0] ?? property.image}
                   alt={displayTitle}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="col-span-4 md:col-span-1 grid grid-rows-3 gap-2">
-                {allPhotos.slice(1, 4).length > 0
-                  ? allPhotos.slice(1, 4).map((url, i) => (
-                      <div key={i} className="rounded-lg overflow-hidden bg-gray-200">
-                        <ImageWithFallback src={url} alt="" className="w-full h-full object-cover min-h-[80px]" />
-                      </div>
-                    ))
-                  : [1, 2, 3].map((i) => (
-                      <div key={i} className="rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-500 text-xs">{t('property.photo')} {i + 1}</span>
+              {/* モバイル: 2枚目以降を横スクロール */}
+              {allPhotos.length > 1 && (
+                <div className="md:hidden overflow-x-auto pb-1 -mx-1">
+                  <div className="flex gap-2 min-w-0">
+                    {allPhotos.slice(1).map((url, i) => (
+                      <div key={i} className="flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden bg-gray-200">
+                        <ImageWithFallback src={url} alt="" className="w-full h-full object-cover" />
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+              {/* デスクトップ: メイン横に3枚縦 */}
+              <div className="hidden md:grid grid-cols-4 gap-2">
+                <div className="col-span-3 relative aspect-[16/10] rounded-xl overflow-hidden bg-gray-200">
+                  <ImageWithFallback
+                    src={allPhotos[0] ?? property.image}
+                    alt={displayTitle}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="col-span-1 grid grid-rows-3 gap-2">
+                  {allPhotos.slice(1, 4).length > 0
+                    ? allPhotos.slice(1, 4).map((url, i) => (
+                        <div key={i} className="rounded-lg overflow-hidden bg-gray-200">
+                          <ImageWithFallback src={url} alt="" className="w-full h-full object-cover min-h-[80px]" />
+                        </div>
+                      ))
+                    : [1, 2, 3].map((i) => (
+                        <div key={i} className="rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
+                          <span className="text-gray-500 text-xs">{t('property.photo')} {i + 1}</span>
+                        </div>
+                      ))}
+                </div>
               </div>
             </div>
 
@@ -325,55 +349,55 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
             </div>
 
             {/* Specs Card */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">{priceLabel}</span>
-                  <span className="font-semibold">{priceDisplay}</span>
+            <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 overflow-hidden">
+              <div className="grid grid-cols-2 gap-x-4 md:gap-x-8 gap-y-4 min-w-0">
+                <div className="flex justify-between items-center gap-2 py-2 border-b border-gray-100 min-w-0">
+                  <span className="text-gray-600 text-sm md:text-base min-w-0 truncate">{priceLabel}</span>
+                  <span className="font-semibold text-sm md:text-base text-right truncate min-w-0">{priceDisplay}</span>
                 </div>
                 {source === 'rent' && (
                   <>
-                    <div className="flex justify-between py-2 border-b border-gray-100">
-                      <span className="text-gray-600">{t('property.management_fee')}</span>
-                      <span className="font-medium">
+                    <div className="flex justify-between items-center gap-2 py-2 border-b border-gray-100 min-w-0">
+                      <span className="text-gray-600 text-sm md:text-base min-w-0 truncate">{t('property.management_fee')}</span>
+                      <span className="font-medium text-sm md:text-base text-right truncate min-w-0">
                         {property.managementFee != null ? formatPrice(property.managementFee, 'rent') : '—'}
                       </span>
                     </div>
-                    <div className="flex justify-between py-2 border-b border-gray-100">
-                      <span className="text-gray-600">{t('property.deposit')}</span>
-                      <span className="font-medium">
+                    <div className="flex justify-between items-center gap-2 py-2 border-b border-gray-100 min-w-0">
+                      <span className="text-gray-600 text-sm md:text-base min-w-0 truncate">{t('property.deposit')}</span>
+                      <span className="font-medium text-sm md:text-base text-right truncate min-w-0">
                         {property.deposit != null ? (property.deposit === 0 ? t('property.no_deposit') : formatPrice(property.deposit, 'rent')) : '—'}
                       </span>
                     </div>
-                    <div className="flex justify-between py-2 border-b border-gray-100">
-                      <span className="text-gray-600">{t('property.key_money')}</span>
-                      <span className="font-medium">
+                    <div className="flex justify-between items-center gap-2 py-2 border-b border-gray-100 min-w-0">
+                      <span className="text-gray-600 text-sm md:text-base min-w-0 truncate">{t('property.key_money')}</span>
+                      <span className="font-medium text-sm md:text-base text-right truncate min-w-0">
                         {property.keyMoney != null ? (property.keyMoney === 0 ? t('property.no_key_money') : formatPrice(property.keyMoney, 'rent')) : '—'}
                       </span>
                     </div>
                   </>
                 )}
                 {source === 'buy' && property.managementFee != null && (
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="text-gray-600">{t('property.management_fee')}</span>
-                    <span className="font-medium">{formatPrice(property.managementFee, 'rent')}</span>
+                  <div className="flex justify-between items-center gap-2 py-2 border-b border-gray-100 min-w-0">
+                    <span className="text-gray-600 text-sm md:text-base min-w-0 truncate">{t('property.management_fee')}</span>
+                    <span className="font-medium text-sm md:text-base text-right truncate min-w-0">{formatPrice(property.managementFee, 'rent')}</span>
                   </div>
                 )}
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">{t('property.layout')}</span>
-                  <span className="font-medium">{property.layout}</span>
+                <div className="flex justify-between items-center gap-2 py-2 border-b border-gray-100 min-w-0">
+                  <span className="text-gray-600 text-sm md:text-base min-w-0 truncate">{t('property.layout')}</span>
+                  <span className="font-medium text-sm md:text-base text-right truncate min-w-0">{property.layout}</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">{t('property.bedrooms')}</span>
-                  <span className="font-medium">{property.beds}</span>
+                <div className="flex justify-between items-center gap-2 py-2 border-b border-gray-100 min-w-0">
+                  <span className="text-gray-600 text-sm md:text-base min-w-0 truncate">{t('property.bedrooms')}</span>
+                  <span className="font-medium text-sm md:text-base text-right truncate min-w-0">{property.beds}</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">{t('property.size')}</span>
-                  <span className="font-medium">{property.size} m²</span>
+                <div className="flex justify-between items-center gap-2 py-2 border-b border-gray-100 min-w-0">
+                  <span className="text-gray-600 text-sm md:text-base min-w-0 truncate">{t('property.size')}</span>
+                  <span className="font-medium text-sm md:text-base text-right truncate min-w-0">{property.size} m²</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">{t('property.floor')}</span>
-                  <span className="font-medium">{property.floor != null ? `${property.floor}F` : '—'}</span>
+                <div className="flex justify-between items-center gap-2 py-2 border-b border-gray-100 min-w-0">
+                  <span className="text-gray-600 text-sm md:text-base min-w-0 truncate">{t('property.floor')}</span>
+                  <span className="font-medium text-sm md:text-base text-right truncate min-w-0">{property.floor != null ? `${property.floor}F` : '—'}</span>
                 </div>
               </div>
             </div>

@@ -215,7 +215,7 @@ supabase functions deploy send-request-emails --no-verify-jwt
 |---------------------|------|
 | `RESEND_API_KEY`    | Resend の API キー（必須） |
 | `OWNER_EMAIL`       | 管理者（あなた）のメールアドレス。ここに通知が届きます |
-| `FROM_EMAIL`        | （任意）送信元。例: `Tokyo Expat Housing <noreply@yourdomain.com>`。未設定時は Resend のデフォルト |
+| `FROM_EMAIL`        | （任意）送信元。未設定時は `Tokyo Expat Housing <information@tkofficial.net>` を使用します。 |
 
 ### 3. 動作
 
@@ -240,4 +240,6 @@ supabase functions deploy send-request-emails --no-verify-jwt
    Dashboard → **Edge Functions** → **send-request-emails** → **Logs** で、実行エラーや Resend API のエラーが出ていないか確認。
 
 5. **Resend の送信元**  
-   ドメイン未検証の場合は送信元が `onboarding@resend.dev` になり、Resend のテスト用アドレスにしか送れない場合があります。本番では Resend でドメインを検証し、`FROM_EMAIL` シークレットでそのドメインのアドレスを指定してください。
+   すべてのユーザー向けメールは **information@tkofficial.net** から送る想定です。Resend でドメイン（tkofficial.net）を検証し、未設定時はコード側で `information@tkofficial.net` を送信元に使います。変更したい場合は `FROM_EMAIL` シークレットで上書きできます。
+
+**Supabase Auth のメール（パスワードリセット・サインアップ確認など）** を同じ送信元にしたい場合は、Supabase Dashboard → **Authentication** → **Email Templates** または **SMTP Settings** で、Resend をカスタム SMTP として設定し、送信元を `information@tkofficial.net` にしてください。

@@ -907,11 +907,11 @@ function AppContent() {
             </div>
 
             <div>
-              <h4 className="text-sm font-semibold mb-4 md:mb-6 flex items-center gap-2">
-                <Home className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F]" />
+              <h4 className="text-xs md:text-sm font-semibold mb-3 md:mb-6 flex items-center gap-2">
+                <Home className="w-3.5 h-3.5 md:w-5 md:h-5 text-[#C1121F]" />
                 {t('footer.services')}
               </h4>
-              <ul className="space-y-2 md:space-y-3 text-sm">
+              <ul className="space-y-1.5 md:space-y-3 text-xs md:text-sm">
                 <li>
                   <button
                     onClick={() => handleNavigate('buy')}
@@ -934,11 +934,11 @@ function AppContent() {
             </div>
 
             <div>
-              <h4 className="text-sm font-semibold mb-4 md:mb-6 flex items-center gap-2">
-                <Building2 className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F]" />
+              <h4 className="text-xs md:text-sm font-semibold mb-3 md:mb-6 flex items-center gap-2">
+                <Building2 className="w-3.5 h-3.5 md:w-5 md:h-5 text-[#C1121F]" />
                 {t('footer.company')}
               </h4>
-              <ul className="space-y-2 md:space-y-3 text-sm">
+              <ul className="space-y-1.5 md:space-y-3 text-xs md:text-sm">
                 <li>
                   <button
                     onClick={() => handleNavigate('about')}

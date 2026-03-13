@@ -541,6 +541,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
         )}
       </main>
       </div>
+      </div>
     </div>
   );
 }

@@ -48,7 +48,7 @@ interface CategoryPropertiesPageProps {
 export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectProperty }: CategoryPropertiesPageProps) {
   const { formatPrice } = useCurrency();
   const { t, language } = useLanguage();
-  const [showMap, setShowMap] = useState(true);
+  const [showMap, setShowMap] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +75,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
   const [designers, setDesigners] = useState<boolean>(false);
   const [forFamilies, setForFamilies] = useState<boolean>(false);
   const [moreFiltersOpen, setMoreFiltersOpen] = useState<boolean>(false);
-  const [filterBarOpen, setFilterBarOpen] = useState<boolean>(true);
+  const [filterBarOpen, setFilterBarOpen] = useState<boolean>(false);
   const [sidebarWidth, setSidebarWidth] = useState<number>(384);
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<SortOption>('popularity');
@@ -355,6 +355,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
         <div className="max-w-[1600px] mx-auto px-6">
           {/* Filter Bar Toggle Button */}
           <div className="flex items-center justify-between py-3 border-b border-gray-200">
+            <h2 className="text-sm font-semibold text-gray-900">{t('filter.title')}</h2>
             <div className="flex items-center gap-4">
               {/* Show Map Toggle Switch */}
               <div className="flex items-center gap-2">
@@ -391,177 +392,172 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
             </div>
           </div>
           
-          {/* Filter Options */}
+          {/* Filter Options - 展開時のみ表示・項目は統一デザイン */}
           {filterBarOpen && (
             <div className="py-4">
-              <div className="flex items-center gap-3 flex-wrap">
-                {/* Listing Type Filter (Rent/Buy) */}
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('filter.listing_type')}</label>
-                  <select
-                    value={listingTypeFilter}
-                    onChange={(e) => setListingTypeFilter(e.target.value as 'rent' | 'buy' | '')}
-                    className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-                  >
-                    <option value="">{t('filter.all')}</option>
-                    <option value="rent">{t('search.rent')}</option>
-                    <option value="buy">{t('search.buy')}</option>
-                  </select>
-                </div>
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                {/* Listing Type (Rent/Buy) */}
+                <select
+                  value={listingTypeFilter}
+                  onChange={(e) => setListingTypeFilter(e.target.value as 'rent' | 'buy' | '')}
+                  className="px-3 py-2 h-[40px] min-w-[120px] bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent transition-colors"
+                >
+                  <option value="">{t('filter.all')}</option>
+                  <option value="rent">{t('search.rent')}</option>
+                  <option value="buy">{t('search.buy')}</option>
+                </select>
 
                 {/* Search */}
-                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors">
-                  <Search className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px]">
+                  <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
                   <input
                     type="text"
                     placeholder={t('filter.keyword_placeholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400 w-40"
+                    className="bg-transparent border-none outline-none text-sm text-gray-700 min-w-[100px] w-28 focus:ring-0 p-0 placeholder-gray-400"
                   />
                 </div>
 
-                {/* Selected Area */}
-                <SelectedAreaFilter
-                  selectedAreas={selectedAreas}
-                  onChange={setSelectedAreas}
-                />
+                <SelectedAreaFilter selectedAreas={selectedAreas} onChange={setSelectedAreas} compact />
 
                 {/* Property Type */}
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('filter.property_type')}</label>
-                  <select
-                    value={propertyTypeFilter}
-                    onChange={(e) => setPropertyTypeFilter(e.target.value)}
-                    className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-                  >
-                    <option value="">{t('filter.all')}</option>
-                    <option value="apartment">{t('filter.type.apartment')}</option>
-                    <option value="condominium">{t('filter.type.condominium')}</option>
-                    <option value="house">{t('filter.type.house')}</option>
-                    <option value="studio">{t('filter.type.studio')}</option>
-                  </select>
-                </div>
+                <select
+                  value={propertyTypeFilter}
+                  onChange={(e) => setPropertyTypeFilter(e.target.value)}
+                  className="px-3 py-2 h-[40px] min-w-[130px] bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent transition-colors"
+                >
+                  <option value="">{t('filter.all')}</option>
+                  <option value="apartment">{t('filter.type.apartment')}</option>
+                  <option value="condominium">{t('filter.type.condominium')}</option>
+                  <option value="house">{t('filter.type.house')}</option>
+                  <option value="studio">{t('filter.type.studio')}</option>
+                </select>
 
-                {/* Price Range */}
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('filter.price')}:</label>
+                {/* Price */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px]">
+                  <span className="text-xs font-medium text-gray-600 whitespace-nowrap">{t('filter.price')}</span>
                   <input
                     type="number"
                     placeholder={t('filter.min_yen')}
                     value={priceMin}
                     onChange={(e) => setPriceMin(e.target.value)}
-                    className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 w-24 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
                   />
-                  <span className="text-gray-500">-</span>
                   <input
                     type="number"
                     placeholder={t('filter.max_yen')}
                     value={priceMax}
                     onChange={(e) => setPriceMax(e.target.value)}
-                    className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 w-24 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
                   />
                 </div>
 
                 {/* Bedrooms */}
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('filter.bedrooms')}</label>
-                  <select
-                    value={bedrooms}
-                    onChange={(e) => setBedrooms(e.target.value)}
-                    className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-                  >
+                <select
+                  value={bedrooms}
+                  onChange={(e) => setBedrooms(e.target.value)}
+                  className="px-3 py-2 h-[40px] min-w-[100px] bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent transition-colors"
+                >
                   <option value="">{t('filter.bedrooms.any')}</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
                   <option value="4">4+</option>
-                  </select>
-                </div>
+                </select>
 
-                {/* Size Range */}
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">{t('filter.size')}:</label>
+                {/* Size */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px]">
+                  <span className="text-xs font-medium text-gray-600 whitespace-nowrap">{t('filter.size')}</span>
                   <input
                     type="number"
                     placeholder={t('filter.min_sqm')}
                     value={sizeMin}
                     onChange={(e) => setSizeMin(e.target.value)}
-                    className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 w-20 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
                   />
-                  <span className="text-gray-500">-</span>
                   <input
                     type="number"
                     placeholder={t('filter.max_sqm')}
                     value={sizeMax}
                     onChange={(e) => setSizeMax(e.target.value)}
-                    className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 w-20 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
                   />
                 </div>
 
                 {/* Station */}
-                <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors">
-                  <MapPin className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px] min-w-[120px]">
                   <input
                     type="text"
                     placeholder={t('filter.station_placeholder')}
                     value={stationFilter}
                     onChange={(e) => setStationFilter(e.target.value)}
-                    className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400 w-32"
+                    className="bg-transparent border-none outline-none text-sm text-gray-700 min-w-0 flex-1 focus:ring-0 p-0 placeholder-gray-400"
                   />
                 </div>
 
-                {/* More Filters Button */}
+                {/* More Filters */}
                 <div className="relative">
                   <button
+                    type="button"
                     onClick={() => setMoreFiltersOpen(!moreFiltersOpen)}
-                    className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors flex items-center gap-2"
+                    className={`flex items-center gap-2 px-3 py-2 h-[40px] min-w-[120px] bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent ${
+                      moreFiltersOpen ? 'bg-gray-100 border-gray-300' : ''
+                    }`}
                   >
-                    <span>{t('filter.more_filters')}</span>
-                    {moreFiltersOpen ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
+                    <SlidersHorizontal className="w-3.5 h-3.5 flex-shrink-0" />
+                    {t('filter.more_filters')}
                   </button>
                   {moreFiltersOpen && (
-                    <div className="absolute z-10 top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4 space-y-3 min-w-[200px]">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={petFriendly}
-                          onChange={(e) => setPetFriendly(e.target.checked)}
-                          className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
-                        />
-                        <span className="text-sm text-gray-700">Pet Friendly</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={foreignFriendly}
-                          onChange={(e) => setForeignFriendly(e.target.checked)}
-                          className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
-                        />
-                        <span className="text-sm text-gray-700">Foreign Friendly</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={elevator}
-                          onChange={(e) => setElevator(e.target.checked)}
-                          className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
-                        />
-                        <span className="text-sm text-gray-700">Elevator</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={balcony}
-                          onChange={(e) => setBalcony(e.target.checked)}
-                          className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
-                        />
-                        <span className="text-sm text-gray-700">Balcony</span>
-                      </label>
+                    <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-gray-900">{t('filter.more_filters')}</h3>
+                        <button
+                          type="button"
+                          onClick={() => setMoreFiltersOpen(false)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={petFriendly}
+                            onChange={(e) => setPetFriendly(e.target.checked)}
+                            className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                          />
+                          <span className="text-sm font-medium text-gray-700">{t('category.pet_friendly')}</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={foreignFriendly}
+                            onChange={(e) => setForeignFriendly(e.target.checked)}
+                            className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                          />
+                          <span className="text-sm font-medium text-gray-700">{t('category.foreign_friendly')}</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={elevator}
+                            onChange={(e) => setElevator(e.target.checked)}
+                            className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                          />
+                          <span className="text-sm font-medium text-gray-700">{t('property.feature.elevator')}</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={balcony}
+                            onChange={(e) => setBalcony(e.target.checked)}
+                            className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]"
+                          />
+                          <span className="text-sm font-medium text-gray-700">{t('property.feature.balcony')}</span>
+                        </label>
+                      </div>
 
                       {/* Categories Section */}
                       <div className="pt-3 border-t border-gray-200">
@@ -642,7 +638,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                   <select
                     value={sortOption}
                     onChange={(e) => setSortOption(e.target.value as SortOption)}
-                    className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                    className="px-3 py-2 h-[40px] min-w-[120px] bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent transition-colors"
                   >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -659,10 +655,10 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
 
       {/* Main Content - Sidebar + Map */}
       <div className="flex relative" style={{ height: 'calc(100vh - 80px)' }}>
-        {/* Left Sidebar - Property Listings */}
+        {/* Left Sidebar - Property Listings（モバイルで showMap 時は非表示＝地図のみ表示） */}
         <div
-          className="bg-white border-r border-gray-200 overflow-y-auto relative"
-          style={{ width: `${sidebarWidth}px`, minWidth: '320px', maxWidth: '800px' }}
+          className={`bg-white border-r border-gray-200 overflow-y-auto relative ${showMap ? 'hidden md:block' : ''}`}
+          style={showMap ? { width: `${sidebarWidth}px`, minWidth: '320px', maxWidth: '800px' } : { width: '100%', minWidth: 0 }}
         >
           {/* Resize Handle */}
           <div

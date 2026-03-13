@@ -37,7 +37,7 @@ interface PropertyListingPageProps {
 export function PropertyListingPage({ selectedWard, onSelectProperty, initialSearchParams }: PropertyListingPageProps = {}) {
   const { formatPrice } = useCurrency();
   const { t, language } = useLanguage();
-  const [showMap, setShowMap] = useState(true);
+  const [showMap, setShowMap] = useState(false);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +63,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
   const [designers, setDesigners] = useState<boolean>(false);
   const [forFamilies, setForFamilies] = useState<boolean>(false);
   const [moreFiltersOpen, setMoreFiltersOpen] = useState<boolean>(false);
-  const [filterBarOpen, setFilterBarOpen] = useState<boolean>(true);
+  const [filterBarOpen, setFilterBarOpen] = useState<boolean>(false);
   const [sidebarWidth, setSidebarWidth] = useState<number>(384); // w-96 = 384px
   const [isResizing, setIsResizing] = useState<boolean>(false);
   const [sortOption, setSortOption] = useState<'popularity' | 'price-asc' | 'price-desc' | 'size-asc' | 'size-desc' | 'walking-asc' | 'walking-desc' | 'newest' | 'oldest'>('popularity');
@@ -386,111 +386,111 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
             </div>
           </div>
           
-          {/* Filter Options */}
+          {/* Filter Options - 展開時のみ表示・項目は統一デザイン */}
           {filterBarOpen && (
             <div className="py-4">
-              <div className="flex items-center gap-3 flex-wrap">
-            {/* Search */}
-            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors">
-              <Search className="w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder={t('filter.search')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm w-32"
-              />
-            </div>
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                {/* Search */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px]">
+                  <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <input
+                    type="text"
+                    placeholder={t('filter.search')}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-transparent border-none outline-none text-sm text-gray-700 min-w-[100px] w-28 focus:ring-0 p-0"
+                  />
+                </div>
 
-            {/* Property Type */}
-            <select
-              value={propertyTypeFilter}
-              onChange={(e) => setPropertyTypeFilter(e.target.value)}
-              className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-            >
-              <option value="">{t('filter.property_type')}</option>
-              <option value="apartment">{t('filter.type.apartment')}</option>
-              <option value="condominium">{t('filter.type.condominium')}</option>
-              <option value="house">{t('filter.type.house')}</option>
-              <option value="studio">{t('filter.type.studio')}</option>
-            </select>
+                {/* Property Type */}
+                <select
+                  value={propertyTypeFilter}
+                  onChange={(e) => setPropertyTypeFilter(e.target.value)}
+                  className="px-3 py-2 h-[40px] min-w-[130px] bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent transition-colors"
+                >
+                  <option value="">{t('filter.property_type')}</option>
+                  <option value="apartment">{t('filter.type.apartment')}</option>
+                  <option value="condominium">{t('filter.type.condominium')}</option>
+                  <option value="house">{t('filter.type.house')}</option>
+                  <option value="studio">{t('filter.type.studio')}</option>
+                </select>
 
-            {/* Selected Area: 23区＋23区外チェックボックス */}
-            <SelectedAreaFilter selectedAreas={selectedAreas} onChange={setSelectedAreas} />
+                <SelectedAreaFilter selectedAreas={selectedAreas} onChange={setSelectedAreas} compact />
 
-            {/* Train station */}
-            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors">
-              <input
-                type="text"
-                placeholder={t('filter.station')}
-                value={stationFilter}
-                onChange={(e) => setStationFilter(e.target.value)}
-                className="bg-transparent border-none outline-none text-sm w-24"
-              />
-            </div>
+                {/* Station */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px] min-w-[120px]">
+                  <input
+                    type="text"
+                    placeholder={t('filter.station')}
+                    value={stationFilter}
+                    onChange={(e) => setStationFilter(e.target.value)}
+                    className="bg-transparent border-none outline-none text-sm text-gray-700 min-w-0 flex-1 focus:ring-0 p-0"
+                  />
+                </div>
 
-            {/* Bedrooms */}
-            <select
-              value={bedrooms}
-              onChange={(e) => setBedrooms(e.target.value)}
-              className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-            >
-              <option value="">{t('filter.bedrooms')}</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4+</option>
-            </select>
+                {/* Bedrooms */}
+                <select
+                  value={bedrooms}
+                  onChange={(e) => setBedrooms(e.target.value)}
+                  className="px-3 py-2 h-[40px] min-w-[100px] bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent transition-colors"
+                >
+                  <option value="">{t('filter.bedrooms')}</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4+</option>
+                </select>
 
-            {/* Price */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-600 whitespace-nowrap">{t('filter.price')}:</span>
-              <input
-                type="text"
-                placeholder={t('filter.min_yen')}
-                value={priceMin}
-                onChange={(e) => setPriceMin(e.target.value)}
-                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-              />
-              <input
-                type="text"
-                placeholder={t('filter.max_yen')}
-                value={priceMax}
-                onChange={(e) => setPriceMax(e.target.value)}
-                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-              />
-            </div>
+                {/* Price */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px]">
+                  <span className="text-xs font-medium text-gray-600 whitespace-nowrap">{t('filter.price')}</span>
+                  <input
+                    type="text"
+                    placeholder={t('filter.min_yen')}
+                    value={priceMin}
+                    onChange={(e) => setPriceMin(e.target.value)}
+                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                  />
+                  <input
+                    type="text"
+                    placeholder={t('filter.max_yen')}
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(e.target.value)}
+                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                  />
+                </div>
 
-            {/* Size */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-600 whitespace-nowrap">{t('filter.size')}:</span>
-              <input
-                type="number"
-                placeholder={t('filter.min_sqm')}
-                value={sizeMin}
-                onChange={(e) => setSizeMin(e.target.value)}
-                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-              />
-              <input
-                type="number"
-                placeholder={t('filter.max_sqm')}
-                value={sizeMax}
-                onChange={(e) => setSizeMax(e.target.value)}
-                className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 transition-colors text-sm w-20 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
-              />
-            </div>
+                {/* Size */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px]">
+                  <span className="text-xs font-medium text-gray-600 whitespace-nowrap">{t('filter.size')}</span>
+                  <input
+                    type="number"
+                    placeholder={t('filter.min_sqm')}
+                    value={sizeMin}
+                    onChange={(e) => setSizeMin(e.target.value)}
+                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                  />
+                  <input
+                    type="number"
+                    placeholder={t('filter.max_sqm')}
+                    value={sizeMax}
+                    onChange={(e) => setSizeMax(e.target.value)}
+                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                  />
+                </div>
 
-            {/* More */}
-            <div className="relative">
-              <button
-                onClick={() => setMoreFiltersOpen(!moreFiltersOpen)}
-                className={`flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-full hover:border-gray-300 hover:bg-gray-100 transition-all text-sm font-medium text-gray-700 ${
-                  moreFiltersOpen ? 'bg-gray-100 border-gray-300' : ''
-                }`}
-              >
-                {t('filter.more_filters')}
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-              </button>
+                {/* More */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setMoreFiltersOpen(!moreFiltersOpen)}
+                    className={`flex items-center gap-2 px-3 py-2 h-[40px] min-w-[120px] bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent ${
+                      moreFiltersOpen ? 'bg-gray-100 border-gray-300' : ''
+                    }`}
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5 flex-shrink-0" />
+                    {t('filter.more_filters')}
+                  </button>
               
               {/* More Filters Dropdown */}
               {moreFiltersOpen && (
@@ -640,7 +640,9 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
 
       {/* Main Content - Property Listings + Map */}
       {showMap ? (
-        <div className="flex relative z-0" style={{ height: 'calc(100vh - 160px)', marginTop: '0' }}>
+        <>
+          {/* PC: サイドバー(リスト) + 地図 */}
+          <div className="hidden md:flex relative z-0" style={{ height: 'calc(100vh - 160px)', marginTop: '0' }}>
           {/* Left Sidebar - Property Listings */}
           <div 
             className="bg-white border-r border-gray-200 shadow-sm overflow-y-auto overflow-x-hidden relative z-10" 
@@ -829,10 +831,22 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               translationMap={translationMap}
             />
           </div>
-        </div>
+          </div>
+          {/* モバイル: 地図のみフル表示 */}
+          <div className="md:hidden relative z-0 w-full" style={{ height: 'calc(100vh - 160px)' }}>
+            <PropertiesMapView
+              properties={properties}
+              onPropertyClick={onSelectProperty}
+              height="100%"
+              className="w-full"
+              translationMap={translationMap}
+            />
+          </div>
+        </>
       ) : (
-        /* Grid Layout when Map is Hidden */
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+        <>
+          {/* Grid Layout when Map is Hidden */}
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
           {/* Header and Sort */}
           <div className="mb-6 flex items-center justify-between">
             <div>
@@ -982,6 +996,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
             </div>
           )}
         </div>
+        </>
       )}
     </div>
   );

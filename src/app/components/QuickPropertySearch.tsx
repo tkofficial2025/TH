@@ -351,13 +351,13 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-row flex-nowrap items-stretch divide-x divide-gray-100"
+            className="flex flex-row flex-nowrap items-stretch divide-x divide-gray-100 min-w-0 overflow-x-auto"
           >
-            <div className="flex-1 min-w-0 overflow-visible">
+            <div className="flex-1 min-w-[90px] sm:min-w-0 overflow-visible flex-shrink-0">
               <AreaMultiSelect selectedAreas={selectedAreas} onChange={setSelectedAreas} areas={areaOptions} />
             </div>
             
-            <div className="flex-1 min-w-0 overflow-visible">
+            <div className="flex-1 min-w-[80px] sm:min-w-0 overflow-visible flex-shrink-0">
               <Dropdown
                 label={t('search.bedrooms.label')}
                 options={bedroomOptions}
@@ -367,7 +367,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
               />
             </div>
             
-            <div className="flex-1 min-w-0 overflow-visible">
+            <div className="flex-1 min-w-[140px] sm:min-w-0 overflow-visible flex-shrink-0">
               <Dropdown
                 label={budgetLabel}
                 options={budgetOptions}

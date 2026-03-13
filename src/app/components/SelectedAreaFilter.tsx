@@ -9,12 +9,15 @@ export interface SelectedAreaFilterProps {
   selectedAreas: Set<string>;
   onChange: (selected: Set<string>) => void;
   label?: string;
+  /** フィルターバー用: 高さ・角を他項目と統一 */
+  compact?: boolean;
 }
 
 export function SelectedAreaFilter({
   selectedAreas,
   onChange,
   label,
+  compact = false,
 }: SelectedAreaFilterProps) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
@@ -62,7 +65,9 @@ export function SelectedAreaFilter({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all w-full ${
+        className={`flex items-center gap-2 px-3 py-2 text-sm font-medium transition-all w-full ${
+          compact ? 'rounded-lg min-h-[40px] h-[40px]' : 'rounded-full px-4'
+        } ${
           count > 0
             ? 'bg-gray-900 text-white hover:bg-gray-800'
             : 'bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100 text-gray-700'

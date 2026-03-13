@@ -223,7 +223,9 @@ function ClusterUpdater({
               icon={customIcon}
               eventHandlers={{
                 click: () => {
-                  // 新しいタブで物件詳細を開く
+                  // モバイルではクリックで即遷移せず Popup で詳細表示。PCでは従来どおり新しいタブで開く
+                  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+                  if (isMobile) return; // Popup が開くだけにする
                   const url = `${window.location.origin}${window.location.pathname}?property=${property.id}&source=${property.type === 'rent' ? 'rent' : 'buy'}`;
                   window.open(url, '_blank');
                 },
@@ -252,12 +254,16 @@ function ClusterUpdater({
                   </div>
                   <button
                     onClick={() => {
-                      const url = `${window.location.origin}${window.location.pathname}?property=${property.id}&source=${property.type === 'rent' ? 'rent' : 'buy'}`;
-                      window.open(url, '_blank');
+                      if (onPropertyClick) {
+                        onPropertyClick(property.id);
+                      } else {
+                        const url = `${window.location.origin}${window.location.pathname}?property=${property.id}&source=${property.type === 'rent' ? 'rent' : 'buy'}`;
+                        window.open(url, '_blank');
+                      }
                     }}
                     className="w-full px-3 py-1.5 bg-[#C1121F] text-white text-xs font-medium rounded hover:bg-[#A00F1A] transition-colors"
                   >
-                    詳細を見る（新しいタブ）
+                    {t('map.view_details')}
                   </button>
                 </div>
               </Popup>

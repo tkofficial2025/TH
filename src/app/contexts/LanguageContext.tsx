@@ -267,7 +267,6 @@ const translations: Translations = {
           // Property Detail
           'property.back': { en: 'Back', zh: '返回' },
           'property.photo': { en: 'Photo', zh: '照片' },
-          'property.photo.disclaimer': { en: '※The building completion forecast image is based on the drawing and may differ from the actual property.', zh: '※建筑竣工效果图基于图纸制作，可能与实际情况有所差异。' },
           'property.brochure': { en: 'Brochure', zh: '宣传册' },
           'property.favorite.added': { en: 'Added to Favorites.', zh: '已添加到收藏夹。' },
           'property.favorite.removed': { en: 'Removed from Favorites.', zh: '已从收藏夹移除。' },
@@ -356,6 +355,7 @@ const translations: Translations = {
           'map.view_details_new_tab': { en: 'View details (new tab)', zh: '查看详情（新标签页）' },
           'map.bed': { en: 'bed', zh: '室' },
           'map.no_properties': { en: 'No properties to show on map.', zh: '地图上暂无房源。' },
+          'map.view_details': { en: 'View details', zh: '查看详情' },
           'filter.hide': { en: 'Hide', zh: '隐藏' },
           'filter.show': { en: 'Show', zh: '显示' },
           'filter.search': { en: 'Search', zh: '搜索' },

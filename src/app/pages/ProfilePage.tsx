@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Heart, User, LogOut, Calendar } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { Header } from '@/app/components/Header';
+import { AccountSubHeader } from '@/app/components/AccountSubHeader';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import type { Page } from '@/lib/routes';
 
@@ -142,7 +143,7 @@ export function ProfilePage({ onNavigate }: ProfilePageProps) {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 min-h-[calc(100vh-5rem)] bg-white p-8">
+      <main className="flex-1 min-h-[calc(100vh-5rem)] bg-white p-4 md:p-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('profile.title')}</h1>
 
         {/* Tabs */}

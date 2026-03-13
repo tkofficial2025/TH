@@ -9,6 +9,7 @@ import { fetchTranslationsForProperties, type PropertyTranslationResult } from '
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { Header } from '@/app/components/Header';
+import { AccountSubHeader } from '@/app/components/AccountSubHeader';
 import type { Page } from '@/lib/routes';
 
 interface ActivityPageProps {
@@ -206,8 +207,10 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
   return (
     <div className="min-h-screen bg-gray-100">
       <Header onNavigate={onNavigate} currentPage="account" />
-      <div className="flex pt-20">
-        <aside className="w-64 min-h-[calc(100vh-5rem)] bg-gray-200 border-r border-gray-300 flex flex-col flex-shrink-0">
+      <AccountSubHeader currentPage="activity" onNavigate={onNavigate} userName={userName} onLogout={handleLogout} />
+      <div className="flex flex-col md:flex-row pt-20">
+        <div className="flex flex-1 min-w-0">
+        <aside className="hidden md:flex w-64 min-h-[calc(100vh-5rem)] bg-gray-200 border-r border-gray-300 flex-col flex-shrink-0">
           <nav className="p-3 flex-1 pt-6">
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">{t('account.user')}</div>
             <button
@@ -294,6 +297,7 @@ export function ActivityPage({ onNavigate, onSelectProperty }: ActivityPageProps
             </div>
           )}
         </main>
+        </div>
       </div>
     </div>
   );

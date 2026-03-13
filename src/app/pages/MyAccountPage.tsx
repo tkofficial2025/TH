@@ -22,6 +22,14 @@ export function MyAccountPage({ onNavigate }: MyAccountPageProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    // メールのリセットリンクで開いた場合、URL の #type=recovery を即チェック（イベントより先に発火する場合があるため）
+    const hash = window.location.hash;
+    if (hash) {
+      const params = new URLSearchParams(hash.replace(/^#/, ''));
+      if (params.get('type') === 'recovery') {
+        setView('reset');
+      }
+    }
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') setView('reset');
     });
@@ -167,7 +175,7 @@ export function MyAccountPage({ onNavigate }: MyAccountPageProps) {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-10 bg-[#C1121F] hover:bg-[#A00F1A] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors shadow-md"
+                    className="w-full py-2.5 md:py-3 bg-[#C1121F] hover:bg-[#A00F1A] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-colors shadow-md"
                   >
                     {loading ? 'Signing in...' : 'Log in'}
                   </button>

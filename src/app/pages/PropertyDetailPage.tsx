@@ -286,7 +286,6 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
                     ))}
               </div>
             </div>
-            <p className="text-xs text-gray-500">{t('property.photo.disclaimer')}</p>
 
             {/* Location + Title + Station */}
             <p className="text-gray-600">{displayAddress}</p>

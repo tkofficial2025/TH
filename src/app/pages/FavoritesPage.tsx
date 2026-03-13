@@ -6,6 +6,7 @@ import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } fro
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { Header } from '@/app/components/Header';
+import { AccountSubHeader } from '@/app/components/AccountSubHeader';
 import { SelectedAreaFilter } from '@/app/components/SelectedAreaFilter';
 import { filterPropertiesByAreas } from '@/lib/wards';
 import type { Page } from '@/lib/routes';
@@ -204,9 +205,11 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
   return (
     <div className="min-h-screen bg-gray-100">
       <Header onNavigate={onNavigate} currentPage="favorites" />
-      <div className="flex pt-20">
-      {/* Sidebar */}
-      <aside className="w-64 min-h-[calc(100vh-5rem)] bg-gray-200 border-r border-gray-300 flex flex-col flex-shrink-0">
+      <AccountSubHeader currentPage="favorites" onNavigate={onNavigate} userName={userName} onLogout={handleLogout} />
+      <div className="flex flex-col md:flex-row pt-20">
+      <div className="flex flex-1 min-w-0">
+      {/* Sidebar - hidden on mobile, sub-header used instead */}
+      <aside className="hidden md:flex w-64 min-h-[calc(100vh-5rem)] bg-gray-200 border-r border-gray-300 flex-col flex-shrink-0">
         <nav className="p-3 flex-1 pt-6">
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">{t('account.user')}</div>
           <button
@@ -255,7 +258,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 min-h-[calc(100vh-5rem)] bg-white p-8">
+      <main className="flex-1 min-h-[calc(100vh-5rem)] bg-white p-4 md:p-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">{t('favorites.title')}</h1>
 
         {/* Tabs */}

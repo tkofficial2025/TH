@@ -699,80 +699,88 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                     className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border border-gray-100"
                     whileHover={{ y: -2 }}
                   >
-                    {/* Image */}
-                    <div className="relative h-52 w-full overflow-hidden">
-                      <ImageWithFallback
-                        src={property.image}
-                        alt={displayTitle}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                      <div className="absolute top-2 left-2 flex gap-2 z-10 items-center">
+                    {/* Image - モバイル: メイン大・その他小 / PC: 単一 */}
+                    {(() => {
+                      const allImages = (property.images?.length ? property.images : [property.image]) as string[];
+                      const mainImage = allImages[0] ?? property.image;
+                      const otherImages = allImages.slice(1);
+                      const typeBadge = (
                         <span className={`px-3 py-1.5 bg-white text-xs font-bold rounded-full shadow-lg ${
-                          property.type === 'rent' 
-                            ? 'text-blue-600 border-2 border-blue-600' 
-                            : 'text-green-600 border-2 border-green-600'
+                          property.type === 'rent' ? 'text-blue-600 border-2 border-blue-600' : 'text-green-600 border-2 border-green-600'
                         }`}>
                           {property.type === 'rent' ? t('search.rent').toUpperCase() : t('search.buy').toUpperCase()}
                         </span>
-                        {property.isFeatured && (
-                          <span className="px-3 py-1.5 bg-[#C1121F] text-white text-xs font-bold rounded-full shadow-lg">
-                            {t('listing.badge.popular')}
-                          </span>
-                        )}
-                        {property.isNew && (
-                          <span className="px-3 py-1.5 bg-white text-gray-900 text-xs font-bold rounded-full shadow-lg">
-                            {t('listing.badge.new')}
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(property.id);
-                        }}
-                        className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110 z-10"
-                      >
-                        <Heart
-                          className={`w-4 h-4 transition-colors ${
-                            favorites.has(property.id)
-                              ? 'fill-[#C1121F] text-[#C1121F]'
-                              : 'text-gray-700'
-                          }`}
-                        />
-                      </button>
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>
-                          {displayTitle}
-                        </h3>
-                        <p className="text-white/80 text-xs mb-2 line-clamp-1">
-                          {displayAddress}
-                        </p>
-                        <div className="text-xl font-bold text-white mb-2">
-                          {formatPrice(property.price, property.type)}
-                        </div>
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <div className="flex items-center gap-1 text-white/90">
-                            <Bed className="w-3 h-3" />
-                            <span className="text-xs font-medium">{property.beds}</span>
+                      );
+                      return (
+                        <>
+                          <div className="md:hidden">
+                            <div className="relative h-64 w-full overflow-hidden">
+                              <ImageWithFallback src={mainImage} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                              <div className="absolute top-2 left-2 flex gap-2 z-10 items-center">
+                                {typeBadge}
+                                {property.isFeatured && <span className="px-3 py-1.5 bg-[#C1121F] text-white text-xs font-bold rounded-full shadow-lg">{t('listing.badge.popular')}</span>}
+                                {property.isNew && <span className="px-3 py-1.5 bg-white text-gray-900 text-xs font-bold rounded-full shadow-lg">{t('listing.badge.new')}</span>}
+                              </div>
+                              <button onClick={(e) => { e.stopPropagation(); toggleFavorite(property.id); }} className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110 z-10">
+                                <Heart className={`w-4 h-4 ${favorites.has(property.id) ? 'fill-[#C1121F] text-[#C1121F]' : 'text-gray-700'}`} />
+                              </button>
+                              <div className="absolute bottom-0 left-0 right-0 p-3">
+                                <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>{displayTitle}</h3>
+                                <p className="text-white/80 text-xs mb-2 line-clamp-1">{displayAddress}</p>
+                                <div className="text-xl font-bold text-white mb-2">{formatPrice(property.price, property.type)}</div>
+                                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                  <div className="flex items-center gap-1 text-white/90"><Bed className="w-3 h-3" /><span className="text-xs font-medium">{property.beds}</span></div>
+                                  <div className="flex items-center gap-1 text-white/90"><Maximize2 className="w-3 h-3" /><span className="text-xs font-medium">{property.size} m²</span></div>
+                                  <div className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full"><span className="text-xs font-medium text-white">{property.layout}</span></div>
+                                </div>
+                                <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
+                                  <StationLineLogo stationName={property.station} size={12} className="flex-shrink-0" />
+                                  <MapPin className="w-3 h-3 text-white flex-shrink-0" />
+                                  <span className="text-xs font-medium text-white">{getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {otherImages.length > 0 && (
+                              <div className="flex gap-1.5 p-2 overflow-x-auto bg-gray-50">
+                                {otherImages.map((url, i) => (
+                                  <div key={i} className="relative h-14 w-20 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
+                                    <ImageWithFallback src={url} alt="" className="w-full h-full object-cover" />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                          <div className="flex items-center gap-1 text-white/90">
-                            <Maximize2 className="w-3 h-3" />
-                            <span className="text-xs font-medium">{property.size} m²</span>
+                          <div className="hidden md:block relative h-52 w-full overflow-hidden">
+                            <ImageWithFallback src={property.image} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                            <div className="absolute top-2 left-2 flex gap-2 z-10 items-center">
+                              {typeBadge}
+                              {property.isFeatured && <span className="px-3 py-1.5 bg-[#C1121F] text-white text-xs font-bold rounded-full shadow-lg">{t('listing.badge.popular')}</span>}
+                              {property.isNew && <span className="px-3 py-1.5 bg-white text-gray-900 text-xs font-bold rounded-full shadow-lg">{t('listing.badge.new')}</span>}
+                            </div>
+                            <button onClick={(e) => { e.stopPropagation(); toggleFavorite(property.id); }} className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110 z-10">
+                              <Heart className={`w-4 h-4 ${favorites.has(property.id) ? 'fill-[#C1121F] text-[#C1121F]' : 'text-gray-700'}`} />
+                            </button>
+                            <div className="absolute bottom-0 left-0 right-0 p-3">
+                              <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>{displayTitle}</h3>
+                              <p className="text-white/80 text-xs mb-2 line-clamp-1">{displayAddress}</p>
+                              <div className="text-xl font-bold text-white mb-2">{formatPrice(property.price, property.type)}</div>
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <div className="flex items-center gap-1 text-white/90"><Bed className="w-3 h-3" /><span className="text-xs font-medium">{property.beds}</span></div>
+                                <div className="flex items-center gap-1 text-white/90"><Maximize2 className="w-3 h-3" /><span className="text-xs font-medium">{property.size} m²</span></div>
+                                <div className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full"><span className="text-xs font-medium text-white">{property.layout}</span></div>
+                              </div>
+                              <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
+                                <StationLineLogo stationName={property.station} size={12} className="flex-shrink-0" />
+                                <MapPin className="w-3 h-3 text-white flex-shrink-0" />
+                                <span className="text-xs font-medium text-white">{getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
-                            <span className="text-xs font-medium text-white">{property.layout}</span>
-                          </div>
-                        </div>
-                        <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
-                          <StationLineLogo stationName={property.station} size={12} className="flex-shrink-0" />
-                          <MapPin className="w-3 h-3 text-white flex-shrink-0" />
-                          <span className="text-xs font-medium text-white">
-                            {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                        </>
+                      );
+                    })()}
                   </motion.div>
                 ); })}
               </div>
@@ -794,79 +802,87 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                     className="group relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border border-gray-100"
                     whileHover={{ y: -2 }}
                   >
-                    <div className="relative h-52 w-full overflow-hidden">
-                      <ImageWithFallback
-                        src={property.image}
-                        alt={displayTitle}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                      <div className="absolute top-2 left-2 flex gap-2 z-10 items-center">
+                    {(() => {
+                      const allImages = (property.images?.length ? property.images : [property.image]) as string[];
+                      const mainImage = allImages[0] ?? property.image;
+                      const otherImages = allImages.slice(1);
+                      const typeBadge = (
                         <span className={`px-3 py-1.5 bg-white text-xs font-bold rounded-full shadow-lg ${
-                          property.type === 'rent' 
-                            ? 'text-blue-600 border-2 border-blue-600' 
-                            : 'text-green-600 border-2 border-green-600'
+                          property.type === 'rent' ? 'text-blue-600 border-2 border-blue-600' : 'text-green-600 border-2 border-green-600'
                         }`}>
                           {property.type === 'rent' ? t('search.rent').toUpperCase() : t('search.buy').toUpperCase()}
                         </span>
-                        {property.isFeatured && (
-                          <span className="px-3 py-1.5 bg-[#C1121F] text-white text-xs font-bold rounded-full shadow-lg">
-                            {t('listing.badge.popular')}
-                          </span>
-                        )}
-                        {property.isNew && (
-                          <span className="px-3 py-1.5 bg-white text-gray-900 text-xs font-bold rounded-full shadow-lg">
-                            {t('listing.badge.new')}
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(property.id);
-                        }}
-                        className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110 z-10"
-                      >
-                        <Heart
-                          className={`w-4 h-4 transition-colors ${
-                            favorites.has(property.id)
-                              ? 'fill-[#C1121F] text-[#C1121F]'
-                              : 'text-gray-700'
-                          }`}
-                        />
-                      </button>
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>
-                          {displayTitle}
-                        </h3>
-                        <p className="text-white/80 text-xs mb-2 line-clamp-1">
-                          {displayAddress}
-                        </p>
-                        <div className="text-xl font-bold text-white mb-2">
-                          {formatPrice(property.price, property.type)}
-                        </div>
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <div className="flex items-center gap-1 text-white/90">
-                            <Bed className="w-3 h-3" />
-                            <span className="text-xs font-medium">{property.beds}</span>
+                      );
+                      return (
+                        <>
+                          <div className="md:hidden">
+                            <div className="relative h-64 w-full overflow-hidden">
+                              <ImageWithFallback src={mainImage} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                              <div className="absolute top-2 left-2 flex gap-2 z-10 items-center">
+                                {typeBadge}
+                                {property.isFeatured && <span className="px-3 py-1.5 bg-[#C1121F] text-white text-xs font-bold rounded-full shadow-lg">{t('listing.badge.popular')}</span>}
+                                {property.isNew && <span className="px-3 py-1.5 bg-white text-gray-900 text-xs font-bold rounded-full shadow-lg">{t('listing.badge.new')}</span>}
+                              </div>
+                              <button onClick={(e) => { e.stopPropagation(); toggleFavorite(property.id); }} className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110 z-10">
+                                <Heart className={`w-4 h-4 ${favorites.has(property.id) ? 'fill-[#C1121F] text-[#C1121F]' : 'text-gray-700'}`} />
+                              </button>
+                              <div className="absolute bottom-0 left-0 right-0 p-3">
+                                <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>{displayTitle}</h3>
+                                <p className="text-white/80 text-xs mb-2 line-clamp-1">{displayAddress}</p>
+                                <div className="text-xl font-bold text-white mb-2">{formatPrice(property.price, property.type)}</div>
+                                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                  <div className="flex items-center gap-1 text-white/90"><Bed className="w-3 h-3" /><span className="text-xs font-medium">{property.beds}</span></div>
+                                  <div className="flex items-center gap-1 text-white/90"><Maximize2 className="w-3 h-3" /><span className="text-xs font-medium">{property.size} m²</span></div>
+                                  <div className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full"><span className="text-xs font-medium text-white">{property.layout}</span></div>
+                                </div>
+                                <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
+                                  <StationLineLogo stationName={property.station} size={12} className="flex-shrink-0" />
+                                  <MapPin className="w-3 h-3 text-white flex-shrink-0" />
+                                  <span className="text-xs font-medium text-white">{getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {otherImages.length > 0 && (
+                              <div className="flex gap-1.5 p-2 overflow-x-auto bg-gray-50">
+                                {otherImages.map((url, i) => (
+                                  <div key={i} className="relative h-14 w-20 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
+                                    <ImageWithFallback src={url} alt="" className="w-full h-full object-cover" />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                          <div className="flex items-center gap-1 text-white/90">
-                            <Maximize2 className="w-3 h-3" />
-                            <span className="text-xs font-medium">{property.size} m²</span>
+                          <div className="hidden md:block relative h-52 w-full overflow-hidden">
+                            <ImageWithFallback src={property.image} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                            <div className="absolute top-2 left-2 flex gap-2 z-10 items-center">
+                              {typeBadge}
+                              {property.isFeatured && <span className="px-3 py-1.5 bg-[#C1121F] text-white text-xs font-bold rounded-full shadow-lg">{t('listing.badge.popular')}</span>}
+                              {property.isNew && <span className="px-3 py-1.5 bg-white text-gray-900 text-xs font-bold rounded-full shadow-lg">{t('listing.badge.new')}</span>}
+                            </div>
+                            <button onClick={(e) => { e.stopPropagation(); toggleFavorite(property.id); }} className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-all hover:scale-110 z-10">
+                              <Heart className={`w-4 h-4 ${favorites.has(property.id) ? 'fill-[#C1121F] text-[#C1121F]' : 'text-gray-700'}`} />
+                            </button>
+                            <div className="absolute bottom-0 left-0 right-0 p-3">
+                              <h3 className={`text-base font-bold text-white mb-1 line-clamp-1 ${property.isFeatured ? 'pt-10' : ''}`}>{displayTitle}</h3>
+                              <p className="text-white/80 text-xs mb-2 line-clamp-1">{displayAddress}</p>
+                              <div className="text-xl font-bold text-white mb-2">{formatPrice(property.price, property.type)}</div>
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <div className="flex items-center gap-1 text-white/90"><Bed className="w-3 h-3" /><span className="text-xs font-medium">{property.beds}</span></div>
+                                <div className="flex items-center gap-1 text-white/90"><Maximize2 className="w-3 h-3" /><span className="text-xs font-medium">{property.size} m²</span></div>
+                                <div className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full"><span className="text-xs font-medium text-white">{property.layout}</span></div>
+                              </div>
+                              <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
+                                <StationLineLogo stationName={property.station} size={12} className="flex-shrink-0" />
+                                <MapPin className="w-3 h-3 text-white flex-shrink-0" />
+                                <span className="text-xs font-medium text-white">{getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
-                            <span className="text-xs font-medium text-white">{property.layout}</span>
-                          </div>
-                        </div>
-                        <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full">
-                          <StationLineLogo stationName={property.station} size={12} className="flex-shrink-0" />
-                          <MapPin className="w-3 h-3 text-white flex-shrink-0" />
-                          <span className="text-xs font-medium text-white">
-                            {getStationDisplay(property.station, language)} • {property.walkingMinutes} {t('property.walk.min')}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                        </>
+                      );
+                    })()}
                   </motion.div>
                 ); })}
               </div>

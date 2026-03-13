@@ -720,15 +720,15 @@ function AppContent() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-8 md:mb-12">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-2 mb-4 md:mb-6">
-                <span className="text-xl md:text-2xl font-semibold">Tokyo Expat Housing</span>
+                <span className="text-sm md:text-base font-semibold">Tokyo Expat Housing</span>
               </div>
               
               {/* Company Info */}
               <div className="mb-4 md:mb-6">
-                <p className="text-gray-300 text-sm md:text-base font-medium mb-1.5 md:mb-2">
+                <p className="text-gray-300 text-sm font-medium mb-1.5 md:mb-2">
                   {t('footer.operated_by')}
                 </p>
-                <div className="flex items-center gap-2 text-gray-400 text-xs md:text-sm mb-3 md:mb-4">
+                <div className="flex items-center gap-2 text-gray-400 text-sm mb-3 md:mb-4">
                   <Award className="w-4 h-4 text-[#C1121F] flex-shrink-0" />
                   <span>{t('footer.license')}</span>
                 </div>
@@ -738,7 +738,7 @@ function AppContent() {
               <div className="space-y-2 md:space-y-3">
                 <div className="flex items-start gap-2 md:gap-3">
                   <MapPin className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F] flex-shrink-0 mt-0.5" />
-                  <div className="text-gray-400 text-xs md:text-sm">
+                  <div className="text-gray-400 text-sm">
                     <p>77 Space 102, 3-1-5 Kita-Otsuka</p>
                     <p>Toshima-ku, Tokyo 170-0004, Japan</p>
                   </div>
@@ -746,7 +746,7 @@ function AppContent() {
                 
                 <div className="flex items-center gap-2 md:gap-3">
                   <Phone className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F] flex-shrink-0" />
-                  <a href="tel:+81359808304" className="text-gray-400 hover:text-white transition-colors text-xs md:text-sm">
+                  <a href="tel:+81359808304" className="text-gray-400 hover:text-white transition-colors text-sm">
                     +81-3-5980-8304
                   </a>
                 </div>
@@ -755,7 +755,7 @@ function AppContent() {
                   <Mail className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F] flex-shrink-0" />
                   <a 
                     href="mailto:information@tkofficial.net?subject=Inquiry&body=Hello,%0D%0A%0D%0A" 
-                    className="text-gray-400 hover:text-white transition-colors text-xs md:text-sm underline decoration-transparent hover:decoration-white break-all"
+                    className="text-gray-400 hover:text-white transition-colors text-sm underline decoration-transparent hover:decoration-white break-all"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -766,12 +766,12 @@ function AppContent() {
 
               {/* Contact Us on Social Media - QR codes + links */}
               <div className="mt-4 pt-4 md:mt-6 md:pt-6 border-t border-gray-800" id="contact-social">
-                <p className="text-gray-400 text-xs md:text-sm mb-1.5 md:mb-2">{t('footer.follow')}</p>
-                <p className="text-white text-sm md:text-base font-medium mb-3 md:mb-4">{t('hero.btn.social')}</p>
+                <p className="text-gray-400 text-sm mb-1.5 md:mb-2">{t('footer.follow')}</p>
+                <p className="text-white text-sm font-medium mb-3 md:mb-4">{t('hero.btn.social')}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-[3.75rem] sm:gap-[5rem] mb-3 md:mb-4 pl-4 md:pl-6 sm:pl-8">
                   {/* Instagram */}
                   <div className="flex flex-col items-center p-2 md:p-3 bg-gray-800/50 rounded-lg md:rounded-xl">
-                    <p className="text-gray-300 text-[10px] md:text-xs font-medium mb-1.5 md:mb-2">Instagram</p>
+                    <p className="text-gray-300 text-sm font-medium mb-1.5 md:mb-2">Instagram</p>
                     <div className="w-[90px] h-[90px] md:w-[120px] md:h-[120px] rounded-lg bg-white p-1 mb-1.5 md:mb-2 overflow-hidden flex items-center justify-center">
                       <img
                         src="/instalogo.jpg"
@@ -783,14 +783,14 @@ function AppContent() {
                       href="https://www.instagram.com/toky.oestate?igsh=MWpjMW8yMjQydzh2NA%3D%3D&utm_source=qr"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs md:text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
                     >
                       <Instagram className="w-3.5 h-3.5 md:w-4 md:h-4" /> {t('footer.social.open')}
                     </a>
                   </div>
                   {/* LINE */}
                   <div className="flex flex-col items-center p-2 md:p-3 bg-gray-800/50 rounded-lg md:rounded-xl">
-                    <p className="text-gray-300 text-[10px] md:text-xs font-medium mb-1.5 md:mb-2">LINE</p>
+                    <p className="text-gray-300 text-sm font-medium mb-1.5 md:mb-2">LINE</p>
                     <div className="w-[90px] h-[90px] md:w-[120px] md:h-[120px] rounded-lg bg-white p-1 mb-1.5 md:mb-2 overflow-hidden flex items-center justify-center">
                       <img
                         src="/linelogo.png"
@@ -802,14 +802,14 @@ function AppContent() {
                       href="https://lin.ee/iT6Bnyb"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs md:text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
                     >
                       {t('footer.social.open')}
                     </a>
                   </div>
                   {/* WhatsApp */}
                   <div className="flex flex-col items-center p-2 md:p-3 bg-gray-800/50 rounded-lg md:rounded-xl">
-                    <p className="text-gray-300 text-[10px] md:text-xs font-medium mb-1.5 md:mb-2">WhatsApp</p>
+                    <p className="text-gray-300 text-sm font-medium mb-1.5 md:mb-2">WhatsApp</p>
                     <div className="w-[90px] h-[90px] md:w-[120px] md:h-[120px] rounded-lg bg-white p-1 mb-1.5 md:mb-2 overflow-hidden flex items-center justify-center">
                       <img
                         src="/whatsapplogo.jpg"
@@ -821,14 +821,14 @@ function AppContent() {
                       href="https://wa.me/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs md:text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
                     >
                       {t('footer.social.open')}
                     </a>
                   </div>
                   {/* WeChat */}
                   <div className="flex flex-col items-center p-2 md:p-3 bg-gray-800/50 rounded-lg md:rounded-xl">
-                    <p className="text-gray-300 text-[10px] md:text-xs font-medium mb-1.5 md:mb-2">WeChat</p>
+                    <p className="text-gray-300 text-sm font-medium mb-1.5 md:mb-2">WeChat</p>
                     <div className="w-[90px] h-[90px] md:w-[120px] md:h-[120px] rounded-lg bg-white p-1 mb-1.5 md:mb-2 overflow-hidden flex items-center justify-center">
                       <img
                         src="/wechat.jpg"
@@ -840,7 +840,7 @@ function AppContent() {
                       href="https://weixin.qq.com/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs md:text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
+                      className="text-sm text-[#C1121F] hover:text-white transition-colors flex items-center gap-1"
                     >
                       {t('footer.social.open')}
                     </a>
@@ -907,11 +907,11 @@ function AppContent() {
             </div>
 
             <div>
-              <h4 className="text-sm md:text-base font-semibold mb-4 md:mb-6 flex items-center gap-2">
+              <h4 className="text-sm font-semibold mb-4 md:mb-6 flex items-center gap-2">
                 <Home className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F]" />
                 {t('footer.services')}
               </h4>
-              <ul className="space-y-2 md:space-y-3 text-sm md:text-base">
+              <ul className="space-y-2 md:space-y-3 text-sm">
                 <li>
                   <button
                     onClick={() => handleNavigate('buy')}
@@ -934,11 +934,11 @@ function AppContent() {
             </div>
 
             <div>
-              <h4 className="text-sm md:text-base font-semibold mb-4 md:mb-6 flex items-center gap-2">
+              <h4 className="text-sm font-semibold mb-4 md:mb-6 flex items-center gap-2">
                 <Building2 className="w-4 h-4 md:w-5 md:h-5 text-[#C1121F]" />
                 {t('footer.company')}
               </h4>
-              <ul className="space-y-2 md:space-y-3 text-sm md:text-base">
+              <ul className="space-y-2 md:space-y-3 text-sm">
                 <li>
                   <button
                     onClick={() => handleNavigate('about')}
@@ -970,8 +970,8 @@ function AppContent() {
 
           <div className="border-t border-gray-800 pt-6 md:pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
-              <p className="text-gray-400 text-xs md:text-sm text-center md:text-left">{t('footer.copyright')}</p>
-              <div className="flex flex-wrap justify-center gap-3 md:gap-6 text-xs md:text-sm">
+              <p className="text-gray-400 text-sm text-center md:text-left">{t('footer.copyright')}</p>
+              <div className="flex flex-wrap justify-center gap-3 md:gap-6 text-sm">
                 <button type="button" onClick={() => handleNavigate('privacy')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer">{t('footer.privacy_policy')}</button>
                 <button type="button" onClick={() => handleNavigate('terms')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer">{t('footer.terms_of_service')}</button>
                 <button type="button" onClick={() => handleNavigate('cookie')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer">{t('footer.cookie_policy')}</button>

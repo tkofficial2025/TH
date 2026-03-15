@@ -1,93 +1,87 @@
 import { motion } from 'motion/react';
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, MapPin } from 'lucide-react';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
-import { useRef, useState } from 'react';
+import { getPropertyImageUrl } from '@/lib/propertyImageUrl';
+import { StationLineLogo } from '@/app/components/StationLineLogo';
+import { useRef, useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import {
+  type FeaturedProperty,
+  type SupabasePropertyRow,
+  mapSupabaseRowToFeaturedProperty,
+} from '@/lib/properties';
+import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getStationDisplay } from '@/lib/stationNames';
+import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
 
-interface Property {
-  id: number;
-  title: string;
-  location: string;
-  price: string;
-  type: 'Rent' | 'Buy' | 'Investment';
-  image: string;
-  beds: number;
-  baths: number;
-  size: string;
+export interface FeaturedPropertiesCarouselProps {
+  onSelectProperty?: (id: number, source: 'rent' | 'buy') => void;
+  onViewAllClick?: () => void;
+  title?: string;
+  subtitle?: string;
 }
 
-const properties: Property[] = [
-  {
-    id: 1,
-    title: 'Shibuya Premium Apartment',
-    location: 'Shibuya, Tokyo',
-    price: '¥89,000,000',
-    type: 'Buy',
-    image: 'https://images.unsplash.com/photo-1589572368687-c093a494522a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBUb2t5byUyMGFwYXJ0bWVudCUyMGludGVyaW9yfGVufDF8fHx8MTc2OTU2ODgxMXww&ixlib=rb-4.1.0&q=80&w=1080',
-    beds: 2,
-    baths: 2,
-    size: '85㎡',
-  },
-  {
-    id: 2,
-    title: 'Roppongi Luxury Penthouse',
-    location: 'Roppongi, Tokyo',
-    price: '¥165,000,000',
-    type: 'Investment',
-    image: 'https://images.unsplash.com/photo-1768711610981-7e106038ddcc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxUb2t5byUyMGNpdHklMjBza3lsaW5lJTIwdmlldyUyMGFwYXJ0bWVudHxlbnwxfHx8fDE3Njk1Njg4MTR8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    beds: 3,
-    baths: 3,
-    size: '120㎡',
-  },
-  {
-    id: 3,
-    title: 'Setagaya Modern House',
-    location: 'Setagaya, Tokyo',
-    price: '¥350,000/mo',
-    type: 'Rent',
-    image: 'https://images.unsplash.com/photo-1635834098903-1c1288d9a73a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxKYXBhbmVzZSUyMG1vZGVybiUyMGhvdXNlJTIwZXh0ZXJpb3J8ZW58MXx8fHwxNzY5NTY4ODEyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    beds: 4,
-    baths: 2,
-    size: '145㎡',
-  },
-  {
-    id: 4,
-    title: 'Meguro Stylish Condo',
-    location: 'Meguro, Tokyo',
-    price: '¥72,000,000',
-    type: 'Buy',
-    image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    beds: 2,
-    baths: 1,
-    size: '68㎡',
-  },
-  {
-    id: 5,
-    title: 'Ginza Executive Suite',
-    location: 'Ginza, Tokyo',
-    price: '¥280,000/mo',
-    type: 'Rent',
-    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    beds: 1,
-    baths: 1,
-    size: '55㎡',
-  },
-  {
-    id: 6,
-    title: 'Shinjuku Investment Tower',
-    location: 'Shinjuku, Tokyo',
-    price: '¥125,000,000',
-    type: 'Investment',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-    beds: 3,
-    baths: 2,
-    size: '95㎡',
-  },
-];
-
-export function FeaturedPropertiesCarousel() {
+export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, title, subtitle }: FeaturedPropertiesCarouselProps = {}) {
+  const { t, language } = useLanguage();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
+  const [properties, setProperties] = useState<FeaturedProperty[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [translationMap, setTranslationMap] = useState<Map<number, PropertyTranslationResult>>(new Map());
+  const { formatPrice } = useCurrency();
+  const displayTitle = title ?? t('section.featured.title');
+  const displaySubtitle = subtitle ?? t('section.featured.subtitle');
+
+  useEffect(() => {
+    async function fetchFeaturedProperties() {
+      setLoading(true);
+      const featured = await supabase
+        .from('properties')
+        .select('*')
+        .eq('is_featured', true)
+        .limit(12);
+      if (import.meta.env.DEV) {
+        console.log('[Featured] is_featured=true', {
+          count: featured.data?.length ?? 0,
+          error: featured.error?.message,
+          code: featured.error?.code,
+        });
+      }
+      let rows = featured.data ?? [];
+      if (rows.length === 0 && !featured.error) {
+        const fallback = await supabase
+          .from('properties')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(12);
+        if (fallback.data?.length) rows = fallback.data;
+        if (import.meta.env.DEV) console.log('[Featured] Fallback used', fallback.data?.length ?? 0);
+      }
+      setProperties(
+        Array.isArray(rows)
+          ? rows.map((row) => mapSupabaseRowToFeaturedProperty(row as SupabasePropertyRow))
+          : []
+      );
+      setLoading(false);
+    }
+    fetchFeaturedProperties();
+  }, []);
+
+  const propertiesIdsKey = properties.map((p) => p.id).sort((a, b) => a - b).join(',');
+  useEffect(() => {
+    if (language !== 'zh' || properties.length === 0) {
+      setTranslationMap(new Map());
+      return;
+    }
+    let cancelled = false;
+    const items = properties.map((p) => ({ id: p.id, title: p.title, address: p.location }));
+    fetchTranslationsForProperties(items, language).then((map) => {
+      if (!cancelled) setTranslationMap(map);
+    });
+    return () => { cancelled = true; };
+  }, [language, propertiesIdsKey]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -109,35 +103,36 @@ export function FeaturedPropertiesCarousel() {
   };
 
   return (
-    <section className="py-20 bg-white overflow-hidden">
+    <section className="py-10 md:py-20 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex items-end justify-between mb-12">
+        <div className="flex items-end justify-between mb-6 md:mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-2">Featured Properties</h2>
-            <p className="text-lg text-gray-600">Handpicked homes and investment opportunities in Japan</p>
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2">{displayTitle}</h2>
+            <p className="text-xs md:text-lg text-gray-600">{displaySubtitle}</p>
           </motion.div>
 
           <motion.a
             href="#"
-            className="hidden md:flex items-center gap-2 text-gray-600 hover:text-[#C1121F] transition-colors group"
+            onClick={onViewAllClick ? (e) => { e.preventDefault(); onViewAllClick(); } : undefined}
+            className="hidden md:flex items-center gap-2 text-gray-600 hover:text-[#C1121F] transition-colors group cursor-pointer"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <span className="font-medium">View all</span>
+            <span className="font-medium">{t('section.featured.view_all')}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </motion.a>
         </div>
 
         {/* Carousel Container */}
-        <div className="relative group/carousel">
+        <div className="relative group/carousel -mx-2 md:mx-0 px-2 md:px-0">
           {/* Left Arrow */}
           {showLeftArrow && (
             <button
@@ -160,10 +155,17 @@ export function FeaturedPropertiesCarousel() {
             </button>
           )}
 
+          {/* モバイル: 右端フェード＋スワイプ案内 */}
+          <div className="absolute right-0 top-0 bottom-4 w-16 bg-gradient-to-l from-white to-transparent pointer-events-none z-[1] md:hidden" aria-hidden />
+          <div className="absolute right-3 bottom-6 flex items-center gap-1 text-gray-400 text-xs pointer-events-none z-[1] md:hidden">
+            <span className="font-medium">{t('section.featured.swipe')}</span>
+            <ChevronRight className="w-4 h-4" />
+          </div>
+
           {/* Scrollable Cards Container */}
           <motion.div
             ref={scrollContainerRef}
-            className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory pb-4"
+            className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory pb-4 pl-px"
             onScroll={handleScroll}
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -174,9 +176,23 @@ export function FeaturedPropertiesCarousel() {
               msOverflowStyle: 'none',
             }}
           >
-            {properties.map((property, index) => (
+            {loading && (
+              <div className="flex-shrink-0 w-[340px] md:w-[380px] flex items-center justify-center py-12 text-gray-500">
+                {t('section.featured.loading')}
+              </div>
+            )}
+            {!loading && properties.length === 0 && (
+              <div className="flex-shrink-0 w-full flex items-center justify-center py-12 text-gray-500">
+                {t('section.featured.empty')}
+              </div>
+            )}
+            {!loading && properties.map((property, index) => (
               <motion.div
                 key={property.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelectProperty?.(property.id, property.type === 'Rent' ? 'rent' : 'buy')}
+                onKeyDown={(e) => e.key === 'Enter' && onSelectProperty?.(property.id, property.type === 'Rent' ? 'rent' : 'buy')}
                 className="flex-shrink-0 w-[340px] md:w-[380px] snap-start group/card cursor-pointer"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -188,54 +204,61 @@ export function FeaturedPropertiesCarousel() {
                   {/* Property Image */}
                   <div className="relative h-56 overflow-hidden">
                     <ImageWithFallback
-                      src={property.image}
-                      alt={property.title}
+                      src={getPropertyImageUrl(property.image, 'listing')}
+                      alt={language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}
                       className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-500"
+                      loading="lazy"
                     />
                     {/* Type Badge */}
                     <div
                       className={`absolute top-4 left-4 px-3 py-1.5 rounded-lg text-sm font-semibold ${
                         property.type === 'Buy'
                           ? 'bg-[#C1121F] text-white'
-                          : property.type === 'Investment'
-                          ? 'bg-gray-900 text-white'
                           : 'bg-white text-gray-900'
                       }`}
                     >
-                      {property.type === 'Rent' ? 'For Rent' : property.type === 'Buy' ? 'For Sale' : 'Investment'}
+                      {property.type === 'Rent' ? t('activity.for_rent') : t('activity.for_sale')}
                     </div>
                   </div>
 
                   {/* Property Details */}
                   <div className="p-6">
                     <h3 className="text-xl font-semibold text-gray-900 mb-1 group-hover/card:text-[#C1121F] transition-colors">
-                      {property.title}
+                      {language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-4">{property.location}</p>
+                    <p className="text-sm text-gray-500 mb-4">{language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.location) : property.location}</p>
 
                     {/* Property Stats */}
                     <div className="flex items-center gap-3 text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100">
-                      <span>{property.beds} bed</span>
+                      <span>{property.beds} {t('property.bed')}</span>
                       <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                      <span>{property.baths} bath</span>
+                      <span>{property.baths} {t('property.bath')}</span>
                       <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                       <span>{property.size}</span>
                     </div>
 
                     {/* Price */}
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-2xl font-bold text-gray-900">{property.price}</span>
-                      {property.type === 'Buy' && (
-                        <span className="text-sm text-gray-500">
-                          ~${(parseInt(property.price.replace(/[¥,]/g, '')) / 150000).toFixed(0)}k USD
-                        </span>
-                      )}
-                      {property.type === 'Rent' && (
-                        <span className="text-sm text-gray-500">
-                          ~${(parseInt(property.price.replace(/[¥,/mo]/g, '')) / 150).toFixed(1)}k USD
-                        </span>
-                      )}
+                    <div className="flex items-baseline justify-between mb-4 pb-4 border-b border-gray-100">
+                      <span className="text-2xl font-bold text-gray-900">
+                        {formatPrice(property.priceYen, property.type === 'Rent' ? 'rent' : 'buy')}
+                      </span>
                     </div>
+
+                    {/* Station Info */}
+                    {property.station && (
+                      <div className="flex items-center gap-2">
+                        <StationLineLogo 
+                          stationName={property.station} 
+                          size={18} 
+                          className="flex-shrink-0" 
+                        />
+                        <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <span className="text-sm text-gray-600">
+                          {getStationDisplay(property.station, language)}
+                          {property.walkingMinutes && ` • ${property.walkingMinutes} ${t('property.walk.min')}`}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -246,18 +269,19 @@ export function FeaturedPropertiesCarousel() {
         {/* Mobile View All Link */}
         <motion.a
           href="#"
-          className="flex md:hidden items-center justify-center gap-2 text-gray-600 hover:text-[#C1121F] transition-colors group mt-8"
+          onClick={onViewAllClick ? (e) => { e.preventDefault(); onViewAllClick(); } : undefined}
+          className="flex md:hidden items-center justify-center gap-2 text-gray-600 hover:text-[#C1121F] transition-colors group mt-8 cursor-pointer"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <span className="font-medium">View all properties</span>
+          <span className="font-medium">{t('section.featured.view_all_properties')}</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </motion.a>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }

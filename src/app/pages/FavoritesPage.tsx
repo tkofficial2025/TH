@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Heart, User, LogOut, Search, MapPin, Bed, Maximize2, SlidersHorizontal, X, Calendar } from 'lucide-react';
+import { Heart, User, LogOut, Search, MapPin, Bed, Maximize2, SlidersHorizontal, X, Calendar, ChevronDown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';

@@ -297,7 +297,7 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 0.6 }}
-      className="w-[92%] max-w-[92%] md:w-full md:max-w-5xl mx-auto overflow-visible"
+      className="w-full max-w-full md:max-w-5xl mx-auto overflow-visible px-2 md:px-0"
     >
       {/* Property Type Segmented Control */}
       <div className="flex justify-center mb-3 md:mb-4">
@@ -351,8 +351,9 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
         </div>
       </div>
 
-      {/* Main Search Bar（overflow-visible で Selected Area ドロップダウンが切れないように） */}
+      {/* Main Search Bar（モバイル: 1段目 Area/Bedrooms/Rent、2段目 Search。md以上: 1行に4要素） */}
       <div className="bg-white rounded-lg md:rounded-xl shadow-md md:shadow-lg border border-gray-100 overflow-visible">
+        {/* モバイル: 横スクロール廃止。1段目＝3項目、2段目＝Search */}
         <AnimatePresence mode="wait">
           <motion.div
             key={propertyType}
@@ -360,40 +361,43 @@ export function QuickPropertySearch({ onSearch }: QuickPropertySearchProps = {})
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-row flex-nowrap items-stretch divide-x divide-gray-100 min-w-0 overflow-visible"
+            className="overflow-visible"
           >
-            <div className="flex-1 min-w-[90px] sm:min-w-0 overflow-visible flex-shrink-0">
-              <AreaMultiSelect selectedAreas={selectedAreas} onChange={setSelectedAreas} areas={areaOptions} />
-            </div>
-            
-            <div className="flex-1 min-w-[80px] sm:min-w-0 overflow-visible flex-shrink-0">
-              <Dropdown
-                label={t('search.bedrooms.label')}
-                options={bedroomOptions}
-                value={bedroomCount}
-                onChange={setBedroomCount}
-                placeholder={t('search.budget.any')}
-              />
-            </div>
-            
-            <div className="flex-1 min-w-[140px] sm:min-w-0 overflow-visible flex-shrink-0">
-              <Dropdown
-                label={budgetLabel}
-                options={budgetOptions}
-                value={budget}
-                onChange={setBudget}
-                placeholder={t('search.budget.any_budget')}
-              />
-            </div>
-
-            <div className="flex-shrink-0">
-              <button
-                onClick={handleSearch}
-                className="w-full lg:w-auto px-2.5 sm:px-6 lg:px-8 py-2 md:py-3 lg:py-[18px] bg-[#C1121F] text-white font-semibold rounded-none lg:rounded-r-xl hover:bg-[#A00F1A] transition-all hover:scale-[1.02] flex items-center justify-center gap-1 sm:gap-2 group text-sm md:text-base"
-              >
-                <Search className="w-4 h-4 md:w-5 md:h-5 group-hover:scale-110 transition-transform" />
-                <span className="lg:inline">{t('search.btn_short')}</span>
-              </button>
+            <div className="flex flex-col md:flex-row md:flex-nowrap items-stretch min-w-0">
+              {/* 1段目: Area, Bedrooms, Monthly rent（モバイルは3列、md以上は3列+右にボタン） */}
+              <div className="flex flex-row flex-1 min-w-0 divide-x divide-gray-100">
+                <div className="flex-1 min-w-0 overflow-visible flex-shrink-0">
+                  <AreaMultiSelect selectedAreas={selectedAreas} onChange={setSelectedAreas} areas={areaOptions} />
+                </div>
+                <div className="flex-1 min-w-0 overflow-visible flex-shrink-0">
+                  <Dropdown
+                    label={t('search.bedrooms.label')}
+                    options={bedroomOptions}
+                    value={bedroomCount}
+                    onChange={setBedroomCount}
+                    placeholder={t('search.budget.any')}
+                  />
+                </div>
+                <div className="flex-1 min-w-0 overflow-visible flex-shrink-0">
+                  <Dropdown
+                    label={budgetLabel}
+                    options={budgetOptions}
+                    value={budget}
+                    onChange={setBudget}
+                    placeholder={t('search.budget.any_budget')}
+                  />
+                </div>
+              </div>
+              {/* Search ボタン: モバイルは2段目・全幅、md以上は1段目右端 */}
+              <div className="flex-shrink-0 border-t md:border-t-0 md:border-l border-gray-100">
+                <button
+                  onClick={handleSearch}
+                  className="w-full md:w-auto lg:px-8 px-4 py-3 md:py-3 lg:py-[18px] bg-[#C1121F] text-white font-semibold rounded-b-lg md:rounded-none md:rounded-r-xl hover:bg-[#A00F1A] transition-all hover:scale-[1.02] flex items-center justify-center gap-2 group text-sm md:text-base"
+                >
+                  <Search className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  <span>{t('search.btn_short')}</span>
+                </button>
+              </div>
             </div>
           </motion.div>
         </AnimatePresence>

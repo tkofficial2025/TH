@@ -1,3 +1,5 @@
+import { toDirectImageUrl } from './propertyImageUrl';
+
 /**
  * Supabase の properties テーブルから返る行（snake_case）
  */
@@ -98,10 +100,29 @@ function toOptionalNumber(v: unknown): number | undefined {
   return Number.isNaN(n) ? undefined : n;
 }
 
+/** images を配列に正規化（PostgREST の text[] / JSON 文字列 / 単一 URL に対応） */
+function normalizeImages(imagesRaw: unknown): string[] {
+  if (Array.isArray(imagesRaw)) {
+    return (imagesRaw as unknown[]).map((x) => String(x ?? '').trim()).filter(Boolean);
+  }
+  if (typeof imagesRaw === 'string' && imagesRaw.trim()) {
+    try {
+      const parsed = JSON.parse(imagesRaw) as unknown;
+      if (Array.isArray(parsed)) return (parsed as unknown[]).map((x) => String(x ?? '').trim()).filter(Boolean);
+      return [imagesRaw.trim()];
+    } catch {
+      return [imagesRaw.trim()];
+    }
+  }
+  return [];
+}
+
 export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<string, unknown>): Property {
   const r = row as Record<string, unknown>;
   const imagesRaw = get(r, 'images');
-  const images = Array.isArray(imagesRaw) ? (imagesRaw as unknown[]).map((x) => String(x ?? '')).filter(Boolean) : [];
+  const images = normalizeImages(imagesRaw);
+  const imageRaw = get(r, 'image');
+  const imageStr = imageRaw != null && imageRaw !== '' ? String(imageRaw).trim() : '';
   const typeVal = String(get(r, 'type') ?? 'rent').toLowerCase();
   const type = (typeVal === 'rent' || typeVal === 'buy') ? typeVal as 'rent' | 'buy' : 'rent';
   return {
@@ -112,7 +133,7 @@ export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<strin
     beds: Number(get(r, 'beds') ?? 0),
     size: Number(get(r, 'size') ?? 0),
     layout: String(get(r, 'layout') ?? ''),
-    image: String(get(r, 'image') ?? ''),
+    image: toDirectImageUrl(imageStr || (images[0] ?? '')),
     station: String(get(r, 'station') ?? ''),
     walkingMinutes: toNumber(get(r, 'walking_minutes', 'walkingMinutes')),
     type,
@@ -127,7 +148,12 @@ export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<strin
     deliveryBox: toBool(get(r, 'delivery_box', 'deliveryBox')),
     elevator: toBool(get(r, 'elevator')),
     southFacing: toBool(get(r, 'south_facing', 'southFacing')),
-    images: images.length > 0 ? images : undefined,
+    images: (() => {
+      if (images.length === 0) return undefined;
+      const usedFirstForMain = !imageStr && images.length > 0;
+      const rest = usedFirstForMain ? images.slice(1) : images;
+      return rest.length > 0 ? rest.map(toDirectImageUrl) : undefined;
+    })(),
     managementFee: toOptionalNumber(get(r, 'management_fee', 'managementFee')),
     deposit: toOptionalNumber(get(r, 'deposit')),
     keyMoney: toOptionalNumber(get(r, 'key_money', 'keyMoney')),

@@ -66,19 +66,20 @@ function getLinePriority(line: LineInfo): number {
   // Cランク（地域重要）
   if (line.lineCode === 'toei-i') return 19; // 都営三田線
   if (line.lineCode === 'toei-a') return 20; // 都営浅草線
-  if (line.lineCode === 'rinkai') return 21; // りんかい線
-  if (line.lineCode === 'yurikamome') return 22; // ゆりかもめ
-  if (line.lineCode === 'keisei') return 23; // 京成線
-  if (line.lineCode === 'tobu-tojo') return 24; // 東武東上線
+  if (line.lineCode === 'toei-arakawa') return 21; // 都電荒川線
+  if (line.lineCode === 'rinkai') return 22; // りんかい線
+  if (line.lineCode === 'yurikamome') return 23; // ゆりかもめ
+  if (line.lineCode === 'keisei') return 24; // 京成線
+  if (line.lineCode === 'tobu-tojo') return 25; // 東武東上線
 
   // その他の東京メトロ路線
-  if (line.company === 'Tokyo Metro') return 25;
+  if (line.company === 'Tokyo Metro') return 26;
   // その他の都営地下鉄路線
-  if (line.company === 'Toei') return 26;
+  if (line.company === 'Toei') return 27;
   // その他のJR路線
-  if (line.company === 'JR East') return 27;
+  if (line.company === 'JR East') return 28;
   // その他の私鉄
-  return 28;
+  return 29;
 }
 
 /**
@@ -363,11 +364,32 @@ export function getStationLines(stationName: string): LineInfo[] {
     });
   }
 
-  // 東京メトロ - 東西線（青）
+  // 東京メトロ - 東西線（青）※早稲田はJRではなく東西線・都電荒川線
   if (
     station.includes('tozai') ||
     station.includes('nakano') ||
-    station.includes('nishi-funabashi')
+    station.includes('nishi-funabashi') ||
+    station.includes('waseda') ||
+    station.includes('早稲田') ||
+    station.includes('早稻田') ||
+    station.includes('takadanobaba') ||
+    station.includes('kagurazaka') ||
+    station.includes('iidabashi') ||
+    station.includes('kudanshita') ||
+    station.includes('otemachi') ||
+    station.includes('nihonbashi') ||
+    station.includes('kayabacho') ||
+    station.includes('monzen-nakacho') ||
+    station.includes('kiba') ||
+    station.includes('toyocho') ||
+    station.includes('minami-sunamachi') ||
+    station.includes('nishi-kasai') ||
+    station.includes('kasai') ||
+    station.includes('urayasu') ||
+    station.includes('minami-gyotoku') ||
+    station.includes('gyotoku') ||
+    station.includes('myoden') ||
+    station.includes('baraki-nakayama')
   ) {
     lines.push({
       name: 'Tokyo Metro Tozai Line',
@@ -673,6 +695,48 @@ export function getStationLines(stationName: string): LineInfo[] {
       company: 'Toei',
       logoPath: '/station-logos/toei-e.png',
       lineCode: 'toei-e',
+    });
+  }
+
+  // 都電荒川線（Toden Arakawa Line）※早稲田はJRではなく東西線・都電荒川線
+  if (
+    station.includes('arakawa') ||
+    station.includes('waseda') ||
+    station.includes('早稲田') ||
+    station.includes('早稻田') ||
+    station.includes('omokagebashi') ||
+    station.includes('gakushuinshita') ||
+    station.includes('mukohara') ||
+    station.includes('kishibojimmae') ||
+    station.includes('oji-ekimae') ||
+    station.includes('asukayama') ||
+    station.includes('takinoguchi') ||
+    station.includes('nishigahara') ||
+    station.includes('koshinzuka') ||
+    station.includes('shin-koshinzuka') ||
+    station.includes('higashi-ikebukuro') ||
+    station.includes('otsuka-ekimae') ||
+    station.includes('sugamoinari') ||
+    station.includes('minowabashi') ||
+    station.includes('miyanoi') ||
+    station.includes('ogashiwa') ||
+    station.includes('arakawa-yuenchimae') ||
+    station.includes('arakawa-shakomae') ||
+    station.includes('kajiwara') ||
+    station.includes('sakaecho') ||
+    station.includes('machiya') ||
+    station.includes('arakawa-nichome') ||
+    station.includes('arakawa-nanachome') ||
+    station.includes('arakawa-kuyakushomae') ||
+    station.includes('sannowabashi')
+  ) {
+    lines.push({
+      name: 'Toei Arakawa Line (Toden)',
+      color: '#E46C04', // 都電オレンジ
+      abbreviation: 'SA', // 荒川
+      company: 'Toei',
+      logoPath: '/station-logos/toei-arakawa.png',
+      lineCode: 'toei-arakawa',
     });
   }
 

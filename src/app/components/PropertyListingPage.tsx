@@ -39,8 +39,21 @@ interface PropertyListingPageProps {
 export function PropertyListingPage({ selectedWard, onSelectProperty, initialSearchParams }: PropertyListingPageProps = {}) {
   const { formatPrice } = useCurrency();
   const { t, language } = useLanguage();
-  // デスクトップは地図表示ON、モバイルはOFF
-  const [showMap, setShowMap] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 768);
+  // デスクトップは地図表示ON、モバイルはOFF。言語切り替えで再マウントされても sessionStorage で復元
+  const SHOW_MAP_KEY = 'buy-listing-showMap';
+  const [showMap, setShowMapState] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const stored = sessionStorage.getItem(SHOW_MAP_KEY);
+    if (stored !== null) return stored === '1';
+    return window.innerWidth >= 768;
+  });
+  const setShowMap = (value: boolean | ((prev: boolean) => boolean)) => {
+    setShowMapState((prev) => {
+      const next = typeof value === 'function' ? value(prev) : value;
+      try { sessionStorage.setItem(SHOW_MAP_KEY, next ? '1' : '0'); } catch {}
+      return next;
+    });
+  };
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);

@@ -311,23 +311,42 @@ export function PropertiesMapView({
         setError(null);
       }
 
-      // 住所の配列を作成
-      const addresses = properties.map(p => p.address);
-      
-      // ジオコーディング（レート制限を考慮して順次実行）
-      const coordinates = await geocodeAddresses(addresses);
-      
-      if (cancelled) return;
-      
-      // プロパティIDと座標のマップを作成
       const coordMap = new Map<number, Coordinates>();
+
+      // 1. DB に保存済みの latitude/longitude がある物件はそのまま使用（ジオコーディング不要）
+      const withStoredCoords: { property: Property; index: number }[] = [];
+      const needGeocode: { property: Property; index: number }[] = [];
       properties.forEach((property, index) => {
-        const coord = coordinates[index];
-        if (coord) {
-          coordMap.set(property.id, coord);
+        const lat = property.latitude;
+        const lng = property.longitude;
+        if (
+          lat != null &&
+          lng != null &&
+          Number.isFinite(lat) &&
+          Number.isFinite(lng) &&
+          lat >= -90 &&
+          lat <= 90 &&
+          lng >= -180 &&
+          lng <= 180
+        ) {
+          coordMap.set(property.id, { lat, lng });
+          withStoredCoords.push({ property, index });
+        } else {
+          needGeocode.push({ property, index });
         }
       });
-      
+
+      // 2. 座標がない物件だけジオコーディング（件数が少ないときのみ軽量）
+      if (needGeocode.length > 0) {
+        const addresses = needGeocode.map(({ property }) => property.address);
+        const coordinates = await geocodeAddresses(addresses);
+        if (cancelled) return;
+        needGeocode.forEach(({ property }, i) => {
+          const coord = coordinates[i];
+          if (coord) coordMap.set(property.id, coord);
+        });
+      }
+
       if (!cancelled) {
         setPropertyCoordinates(coordMap);
         setLoading(false);

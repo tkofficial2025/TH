@@ -67,6 +67,8 @@ export interface Property {
   keyMoney?: number;
   initialFeesCreditCard?: boolean;
   propertyInformation?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 /** 行オブジェクトから値を取得（snake_case / camelCase 両対応） */
@@ -159,6 +161,8 @@ export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<strin
     keyMoney: toOptionalNumber(get(r, 'key_money', 'keyMoney')),
     initialFeesCreditCard: toBool(get(r, 'initial_fees_credit_card', 'initialFeesCreditCard')),
     propertyInformation: get(r, 'property_information', 'propertyInformation') != null ? String(get(r, 'property_information', 'propertyInformation')) : undefined,
+    latitude: toOptionalNumber(get(r, 'latitude')),
+    longitude: toOptionalNumber(get(r, 'longitude')),
   };
 }
 

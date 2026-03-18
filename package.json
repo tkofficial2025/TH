@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node scripts/generate-blog-posts.js && vite build",
     "dev": "vite",
-    "generate-blog": "node scripts/generate-blog-posts.js"
+    "generate-blog": "node scripts/generate-blog-posts.js",
+    "fill-coordinates": "node scripts/fill-property-coordinates.js"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

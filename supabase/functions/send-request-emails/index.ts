@@ -10,9 +10,15 @@ const OWNER_EMAIL = Deno.env.get('OWNER_EMAIL')?.trim() || '';
 
 /** Resend の From 形式: "Display Name <email@domain.com>" または "email@domain.com" */
 const FROM_EMAIL_REGEX = /^(.+\s+<)?[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(>)?$/;
+/** 客先 To アドレスの簡易検証 */
+const TO_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 function isValidFromEmail(value: string): boolean {
   return value.length > 0 && FROM_EMAIL_REGEX.test(value.replace(/\s/g, ' ').trim());
+}
+
+function isValidToEmail(value: string): boolean {
+  return value.length > 0 && value.length <= 254 && TO_EMAIL_REGEX.test(value.trim());
 }
 
 type TourPayload = {
@@ -166,14 +172,21 @@ serve(async (req) => {
       const dateLine = preferredDate ? `<p><strong>Preferred date:</strong> ${preferredDate}</p>` : '';
       const messageLine = message?.trim() ? `<p><strong>Message:</strong></p><p>${String(message).replace(/\n/g, '<br/>')}</p>` : '';
 
-      const customerHtml = `
+      const customerEmail = (email ?? '').trim();
+      if (!isValidToEmail(customerEmail)) {
+        console.warn('[send-request-emails] Consultation: invalid or missing customer email, skip customer mail', { email: customerEmail ? '(invalid format)' : '(empty)' });
+        results.push({ to: 'customer', ok: false, error: 'Invalid or missing customer email' });
+      } else {
+        const customerHtml = `
       <p>Hello ${name || 'there'},</p>
       <p>Thank you for requesting a free consultation.</p>
       <p>We've received your details and a staff member will contact you within 24 hours to schedule your consultation.</p>
       <p>Best regards,<br/>Tokyo Expat Housing</p>
     `;
-      const r1 = await sendResend(email, 'Free consultation request received – Tokyo Expat Housing', customerHtml);
-      results.push({ to: email, ok: r1.ok, error: r1.error });
+        const r1 = await sendResend(customerEmail, 'Free consultation request received – Tokyo Expat Housing', customerHtml);
+        results.push({ to: customerEmail, ok: r1.ok, error: r1.error });
+        if (!r1.ok) console.error('[send-request-emails] Consultation: customer email failed', { error: r1.error });
+      }
 
       if (OWNER_EMAIL) {
         const ownerHtml = `
@@ -196,7 +209,12 @@ serve(async (req) => {
         ? candidateDates.map((c) => `${c.date} ${c.timeRange}`).join('<br/>')
         : 'Not specified';
 
-      const customerHtml = `
+      const customerEmail = (userEmail ?? '').trim();
+      if (!isValidToEmail(customerEmail)) {
+        console.warn('[send-request-emails] Tour: invalid or missing customer email, skip customer mail', { userEmail: customerEmail ? '(invalid format)' : '(empty)' });
+        results.push({ to: 'customer', ok: false, error: 'Invalid or missing customer email' });
+      } else {
+        const customerHtml = `
       <p>Hello ${userName || 'there'},</p>
       <p>Thank you for requesting a room tour.</p>
       <p><strong>Property:</strong> ${title}</p>
@@ -205,8 +223,10 @@ serve(async (req) => {
       <p>A staff member will contact you within 24 hours to confirm your viewing.</p>
       <p>Best regards,<br/>Tokyo Expat Housing</p>
     `;
-      const r1 = await sendResend(userEmail, 'Room tour request received – Tokyo Expat Housing', customerHtml);
-      results.push({ to: userEmail, ok: r1.ok, error: r1.error });
+        const r1 = await sendResend(customerEmail, 'Room tour request received – Tokyo Expat Housing', customerHtml);
+        results.push({ to: customerEmail, ok: r1.ok, error: r1.error });
+        if (!r1.ok) console.error('[send-request-emails] Tour: customer email failed', { error: r1.error });
+      }
 
       if (OWNER_EMAIL) {
         const ownerHtml = `
@@ -223,15 +243,22 @@ serve(async (req) => {
       const { email, name, propertyTitle, propertyId } = payload;
       const title = propertyTitle || `Property #${propertyId}`;
 
-      const customerHtml = `
+      const customerEmail = (email ?? '').trim();
+      if (!isValidToEmail(customerEmail)) {
+        console.warn('[send-request-emails] Inquiry: invalid or missing customer email, skip customer mail', { email: customerEmail ? '(invalid format)' : '(empty)' });
+        results.push({ to: 'customer', ok: false, error: 'Invalid or missing customer email' });
+      } else {
+        const customerHtml = `
       <p>Hello ${name || 'there'},</p>
       <p>Thank you for your request for property details.</p>
       <p><strong>Property:</strong> ${title}</p>
       <p>A staff member will contact you within 24 hours with availability and full details.</p>
       <p>Best regards,<br/>Tokyo Expat Housing</p>
     `;
-      const r1 = await sendResend(email, 'Property details request received – Tokyo Expat Housing', customerHtml);
-      results.push({ to: email, ok: r1.ok, error: r1.error });
+        const r1 = await sendResend(customerEmail, 'Property details request received – Tokyo Expat Housing', customerHtml);
+        results.push({ to: customerEmail, ok: r1.ok, error: r1.error });
+        if (!r1.ok) console.error('[send-request-emails] Inquiry: customer email failed', { error: r1.error });
+      }
 
       if (OWNER_EMAIL) {
         const ownerHtml = `

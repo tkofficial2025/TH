@@ -867,6 +867,11 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
             <PropertiesMapView
               properties={properties}
               onPropertyClick={onSelectProperty}
+              onCoordinatesUpdated={(propertyId, lat, lng) => {
+                setAllProperties((prev) =>
+                  prev.map((p) => (p.id === propertyId ? { ...p, latitude: lat, longitude: lng } : p))
+                );
+              }}
               height="100%"
               className="w-full"
               translationMap={translationMap}
@@ -878,6 +883,11 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
             <PropertiesMapView
               properties={properties}
               onPropertyClick={onSelectProperty}
+              onCoordinatesUpdated={(propertyId, lat, lng) => {
+                setAllProperties((prev) =>
+                  prev.map((p) => (p.id === propertyId ? { ...p, latitude: lat, longitude: lng } : p))
+                );
+              }}
               height="100%"
               className="w-full"
               translationMap={translationMap}

@@ -267,6 +267,7 @@ const translations: Translations = {
           // Property Detail
           'property.back': { en: 'Back', zh: '返回' },
           'property.photo': { en: 'Photo', zh: '照片' },
+          'property.see_all_photos': { en: '+ {n} Photos', zh: '+ {n} 张照片' },
           'property.brochure': { en: 'Brochure', zh: '宣传册' },
           'property.favorite.added': { en: 'Added to Favorites.', zh: '已添加到收藏夹。' },
           'property.favorite.removed': { en: 'Removed from Favorites.', zh: '已从收藏夹移除。' },

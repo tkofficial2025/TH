@@ -915,6 +915,11 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                   onSelectProperty?.(propertyId, property.type);
                 }
               }}
+              onCoordinatesUpdated={(propertyId, lat, lng) => {
+                setAllProperties((prev) =>
+                  prev.map((p) => (p.id === propertyId ? { ...p, latitude: lat, longitude: lng } : p))
+                );
+              }}
               translationMap={translationMap}
             />
           </div>

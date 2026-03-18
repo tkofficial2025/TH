@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import Supercluster from 'supercluster';
 import { geocodeAddresses, type Coordinates } from '@/lib/geocoding';
 import { type Property } from '@/lib/properties';
+import { supabase } from '@/lib/supabase';
 import type { PropertyTranslationResult } from '@/lib/translate-property';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
@@ -20,6 +21,8 @@ fixLeafletDefaultIcon();
 interface PropertiesMapViewProps {
   properties: Property[];
   onPropertyClick?: (propertyId: number) => void;
+  /** ジオコーディングで座標を取得したときに親の一覧を更新するためのコールバック（カード側の位置情報を統一） */
+  onCoordinatesUpdated?: (propertyId: number, lat: number, lng: number) => void;
   className?: string;
   height?: string;
   translationMap?: Map<number, PropertyTranslationResult>;
@@ -336,14 +339,26 @@ export function PropertiesMapView({
         }
       });
 
-      // 2. 座標がない物件だけジオコーディング（件数が少ないときのみ軽量）
+      // 2. 座標がない物件だけジオコーディングし、取得できたら Supabase に保存＋親の一覧を更新（カード側の位置情報を統一）
       if (needGeocode.length > 0) {
         const addresses = needGeocode.map(({ property }) => property.address);
         const coordinates = await geocodeAddresses(addresses);
         if (cancelled) return;
         needGeocode.forEach(({ property }, i) => {
           const coord = coordinates[i];
-          if (coord) coordMap.set(property.id, coord);
+          if (coord) {
+            coordMap.set(property.id, coord);
+            onCoordinatesUpdated?.(property.id, coord.lat, coord.lng);
+            supabase
+              .rpc('update_property_coordinates', {
+                p_property_id: property.id,
+                p_lat: coord.lat,
+                p_lng: coord.lng,
+              })
+              .then(({ error }) => {
+                if (error) console.warn('[PropertiesMapView] save coords failed:', property.id, error.message);
+              });
+          }
         });
       }
 

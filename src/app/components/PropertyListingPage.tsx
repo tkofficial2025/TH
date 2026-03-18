@@ -856,6 +856,11 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
             <PropertiesMapView
               properties={properties}
               onPropertyClick={onSelectProperty}
+              onCoordinatesUpdated={(propertyId, lat, lng) => {
+                setAllProperties((prev) =>
+                  prev.map((p) => (p.id === propertyId ? { ...p, latitude: lat, longitude: lng } : p))
+                );
+              }}
               height="100%"
               className="w-full"
               translationMap={translationMap}

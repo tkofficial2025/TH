@@ -14,7 +14,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { Header } from '@/app/components/Header';
-import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
+import { PropertyGallery } from '@/app/components/PropertyGallery';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { PropertyMap } from '@/app/components/PropertyMap';
 import { supabase } from '@/lib/supabase';
@@ -24,7 +24,6 @@ import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { getStationDisplay } from '@/lib/stationNames';
 import { getPropertyTranslation } from '@/lib/translate-property';
-import { getPropertyImageUrl } from '@/lib/propertyImageUrl';
 import { PropertyDetailPageSkeleton } from '@/app/components/PropertyDetailPageSkeleton';
 import { toast } from 'sonner';
 
@@ -269,55 +268,12 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Main Image + Grid (multiple photos from DB) */}
-            {/* モバイル: 1枚メイン表示 + その他は横スクロール / デスクトップ: メイン+3枚縦 */}
-            <div className="space-y-2">
-              {/* モバイル: メイン画像1枚 */}
-              <div className="md:hidden relative aspect-[16/10] rounded-xl overflow-hidden bg-gray-200 w-full">
-                <ImageWithFallback
-                  src={getPropertyImageUrl(allPhotos[0] ?? property.image, 'detail')}
-                  alt={displayTitle}
-                  className="w-full h-full object-cover"
-                  loading="eager"
-                />
-              </div>
-              {/* モバイル: 2枚目以降を横スクロール */}
-              {allPhotos.length > 1 && (
-                <div className="md:hidden overflow-x-auto pb-1 -mx-1">
-                  <div className="flex gap-2 min-w-0">
-                    {allPhotos.slice(1).map((url, i) => (
-                      <div key={i} className="flex-shrink-0 w-28 h-20 rounded-lg overflow-hidden bg-gray-200">
-                        <ImageWithFallback src={getPropertyImageUrl(url, 'detail')} alt="" className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {/* デスクトップ: メイン横に3枚縦 */}
-              <div className="hidden md:grid grid-cols-4 gap-2">
-                <div className="col-span-3 relative aspect-[16/10] rounded-xl overflow-hidden bg-gray-200">
-                  <ImageWithFallback
-                    src={getPropertyImageUrl(allPhotos[0] ?? property.image, 'detail')}
-                    alt={displayTitle}
-                    className="w-full h-full object-cover"
-                    loading="eager"
-                  />
-                </div>
-                <div className="col-span-1 grid grid-rows-3 gap-2">
-                  {allPhotos.slice(1, 4).length > 0
-                    ? allPhotos.slice(1, 4).map((url, i) => (
-                        <div key={i} className="rounded-lg overflow-hidden bg-gray-200">
-                          <ImageWithFallback src={getPropertyImageUrl(url, 'detail')} alt="" className="w-full h-full object-cover min-h-[80px]" />
-                        </div>
-                      ))
-                    : [1, 2, 3].map((i) => (
-                        <div key={i} className="rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
-                          <span className="text-gray-500 text-xs">{t('property.photo')} {i + 1}</span>
-                        </div>
-                      ))}
-                </div>
-              </div>
-            </div>
+            {/* ギャラリー: デスクトップ=1大+2x2、全写真はライトボックス。モバイル=タップで拡大・スワイプで切り替え */}
+            <PropertyGallery
+              photos={allPhotos}
+              alt={displayTitle}
+              seeAllLabel={(n) => t('property.see_all_photos').replace('{n}', String(n))}
+            />
 
             {/* Location + Title + Station */}
             <p className="text-gray-600">{displayAddress}</p>
@@ -524,9 +480,11 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
             {property.address && (
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('property.location')}</h3>
-                <PropertyMap 
-                  address={displayAddress} 
+                <PropertyMap
+                  address={displayAddress}
                   title={displayTitle}
+                  latitude={property.latitude}
+                  longitude={property.longitude}
                   height="400px"
                 />
               </div>

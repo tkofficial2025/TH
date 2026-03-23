@@ -15,6 +15,7 @@ import { MapTilerLayer } from '@/app/components/MapTilerLayer';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { fixLeafletDefaultIcon } from '@/lib/leafletDefaultIcon';
+import { getListingAddressLineMatchingMap } from '@/lib/listingMapDisplay';
 
 fixLeafletDefaultIcon();
 
@@ -159,9 +160,7 @@ function ClusterUpdater({
           const displayTitle = language === 'zh' && translationMap?.get(property.id)?.title_zh
             ? translationMap.get(property.id)!.title_zh
             : property.title;
-          const displayAddress = language === 'zh' && translationMap?.get(property.id)?.address_zh
-            ? translationMap.get(property.id)!.address_zh
-            : property.address;
+          const displayAddress = getListingAddressLineMatchingMap(property, language, translationMap);
           const priceText = formatPrice(property.price, property.type === 'rent' ? 'rent' : 'buy');
           // テーマ色に統一
           const themeColor = '#C1121F';

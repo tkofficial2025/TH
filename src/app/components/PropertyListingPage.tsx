@@ -28,6 +28,7 @@ import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperti
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { getStationDisplay } from '@/lib/stationNames';
 import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
+import { getListingAddressLineMatchingMap } from '@/lib/listingMapDisplay';
 import { PropertyCardSkeleton } from '@/app/components/PropertyCardSkeleton';
 
 interface PropertyListingPageProps {
@@ -738,7 +739,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
               )}
               {!loading && !error && sortedProperties.map((property, index) => {
                 const displayTitle = language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title;
-                const displayAddress = language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address;
+                const displayAddress = getListingAddressLineMatchingMap(property, language, translationMap);
                 return (
                 <motion.div
                   key={property.id}
@@ -843,8 +844,13 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
           {/* Right Side - Map (Full Screen) */}
           <div className="flex-1 relative z-0">
             <PropertiesMapView
-              properties={properties}
+              properties={sortedProperties}
               onPropertyClick={onSelectProperty}
+              onCoordinatesUpdated={(propertyId, lat, lng) => {
+                setAllProperties((prev) =>
+                  prev.map((p) => (p.id === propertyId ? { ...p, latitude: lat, longitude: lng } : p))
+                );
+              }}
               height="100%"
               className="w-full"
               translationMap={translationMap}
@@ -854,7 +860,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
           {/* モバイル: 地図のみフル表示 */}
           <div className="md:hidden relative z-0 w-full" style={{ height: 'calc(100vh - 160px)' }}>
             <PropertiesMapView
-              properties={properties}
+              properties={sortedProperties}
               onPropertyClick={onSelectProperty}
               onCoordinatesUpdated={(propertyId, lat, lng) => {
                 setAllProperties((prev) =>
@@ -925,7 +931,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {sortedProperties.map((property, index) => {
                 const displayTitle = language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title;
-                const displayAddress = language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address;
+                const displayAddress = getListingAddressLineMatchingMap(property, language, translationMap);
                 return (
                 <motion.div
                   key={property.id}

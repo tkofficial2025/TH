@@ -26,6 +26,7 @@ import { useLanguage } from '@/app/contexts/LanguageContext';
 import { getStationDisplay } from '@/lib/stationNames';
 import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
 import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
+import { getListingAddressLineMatchingMap } from '@/lib/listingMapDisplay';
 
 const SORT_LABEL_KEYS: Record<SortOption, string> = {
   'popularity': 'sort.popularity',
@@ -699,7 +700,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {sortedProperties.map((property, index) => {
                   const displayTitle = language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title;
-                  const displayAddress = language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address;
+                  const displayAddress = getListingAddressLineMatchingMap(property, language, translationMap);
                   return (
                   <motion.div
                     key={property.id}
@@ -802,7 +803,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
               <div className="space-y-4">
                 {sortedProperties.map((property, index) => {
                   const displayTitle = language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title;
-                  const displayAddress = language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.address) : property.address;
+                  const displayAddress = getListingAddressLineMatchingMap(property, language, translationMap);
                   return (
                   <motion.div
                     key={property.id}

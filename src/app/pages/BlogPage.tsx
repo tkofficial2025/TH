@@ -158,9 +158,6 @@ export function BlogPage({ onNavigate, onSelectPost }: BlogPageProps) {
           <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
             <p className="text-sm md:text-base font-semibold">{t('blog.error')}</p>
             <p className="text-sm">{error}</p>
-            <p className="text-xs mt-2">
-              WordPress API URL: {WORDPRESS_API_URL}
-            </p>
           </div>
         )}
 
@@ -172,10 +169,73 @@ export function BlogPage({ onNavigate, onSelectPost }: BlogPageProps) {
           </div>
         )}
 
-        {/* Preparing メッセージ */}
-        <div className="text-center py-20">
-          <p className="text-sm md:text-base font-semibold text-gray-600">{t('blog.preparing')}</p>
-        </div>
+        {/* 記事一覧 */}
+        {!loading && !error && posts.length === 0 && (
+          <div className="text-center py-20">
+            <p className="text-sm md:text-base font-semibold text-gray-600">{t('blog.preparing')}</p>
+          </div>
+        )}
+        {!loading && !error && posts.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {posts.map((post) => {
+              const featuredImage = getFeaturedImage(post);
+              const postCategories = getPostCategories(post);
+              const excerptText = stripHtml(post.excerpt?.rendered || post.content?.rendered || '').trim();
+              const preview = excerptText.length > 140 ? `${excerptText.slice(0, 140)}...` : excerptText;
+
+              return (
+                <article
+                  key={post.id}
+                  className="group bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all"
+                >
+                  <button
+                    type="button"
+                    onClick={() => onSelectPost?.(post.id)}
+                    className="w-full text-left"
+                  >
+                    <div className="h-48 bg-gray-100 overflow-hidden">
+                      {featuredImage ? (
+                        <img
+                          src={featuredImage}
+                          alt={stripHtml(post.title.rendered)}
+                          className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                          No Image
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-5">
+                      {postCategories.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {postCategories.map((cat) => (
+                            <span
+                              key={cat.id}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-medium"
+                            >
+                              <Tag className="w-3.5 h-3.5" />
+                              {cat.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <h2
+                        className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2"
+                        dangerouslySetInnerHTML={{ __html: post.title.rendered }}
+                      />
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-3">{preview}</p>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Calendar className="w-4 h-4" />
+                        <time dateTime={post.date}>{formatDate(post.date)}</time>
+                      </div>
+                    </div>
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

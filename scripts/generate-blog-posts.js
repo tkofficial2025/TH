@@ -36,11 +36,11 @@ function generateBlogPosts() {
         rendered: htmlContent,
       },
       excerpt: {
-        rendered: content.substring(0, 150) + '...',
+        rendered: data.excerpt || content.replace(/#{1,6}\s/g, '').replace(/\*\*/g, '').substring(0, 150) + '...',
       },
       date: data.date || new Date().toISOString(),
       category: data.category || 'Uncategorized',
-      featuredImage: data.featuredImage || null,
+      featuredImage: data.featuredImage || '/tokyo.jpg',
       slug: file.replace('.md', ''),
     });
   }

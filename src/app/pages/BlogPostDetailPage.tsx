@@ -36,6 +36,7 @@ export function BlogPostDetailPage({ postId, onNavigate, onBack }: BlogPostDetai
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     setLoading(true);

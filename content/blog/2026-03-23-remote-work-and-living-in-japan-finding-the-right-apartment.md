@@ -6,6 +6,7 @@ excerpt: "** Finding a remote-work-friendly apartment in Japan requires understa
 metaDescription: "** Guide to finding remote work apartments in Japan: layouts, costs, internet, visas, and best areas for expats working from home in Tokyo and beyond."
 keywords: ["** remote work Japan apartment", "work from home Japan", "Japan apartment for foreigners", "digital nomad Japan", "rent apartment Tokyo remote work", "Japan expat housing", "living in Japan working remotely"]
 featuredImage: "https://images.pexels.com/photos/4050299/pexels-photo-4050299.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+photoCredit: "Photo by Vlada Karpovich on Pexels"
 ---
 # Remote Work and Living in Japan: Finding the Right Apartment
 

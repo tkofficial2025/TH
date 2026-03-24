@@ -13,23 +13,21 @@ interface BlogPostsData {
   }>;
 }
 
-let cachedPosts: BlogPost[] | null = null;
-
 export async function getBlogPosts(): Promise<BlogPost[]> {
-  // キャッシュがあれば返す
-  if (cachedPosts) {
-    return cachedPosts;
-  }
-
   try {
-    const response = await fetch('/blog-posts.json');
+    // キャッシュバスターでViteのキャッシュを無効化（ローカル開発時に即反映）
+    const response = await fetch(`/blog-posts.json?t=${Date.now()}`);
     if (!response.ok) {
       throw new Error('Failed to fetch blog posts');
     }
     const data: BlogPostsData = await response.json();
 
-    // WordPress API形式に変換
-    cachedPosts = data.posts.map((post) => ({
+    // WordPress API形式に変換（slug重複を除去してから変換）
+    const uniquePosts = data.posts.filter(
+      (post, index, self) => self.findIndex((p) => p.slug === post.slug) === index
+    );
+
+    return uniquePosts.map((post) => ({
       id: post.id,
       title: post.title,
       content: post.content,
@@ -52,8 +50,6 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
         ],
       },
     }));
-
-    return cachedPosts;
   } catch (error) {
     console.error('Error loading blog posts:', error);
     return [];

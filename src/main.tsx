@@ -1,10 +1,20 @@
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { Toaster } from "sonner";
+import * as Sentry from "@sentry/react";
 import App from "./app/App.tsx";
 import { LanguageProvider, useLanguage } from "./app/contexts/LanguageContext";
 import { CurrencyProvider } from "./app/contexts/CurrencyContext";
 import "./styles/index.css";
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+  environment: import.meta.env.MODE,
+  // 本番のみ有効化
+  enabled: import.meta.env.PROD,
+  tracesSampleRate: 0.1,
+  replaysOnErrorSampleRate: 0,
+});
 
 function CurrencyProviderWithLanguage({ children }: { children: React.ReactNode }) {
   const { language } = useLanguage();

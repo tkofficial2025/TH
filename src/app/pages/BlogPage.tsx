@@ -1,13 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Header } from '@/app/components/Header';
-import { Calendar, Tag } from 'lucide-react';
+import { ArrowRight, Calendar, Sparkles, Tag } from 'lucide-react';
 import { getBlogPosts } from '@/lib/blogPosts';
 import { useLanguage } from '@/app/contexts/LanguageContext';
-
-interface BlogPostDetailPageProps {
-  onNavigate: (page: 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog') => void;
-  onSelectPost: (postId: number) => void;
-}
+import type { NavigateOptions, Page } from '@/lib/routes';
 
 interface BlogPost {
   id: number;
@@ -36,7 +32,7 @@ interface BlogPost {
 }
 
 interface BlogPageProps {
-  onNavigate: (page: 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog') => void;
+  onNavigate: (page: Page, options?: NavigateOptions) => void;
   onSelectPost?: (postId: number) => void;
 }
 
@@ -123,7 +119,7 @@ export function BlogPage({ onNavigate, onSelectPost }: BlogPageProps) {
     <div className="min-h-screen bg-white">
       <Header onNavigate={onNavigate} currentPage="blog" />
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-6 pt-20 pb-12 md:pt-28 md:pb-16">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">{t('blog.title')}</h1>
 
         {/* カテゴリーフィルター */}
@@ -235,6 +231,53 @@ export function BlogPage({ onNavigate, onSelectPost }: BlogPageProps) {
               );
             })}
           </div>
+        )}
+
+        {!loading && !error && (
+          <section
+            className="mt-16 rounded-2xl border border-stone-200/80 bg-gradient-to-br from-[#C1121F]/[0.06] via-white to-stone-50 p-8 shadow-[0_12px_40px_-16px_rgba(0,0,0,0.1)] sm:p-10"
+            aria-labelledby="blog-list-cta-heading"
+          >
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="max-w-xl">
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#9f121b] ring-1 ring-[#C1121F]/15">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Tokyo Expat Housing
+                </div>
+                <h2 id="blog-list-cta-heading" className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                  {t('blog.list_cta_title')}
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-gray-600 sm:text-base">{t('blog.list_cta_desc')}</p>
+                <p className="mt-3 text-xs text-gray-500">{t('blog.list_cta_hint')}</p>
+              </div>
+              <div className="flex shrink-0 flex-col gap-3 sm:flex-row md:flex-col lg:flex-row">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('consultation', { consultationFromBlog: true })}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#C1121F] px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:bg-[#A00F1A]"
+                >
+                  {t('blog.list_cta_consult')}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                <div className="flex flex-col gap-2 sm:flex-row md:flex-col">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('rent')}
+                    className="rounded-full border border-stone-300 bg-white px-5 py-3 text-sm font-medium text-gray-800 transition hover:bg-stone-50"
+                  >
+                    {t('blog.list_cta_rent')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('buy')}
+                    className="rounded-full border border-stone-300 bg-white px-5 py-3 text-sm font-medium text-gray-800 transition hover:bg-stone-50"
+                  >
+                    {t('blog.list_cta_buy')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
         )}
       </div>
     </div>

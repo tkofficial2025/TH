@@ -27,6 +27,7 @@ import { ProfilePage } from '@/app/pages/ProfilePage';
 import type { HeroSearchParams } from '@/lib/searchFilters';
 import {
   type Page,
+  type NavigateOptions,
   getPageFromPath,
   getPathFromPage,
   getPathname,
@@ -73,15 +74,21 @@ function AppContent() {
       }
       const cat = params.get('category');
       setSelectedCategory(cat ?? null);
-      const postId = params.get('post');
-      setSelectedBlogPostId(postId && !isNaN(Number(postId)) ? Number(postId) : null);
+      const postParam = params.get('post');
+      if (page === 'blog') {
+        setSelectedBlogPostId(
+          postParam && !isNaN(Number(postParam)) ? Number(postParam) : null
+        );
+      } else {
+        setSelectedBlogPostId(null);
+      }
     };
     syncFromUrl();
     window.addEventListener('popstate', syncFromUrl);
     return () => window.removeEventListener('popstate', syncFromUrl);
   }, []);
 
-  const handleNavigate = (page: Page, options?: { categoryId?: string; blogPostId?: number }) => {
+  const handleNavigate = (page: Page, options?: NavigateOptions) => {
     if (page === 'home') {
       setSelectedWard(null);
       setHeroSearchParams(null);
@@ -92,12 +99,22 @@ function AppContent() {
     setSelectedCategory(options?.categoryId ?? null);
     setCurrentPage(page);
     const path = getPathFromPage(page, language);
-    const search =
-      page === 'category' && options?.categoryId
-        ? `?category=${encodeURIComponent(options.categoryId)}`
-        : page === 'blog' && options?.blogPostId != null
-          ? `?post=${options.blogPostId}`
-          : '';
+    let search = '';
+    if (page === 'category' && options?.categoryId) {
+      search = `?category=${encodeURIComponent(options.categoryId)}`;
+    } else if (page === 'blog' && options?.blogPostId != null) {
+      search = `?post=${options.blogPostId}`;
+    } else if (page === 'consultation' && options?.consultationFromBlog) {
+      const p = new URLSearchParams();
+      p.set('from', 'blog');
+      if (options.consultationPostId != null) {
+        p.set('post', String(options.consultationPostId));
+      }
+      if (options.consultationSlug) {
+        p.set('slug', options.consultationSlug);
+      }
+      search = `?${p.toString()}`;
+    }
     pushState(path, search || undefined);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

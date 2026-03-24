@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { remark } from 'remark';
+import remarkGfm from 'remark-gfm';
 import html from 'remark-html';
 import { fileURLToPath } from 'url';
 
@@ -24,7 +25,8 @@ function generateBlogPosts() {
     const { data, content } = matter(fileContents);
 
     // MarkdownをHTMLに変換
-    const processedContent = remark().use(html).processSync(content);
+    // GFM: | テーブル |、取り消し線、タスクリスト等を HTML に変換
+    const processedContent = remark().use(remarkGfm).use(html).processSync(content);
     const htmlContent = processedContent.toString();
 
     posts.push({

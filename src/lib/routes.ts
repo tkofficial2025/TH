@@ -1,6 +1,16 @@
 /**
  * ページとURLパスの対応。ブラウザの履歴と同期してページごとにURLを変える。
  */
+/** App の handleNavigate に渡すオプション（URL クエリと同期） */
+export type NavigateOptions = {
+  categoryId?: string;
+  blogPostId?: number;
+  /** /consultation?from=blog&post=&slug= */
+  consultationFromBlog?: boolean;
+  consultationPostId?: number;
+  consultationSlug?: string;
+};
+
 export type Page =
   | 'home'
   | 'buy'

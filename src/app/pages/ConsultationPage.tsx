@@ -4,6 +4,8 @@ import { Calendar, Mail, MessageSquare, Phone, User, Building2, ChevronDown, Sea
 import { Header } from '@/app/components/Header';
 import { sendRequestEmails } from '@/lib/send-request-emails';
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getBlogPostById } from '@/lib/blogPosts';
+import { stripHtml } from '@/lib/stripHtml';
 
 interface ConsultationPageProps {
   onNavigate?: (page: 'home' | 'buy' | 'rent' | 'consultation') => void;
@@ -55,6 +57,9 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
   const [preferredDate, setPreferredDate] = useState('');
   const [preferOnlineMeeting, setPreferOnlineMeeting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [blogFromBlog, setBlogFromBlog] = useState(false);
+  const [blogRefTitle, setBlogRefTitle] = useState<string | null>(null);
+  const messagePrefilledFromBlogRef = useRef(false);
 
   const isOther = phoneCountry === OTHER_DIAL;
   const displayDial = isOther ? (phoneCountryCustom || OTHER_DIAL) : phoneCountry;
@@ -114,6 +119,16 @@ export function ConsultationPage({ onNavigate }: ConsultationPageProps) {
               {t('consult.desc')}
             </p>
           </motion.div>
+
+          {blogFromBlog && !submitted && (
+            <div className="mb-10 max-w-2xl mx-auto rounded-2xl border border-[#C1121F]/15 bg-gradient-to-br from-[#C1121F]/[0.06] to-white px-5 py-4 text-left shadow-sm">
+              <p className="text-sm font-semibold text-[#C1121F]">{t('consult.blog_banner_title')}</p>
+              {blogRefTitle && (
+                <p className="mt-2 text-sm font-medium text-gray-900 line-clamp-2">{blogRefTitle}</p>
+              )}
+              <p className="mt-2 text-sm leading-relaxed text-gray-600">{t('consult.blog_banner_desc')}</p>
+            </div>
+          )}
 
           {submitted ? (
             <motion.div

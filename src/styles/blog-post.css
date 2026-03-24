@@ -1,0 +1,189 @@
+/**
+ * ブログ記事本文（dangerouslySetInnerHTML）用。
+ * @tailwindcss/typography 未使用のため、HTML 要素を明示的に整える。
+ */
+.blog-post-content {
+  font-size: 1.0625rem;
+  line-height: 1.78;
+  color: #374151;
+  letter-spacing: 0.01em;
+  /* 横に長いテーブルはこのブロック内で横スクロール */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.blog-post-content > *:first-child {
+  margin-top: 0;
+}
+
+.blog-post-content h1,
+.blog-post-content h2,
+.blog-post-content h3,
+.blog-post-content h4 {
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+.blog-post-content h1 {
+  font-size: 1.875rem;
+  margin-top: 2.25rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.blog-post-content h2 {
+  font-size: 1.5rem;
+  margin-top: 2.5rem;
+  margin-bottom: 0.875rem;
+}
+
+.blog-post-content h3 {
+  font-size: 1.25rem;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.blog-post-content h4 {
+  font-size: 1.125rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.blog-post-content p {
+  margin-top: 0;
+  margin-bottom: 1.125rem;
+}
+
+.blog-post-content ul,
+.blog-post-content ol {
+  margin-left: 0;
+  margin-bottom: 1.25rem;
+  padding-left: 1.25rem;
+}
+
+.blog-post-content li {
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.blog-post-content li::marker {
+  color: #c1121f;
+}
+
+.blog-post-content ul li {
+  list-style-type: disc;
+}
+
+.blog-post-content ol li {
+  list-style-type: decimal;
+}
+
+.blog-post-content a {
+  color: #c1121f;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: opacity 0.15s ease;
+}
+
+.blog-post-content a:hover {
+  opacity: 0.85;
+}
+
+.blog-post-content strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+.blog-post-content blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid rgba(193, 18, 31, 0.45);
+  background: linear-gradient(90deg, rgba(193, 18, 31, 0.04) 0%, rgba(250, 250, 249, 0.9) 100%);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-style: italic;
+  color: #4b5563;
+}
+
+.blog-post-content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.875em;
+  background: #f3f4f6;
+  color: #1f2937;
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.blog-post-content pre {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  background: #1f2937;
+  color: #e5e7eb;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.blog-post-content pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+.blog-post-content table {
+  /* GFM テーブル: 列が多いときは親の overflow-x で横スクロール */
+  width: max-content;
+  min-width: 100%;
+  margin: 1.5rem 0;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.blog-post-content thead {
+  background: linear-gradient(180deg, #fafaf9 0%, #f5f5f4 100%);
+}
+
+.blog-post-content th,
+.blog-post-content td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  vertical-align: top;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.blog-post-content th {
+  font-weight: 600;
+  color: #111827;
+}
+
+.blog-post-content tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.blog-post-content hr {
+  margin: 2.5rem 0;
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
+}
+
+.blog-post-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}

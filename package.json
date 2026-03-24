@@ -79,6 +79,7 @@
     "@vitejs/plugin-react": "4.3.4",
     "gray-matter": "^4.0.3",
     "remark": "^15.0.1",
+    "remark-gfm": "^4.0.1",
     "remark-html": "^16.0.1",
     "tailwindcss": "4.1.12",
     "vite": "^5.2.0"

@@ -20,7 +20,7 @@ import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { PropertiesMapView } from '@/app/components/PropertiesMapView';
 import { supabase } from '@/lib/supabase';
 import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
-import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
+import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty, getPropertyGalleryOrderedUrls } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { filterPropertiesByHeroParams, type HeroSearchParams } from '@/lib/searchFilters';
 import { searchProperties } from '@/lib/fullTextSearch';
@@ -755,9 +755,8 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                 >
                   {/* Image - モバイル: メイン大・その他小 / PC: 単一 */}
                   {(() => {
-                    const allImages = (property.images?.length ? property.images : [property.image]) as string[];
+                    const allImages = getPropertyGalleryOrderedUrls(property);
                     const mainImage = allImages[0] ?? property.image;
-                    const otherImages = allImages.slice(1);
                     return (
                       <>
                         <div className="md:hidden">
@@ -787,18 +786,9 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                               </div>
                             </div>
                           </div>
-                          {otherImages.length > 0 && (
-                            <div className="flex gap-1.5 p-2 overflow-x-auto bg-gray-50">
-                              {otherImages.map((url, i) => (
-                                <div key={i} className="relative h-14 w-20 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
-                                  <ImageWithFallback src={url} alt="" className="w-full h-full object-cover" />
-                                </div>
-                              ))}
-                            </div>
-                          )}
                         </div>
                         <div className="hidden md:block relative h-52 w-full overflow-hidden">
-                          <ImageWithFallback src={property.image} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          <ImageWithFallback src={mainImage} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                           <div className="absolute top-2 left-2 flex gap-2 z-10">
                             {property.isFeatured && <span className="px-2 py-0.5 bg-[#C1121F] text-white text-xs font-semibold rounded-full">{t('listing.badge.popular')}</span>}
@@ -947,9 +937,8 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                 >
                   {/* Image - モバイル: メイン大・その他小 / PC: 単一 */}
                   {(() => {
-                    const allImages = (property.images?.length ? property.images : [property.image]) as string[];
+                    const allImages = getPropertyGalleryOrderedUrls(property);
                     const mainImage = allImages[0] ?? property.image;
-                    const otherImages = allImages.slice(1);
                     return (
                       <>
                         <div className="md:hidden">
@@ -979,18 +968,9 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
                               </div>
                             </div>
                           </div>
-                          {otherImages.length > 0 && (
-                            <div className="flex gap-1.5 p-2 overflow-x-auto bg-gray-50">
-                              {otherImages.map((url, i) => (
-                                <div key={i} className="relative h-14 w-20 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
-                                  <ImageWithFallback src={url} alt="" className="w-full h-full object-cover" />
-                                </div>
-                              ))}
-                            </div>
-                          )}
                         </div>
                         <div className="hidden md:block relative h-52 w-full overflow-hidden">
-                          <ImageWithFallback src={property.image} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          <ImageWithFallback src={mainImage} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                           <div className="absolute top-2 left-2 flex gap-2 z-10">
                             {property.isFeatured && <span className="px-2 py-0.5 bg-[#C1121F] text-white text-xs font-semibold rounded-full">{t('listing.badge.popular')}</span>}

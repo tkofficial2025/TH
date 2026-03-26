@@ -10,8 +10,10 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
     setDidError(true)
   }
 
-  const { src, alt, style, className, loading, ...rest } = props
+  const { src, alt, style, className, loading, decoding, fetchPriority, ...rest } = props
   const effectiveLoading = loading ?? 'lazy'
+  const effectiveDecoding = decoding ?? 'async'
+  const effectiveFetchPriority = fetchPriority ?? 'auto'
 
   return didError ? (
     <div
@@ -19,10 +21,10 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
       style={style}
     >
       <div className="flex items-center justify-center w-full h-full">
-        <img src={ERROR_IMG_SRC} alt="Error loading image" loading={effectiveLoading} {...rest} data-original-url={src} />
+        <img src={ERROR_IMG_SRC} alt="Error loading image" loading={effectiveLoading} decoding={effectiveDecoding} fetchPriority={effectiveFetchPriority} {...rest} data-original-url={src} />
       </div>
     </div>
   ) : (
-    <img src={src} alt={alt} className={className} style={style} loading={effectiveLoading} {...rest} onError={handleError} />
+    <img src={src} alt={alt} className={className} style={style} loading={effectiveLoading} decoding={effectiveDecoding} fetchPriority={effectiveFetchPriority} {...rest} onError={handleError} />
   )
 }

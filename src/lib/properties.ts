@@ -119,6 +119,25 @@ function normalizeImages(imagesRaw: unknown): string[] {
   return [];
 }
 
+/**
+ * 詳細ギャラリーと同じ順序: メイン（image）→ サブ（images）。
+ * 一覧で `images` のみを先に使っていたため、DB に image と images の両方がある物件で順がずれていた。
+ * 同一 URL の重複は先頭を残して除去する。
+ */
+export function getPropertyGalleryOrderedUrls(property: Pick<Property, 'image' | 'images'>): string[] {
+  const combined = [property.image, ...(property.images ?? [])]
+    .map((u) => String(u ?? '').trim())
+    .filter(Boolean);
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const u of combined) {
+    if (seen.has(u)) continue;
+    seen.add(u);
+    out.push(u);
+  }
+  return out;
+}
+
 export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<string, unknown>): Property {
   const r = row as Record<string, unknown>;
   const imagesRaw = get(r, 'images');

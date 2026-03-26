@@ -19,7 +19,7 @@ import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { PropertyMap } from '@/app/components/PropertyMap';
 import { supabase } from '@/lib/supabase';
 import { sendRequestEmails } from '@/lib/send-request-emails';
-import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
+import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty, getPropertyGalleryOrderedUrls } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { getStationDisplay } from '@/lib/stationNames';
@@ -238,7 +238,7 @@ export function PropertyDetailPage({ propertyId, source, onNavigate, onBack }: P
   const displayTitle = language === 'zh' && translation?.title_zh ? translation.title_zh : property.title;
   const displayAddress = language === 'zh' && translation?.address_zh ? translation.address_zh : property.address;
 
-  const allPhotos = [property.image, ...(property.images ?? [])].filter(Boolean) as string[];
+  const allPhotos = getPropertyGalleryOrderedUrls(property);
   const featureFlags = [
     property.petFriendly && { label: t('property.feature.pet'), Icon: Building2 },
     property.foreignFriendly && { label: t('property.feature.foreign'), Icon: Building2 },

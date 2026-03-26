@@ -718,7 +718,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                     {(() => {
                       const allImages = (property.images?.length ? property.images : [property.image]) as string[];
                       const mainImage = allImages[0] ?? property.image;
-                      const otherImages = allImages.slice(1);
+                      const photoCount = allImages.length;
                       const typeBadge = (
                         <span className={`px-3 py-1.5 bg-white text-xs font-bold rounded-full shadow-lg ${
                           property.type === 'rent' ? 'text-blue-600 border-2 border-blue-600' : 'text-green-600 border-2 border-green-600'
@@ -756,18 +756,14 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                                 </div>
                               </div>
                             </div>
-                            {otherImages.length > 0 && (
-                              <div className="flex gap-1.5 p-2 overflow-x-auto bg-gray-50">
-                                {otherImages.map((url, i) => (
-                                  <div key={i} className="relative h-14 w-20 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
-                                    <ImageWithFallback src={url} alt="" className="w-full h-full object-cover" />
-                                  </div>
-                                ))}
+                            {photoCount > 1 && (
+                              <div className="absolute bottom-2 right-2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white">
+                                +{photoCount - 1}
                               </div>
                             )}
                           </div>
                           <div className="hidden md:block relative h-52 w-full overflow-hidden">
-                            <ImageWithFallback src={property.image} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <ImageWithFallback src={mainImage} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                             <div className="absolute top-2 left-2 flex gap-2 z-10 items-center">
                               {typeBadge}
@@ -820,7 +816,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                     {(() => {
                       const allImages = (property.images?.length ? property.images : [property.image]) as string[];
                       const mainImage = allImages[0] ?? property.image;
-                      const otherImages = allImages.slice(1);
+                      const photoCount = allImages.length;
                       const typeBadge = (
                         <span className={`px-3 py-1.5 bg-white text-xs font-bold rounded-full shadow-lg ${
                           property.type === 'rent' ? 'text-blue-600 border-2 border-blue-600' : 'text-green-600 border-2 border-green-600'
@@ -858,18 +854,14 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                                 </div>
                               </div>
                             </div>
-                            {otherImages.length > 0 && (
-                              <div className="flex gap-1.5 p-2 overflow-x-auto bg-gray-50">
-                                {otherImages.map((url, i) => (
-                                  <div key={i} className="relative h-14 w-20 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
-                                    <ImageWithFallback src={url} alt="" className="w-full h-full object-cover" />
-                                  </div>
-                                ))}
+                            {photoCount > 1 && (
+                              <div className="absolute bottom-2 right-2 rounded-full bg-black/55 px-2 py-0.5 text-[11px] font-semibold text-white">
+                                +{photoCount - 1}
                               </div>
                             )}
                           </div>
                           <div className="hidden md:block relative h-52 w-full overflow-hidden">
-                            <ImageWithFallback src={property.image} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <ImageWithFallback src={mainImage} alt={displayTitle} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
                             <div className="absolute top-2 left-2 flex gap-2 z-10 items-center">
                               {typeBadge}

@@ -20,7 +20,7 @@ import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { PropertiesMapView } from '@/app/components/PropertiesMapView';
 import { supabase } from '@/lib/supabase';
 import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
-import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
+import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty, getPropertyGalleryOrderedUrls } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { getStationDisplay } from '@/lib/stationNames';
@@ -716,7 +716,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                   >
                     {/* Image - モバイル: メイン大・その他小 / PC: 単一 */}
                     {(() => {
-                      const allImages = (property.images?.length ? property.images : [property.image]) as string[];
+                      const allImages = getPropertyGalleryOrderedUrls(property);
                       const mainImage = allImages[0] ?? property.image;
                       const photoCount = allImages.length;
                       const typeBadge = (
@@ -814,7 +814,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                     whileHover={{ y: -2 }}
                   >
                     {(() => {
-                      const allImages = (property.images?.length ? property.images : [property.image]) as string[];
+                      const allImages = getPropertyGalleryOrderedUrls(property);
                       const mainImage = allImages[0] ?? property.image;
                       const photoCount = allImages.length;
                       const typeBadge = (

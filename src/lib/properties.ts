@@ -180,3 +180,32 @@ export function mapSupabaseRowToFeaturedProperty(row: SupabasePropertyRow | Reco
     walkingMinutes: toNumber(get(r, 'walking_minutes', 'walkingMinutes')),
   };
 }
+
+/**
+ * 同じ id の物件が複数返ってきた場合に先頭だけを残す
+ * （RPC / JOIN / OR 条件などで重複するケースの保険）
+ */
+export function dedupePropertiesById(items: Property[]): Property[] {
+  const byId = new Map<number, Property>();
+
+  const hasImage = (p: Property): boolean => {
+    const primary = (p.image ?? '').trim();
+    const gallery = (p.images ?? []).some((url) => String(url ?? '').trim().length > 0);
+    return primary.length > 0 || gallery;
+  };
+
+  for (const item of items) {
+    const existing = byId.get(item.id);
+    if (!existing) {
+      byId.set(item.id, item);
+      continue;
+    }
+
+    // 同一IDが複数ある場合は「画像あり」を優先
+    if (!hasImage(existing) && hasImage(item)) {
+      byId.set(item.id, item);
+    }
+  }
+
+  return Array.from(byId.values());
+}

@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from './properties';
+import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty, dedupePropertiesById } from './properties';
 
 /**
  * Full Text Searchを使用して物件を検索
@@ -28,7 +28,7 @@ export async function searchProperties(
       return [];
     }
     
-    return (data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow));
+    return dedupePropertiesById((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
   }
 
   // Full Text Searchを使用（RPC関数経由）
@@ -48,7 +48,7 @@ export async function searchProperties(
       return fallbackSearch(query, propertyType, limit);
     }
 
-    return (data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow));
+    return dedupePropertiesById((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
   } catch (error) {
     console.error('Full text search exception:', error);
     // 例外が発生した場合は、通常のLIKE検索にフォールバック
@@ -83,5 +83,5 @@ async function fallbackSearch(
     return [];
   }
 
-  return (data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow));
+  return dedupePropertiesById((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
 }

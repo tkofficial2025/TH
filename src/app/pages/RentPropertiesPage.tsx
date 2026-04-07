@@ -20,7 +20,7 @@ import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { PropertiesMapView } from '@/app/components/PropertiesMapView';
 import { supabase } from '@/lib/supabase';
 import { filterPropertiesByAreas, addressMatchesWard } from '@/lib/wards';
-import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
+import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty, dedupePropertiesById } from '@/lib/properties';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { filterPropertiesByHeroParams, type HeroSearchParams } from '@/lib/searchFilters';
 import { searchProperties } from '@/lib/fullTextSearch';
@@ -139,7 +139,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
       if (useKeywordSearch) {
         try {
           const results = await searchProperties(searchQuery, 'rent', 1000);
-          setAllProperties(results);
+          setAllProperties(dedupePropertiesById(results));
           setLoading(false);
           return;
         } catch (err) {
@@ -156,7 +156,9 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
         setError(err.message);
         setAllProperties([]);
       } else {
-        setAllProperties((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)));
+        setAllProperties(
+          dedupePropertiesById((data ?? []).map((row) => mapSupabaseRowToProperty(row as SupabasePropertyRow)))
+        );
       }
       setLoading(false);
     }

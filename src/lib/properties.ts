@@ -33,6 +33,8 @@ export interface SupabasePropertyRow {
   key_money?: number | null;
   initial_fees_credit_card?: boolean | null;
   property_information?: string | null;
+  /** 学生向け（Supabase で手動フラグ） */
+  for_students?: boolean | null;
 }
 
 /**
@@ -182,6 +184,7 @@ export function mapSupabaseRowToProperty(row: SupabasePropertyRow | Record<strin
     propertyInformation: get(r, 'property_information', 'propertyInformation') != null ? String(get(r, 'property_information', 'propertyInformation')) : undefined,
     latitude: toOptionalNumber(get(r, 'latitude')),
     longitude: toOptionalNumber(get(r, 'longitude')),
+    forStudents: toBool(get(r, 'for_students', 'forStudents')),
   };
 }
 

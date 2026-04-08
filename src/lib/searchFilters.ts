@@ -1,4 +1,5 @@
 import type { Property } from './properties';
+import { matchesForStudentsCategory } from './forStudentsCategory';
 import { filterPropertiesByAreas } from './wards';
 
 /** ヒーロー検索で渡すパラメータ（QuickPropertySearch → App → Buy/Rent） */
@@ -108,10 +109,7 @@ export function filterPropertiesByHeroParams(
   if (params.highRiseResidence) list = list.filter((p) => (p.floor ?? 0) >= 5);
   if (params.noKeyMoney) list = list.filter((p) => p.keyMoney != null && p.keyMoney === 0);
   if (params.forStudents) {
-    list = list.filter((p) => {
-      const t = (p.title ?? '').toLowerCase();
-      return t.includes('student') || t.includes('学生');
-    });
+    list = list.filter((p) => matchesForStudentsCategory(p));
   }
   if (params.designers) {
     list = list.filter((p) => {

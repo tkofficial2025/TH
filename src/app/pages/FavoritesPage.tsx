@@ -3,6 +3,7 @@ import { Heart, User, LogOut, Search, MapPin, Bed, Maximize2, SlidersHorizontal,
 import { supabase } from '@/lib/supabase';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
+import { matchesForStudentsCategory } from '@/lib/forStudentsCategory';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { Header } from '@/app/components/Header';
@@ -122,10 +123,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
       }
       if (highRiseResidence && (!property.floor || property.floor < 5)) return false;
       if (noKeyMoney && property.keyMoney != null && property.keyMoney !== 0) return false;
-      if (forStudents) {
-        const titleLower = property.title.toLowerCase();
-        if (!titleLower.includes('student') && !titleLower.includes('学生')) return false;
-      }
+      if (forStudents && !matchesForStudentsCategory(property)) return false;
       if (designers) {
         const titleLower = property.title.toLowerCase();
         if (!titleLower.includes('design') && !titleLower.includes('デザイナー')) return false;

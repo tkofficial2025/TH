@@ -27,6 +27,7 @@ import { getStationDisplay } from '@/lib/stationNames';
 import { sortProperties, sortOptions, type SortOption } from '@/lib/sortProperties';
 import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
 import { getListingAddressLineMatchingMap } from '@/lib/listingMapDisplay';
+import { matchesForStudentsCategory } from '@/lib/forStudentsCategory';
 
 const SORT_LABEL_KEYS: Record<SortOption, string> = {
   'popularity': 'sort.popularity',
@@ -177,7 +178,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
                 case 'no-key-money':
                   return !prop.keyMoney || prop.keyMoney === 0;
                 case 'for-students':
-                  return titleLower.includes('student') || titleLower.includes('学生');
+                  return matchesForStudentsCategory(property);
                 case 'designers':
                   return titleLower.includes('design') || titleLower.includes('デザイナー');
                 case 'for-families':
@@ -281,10 +282,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
     }
     if (highRiseResidence && (!property.floor || property.floor < 5)) return false;
     if (noKeyMoney && property.keyMoney && property.keyMoney !== 0) return false;
-    if (forStudents) {
-      const titleLower = property.title.toLowerCase();
-      if (!titleLower.includes('student') && !titleLower.includes('学生')) return false;
-    }
+    if (forStudents && !matchesForStudentsCategory(property)) return false;
     if (designers) {
       const titleLower = property.title.toLowerCase();
       if (!titleLower.includes('design') && !titleLower.includes('デザイナー')) return false;

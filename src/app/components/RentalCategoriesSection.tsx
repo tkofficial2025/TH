@@ -11,6 +11,7 @@ import {
   Baby 
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { matchesForStudentsCategory } from '@/lib/forStudentsCategory';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 
 interface Category {
@@ -124,8 +125,15 @@ export function RentalCategoriesSection({ onCategoryClick }: RentalCategoriesSec
           counts['no-key-money'] = (counts['no-key-money'] || 0) + 1;
         }
         
-        // For students: タイトルに"student"が含まれる
-        if (titleLower.includes('student') || titleLower.includes('学生')) {
+        // For students: タイトル / 賃貸かつ月額15万円以下
+        if (
+          matchesForStudentsCategory({
+            type: prop.type as 'rent' | 'buy',
+            title: prop.title ?? '',
+            price: Number(prop.price),
+            forStudents: prop.for_students === true || (prop as { forStudents?: boolean }).forStudents === true,
+          })
+        ) {
           counts['for-students'] = (counts['for-students'] || 0) + 1;
         }
         

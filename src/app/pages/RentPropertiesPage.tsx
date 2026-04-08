@@ -29,6 +29,7 @@ import { useLanguage } from '@/app/contexts/LanguageContext';
 import { getStationDisplay } from '@/lib/stationNames';
 import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
 import { getListingAddressLineMatchingMap } from '@/lib/listingMapDisplay';
+import { matchesForStudentsCategory } from '@/lib/forStudentsCategory';
 
 const SORT_LABEL_KEYS: Record<SortOption, string> = {
   'popularity': 'sort.popularity',
@@ -304,10 +305,7 @@ export function RentPropertiesPage({ onNavigate, selectedWard, onSelectProperty,
     }
     if (highRiseResidence && (!property.floor || property.floor < 5)) return false;
     if (noKeyMoney && property.keyMoney && property.keyMoney !== 0) return false;
-    if (forStudents) {
-      const titleLower = property.title.toLowerCase();
-      if (!titleLower.includes('student') && !titleLower.includes('学生')) return false;
-    }
+    if (forStudents && !matchesForStudentsCategory(property)) return false;
     if (designers) {
       const titleLower = property.title.toLowerCase();
       if (!titleLower.includes('design') && !titleLower.includes('デザイナー')) return false;

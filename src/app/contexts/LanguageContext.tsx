@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { CurrencyProvider } from '@/app/contexts/CurrencyContext';
 
 type Language = 'en' | 'zh';
 
@@ -368,7 +369,8 @@ const translations: Translations = {
           'filter.type.apartment': { en: 'Apartment', zh: '公寓' },
           'filter.type.condominium': { en: 'Condominium', zh: '高级公寓' },
           'filter.type.house': { en: 'House', zh: '独栋别墅' },
-          'filter.type.studio': { en: 'Studio', zh: '单身公寓' },
+          'filter.type.studio': { en: 'Studio (1R / 1K / 1DK)', zh: '开间（1R / 1K / 1DK）' },
+          'filter.type.mansion_apartment': { en: 'Apartment / Condominium', zh: '公寓 / 高级公寓（非户建・非上述开间）' },
           'filter.station': { en: 'Station', zh: '车站' },
           'filter.selected_area': { en: 'Selected Area', zh: '选择区域' },
           'filter.price': { en: 'Price', zh: '价格' },
@@ -376,8 +378,12 @@ const translations: Translations = {
           'filter.no_min': { en: 'No min', zh: '不限下限' },
           'filter.no_max': { en: 'No max', zh: '不限上限' },
           'filter.size': { en: 'Size (m²)', zh: '面积 (m²)' },
-          'filter.bedrooms': { en: 'Bedrooms', zh: '户型' },
+          'filter.bedrooms': { en: 'Bedrooms', zh: '卧室数' },
           'filter.bedrooms.any': { en: 'Any', zh: '不限' },
+          'filter.bedrooms.opt1': { en: '1 bedroom', zh: '1 间卧室' },
+          'filter.bedrooms.opt2': { en: '2 bedrooms', zh: '2 间卧室' },
+          'filter.bedrooms.opt3': { en: '3 bedrooms', zh: '3 间卧室' },
+          'filter.bedrooms.opt4': { en: '4+ bedrooms', zh: '4 间及以上' },
           'filter.all': { en: 'All', zh: '全部' },
           'filter.listing_type': { en: 'Listing Type:', zh: '类型：' },
           'filter.keyword_placeholder': { en: 'Keyword...', zh: '关键词...' },
@@ -718,4 +724,24 @@ export function useLanguage() {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
+}
+
+/**
+ * main.tsx から useLanguage を呼ばないための内部ブリッジ。
+ * Vite HMR で LanguageContext が再評価されると createContext の参照が変わり、
+ * エントリ側のコンポーネントが古い Provider と別コンテキストを見ることがある。
+ * ブリッジを本ファイルに置くと Provider / consumer が常に同一モジュールの参照になる。
+ */
+function CurrencyWithLanguage({ children }: { children: ReactNode }) {
+  const { language } = useLanguage();
+  return <CurrencyProvider language={language}>{children}</CurrencyProvider>;
+}
+
+/** 言語 + 通貨のルート用ラッパー（main.tsx 用） */
+export function LanguageCurrencyProvider({ children }: { children: ReactNode }) {
+  return (
+    <LanguageProvider>
+      <CurrencyWithLanguage>{children}</CurrencyWithLanguage>
+    </LanguageProvider>
+  );
 }

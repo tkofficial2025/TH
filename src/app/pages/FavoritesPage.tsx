@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Heart, User, LogOut, Search, MapPin, Bed, Maximize2, SlidersHorizontal, X, Calendar, ChevronDown } from 'lucide-react';
+import { Heart, User, LogOut, Search, MapPin, Bed, Maximize2, SlidersHorizontal, X, Calendar, ChevronDown, ChevronUp, Bookmark } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { type Property, type SupabasePropertyRow, mapSupabaseRowToProperty } from '@/lib/properties';
@@ -80,10 +80,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
         const max = parseInt(priceMax.replace(/\D/g, ''), 10);
         if (property.price > max) return false;
       }
-      if (bedrooms) {
-        const beds = parseInt(bedrooms, 10);
-        if (property.beds !== beds) return false;
-      }
+      if (!matchesBedroomsFilter(property, bedrooms)) return false;
       if (sizeMin) {
         const min = parseFloat(sizeMin);
         if (property.size < min) return false;
@@ -92,26 +89,7 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
         const max = parseFloat(sizeMax);
         if (property.size > max) return false;
       }
-      if (propertyTypeFilter) {
-        const titleLower = property.title.toLowerCase();
-        const type = propertyTypeFilter.toLowerCase();
-        let matches = false;
-        switch (type) {
-          case 'apartment':
-            matches = titleLower.includes('apartment') || titleLower.includes('アパート');
-            break;
-          case 'condominium':
-            matches = titleLower.includes('condominium') || titleLower.includes('condo') || titleLower.includes('マンション') || titleLower.includes('manshon');
-            break;
-          case 'house':
-            matches = titleLower.includes('house') || titleLower.includes('一戸建て') || titleLower.includes('戸建') || titleLower.includes('detached');
-            break;
-          case 'studio':
-            matches = titleLower.includes('studio') || titleLower.includes('ワンルーム') || titleLower.includes('1r') || titleLower.includes('1k');
-            break;
-        }
-        if (!matches) return false;
-      }
+      if (propertyTypeFilter && !matchesPropertyTypeFilter(property, propertyTypeFilter)) return false;
       if (petFriendly && property.petFriendly !== true) return false;
       if (foreignFriendly && property.foreignFriendly !== true) return false;
       if (elevator && property.elevator !== true) return false;
@@ -310,141 +288,169 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
             </button>
           </div>
           {/* デスクトップは常に表示 / モバイルは filterBarOpen のときのみ */}
-          <div className={`py-4 ${filterBarOpen ? '' : 'hidden md:block'}`}>
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px]">
-                  <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+          <div className={`border-t border-gray-100 py-4 min-w-0 md:border-t-0 ${filterBarOpen ? '' : 'hidden md:block'}`}>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end lg:gap-x-3 lg:gap-y-3">
+              <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2 lg:max-w-md lg:flex-1">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{t('filter.search')}</span>
+                <div className="flex min-h-[44px] items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
+                  <Search className="h-4 w-4 flex-shrink-0 text-gray-400" />
                   <input
                     type="text"
                     placeholder={t('filter.search')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-transparent border-none outline-none text-sm text-gray-700 min-w-[100px] w-28 focus:ring-0 p-0"
+                    className="min-w-0 flex-1 border-0 bg-transparent text-sm text-gray-800 outline-none focus:ring-0"
                   />
                 </div>
+              </div>
+
+              <div className="flex min-w-0 flex-col gap-1.5 lg:w-44">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{t('filter.property_type')}</span>
                 <select
                   value={propertyTypeFilter}
                   onChange={(e) => setPropertyTypeFilter(e.target.value)}
-                  className="px-3 py-2 h-[40px] min-w-[130px] bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent transition-colors"
+                  className="min-h-[44px] w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm outline-none transition focus:border-[#C1121F] focus:ring-2 focus:ring-[#C1121F]/25"
                 >
                   <option value="">{t('filter.all')}</option>
-                  <option value="apartment">{t('filter.type.apartment')}</option>
-                  <option value="condominium">{t('filter.type.condominium')}</option>
+                  <option value="mansion_apartment">{t('filter.type.mansion_apartment')}</option>
                   <option value="house">{t('filter.type.house')}</option>
                   <option value="studio">{t('filter.type.studio')}</option>
                 </select>
+              </div>
+
+              <div className="min-w-0 sm:col-span-2 lg:flex-1 lg:min-w-[200px]">
+                <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-gray-500 lg:sr-only">{t('filter.selected_area')}</span>
                 <SelectedAreaFilter selectedAreas={selectedAreas} onChange={setSelectedAreas} compact />
+              </div>
+
+              <div className="flex min-w-0 flex-col gap-1.5 lg:w-48">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{t('filter.bedrooms')}</span>
                 <select
                   value={bedrooms}
                   onChange={(e) => setBedrooms(e.target.value)}
-                  className="px-3 py-2 h-[40px] min-w-[100px] bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent transition-colors"
+                  className="min-h-[44px] w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 shadow-sm outline-none transition focus:border-[#C1121F] focus:ring-2 focus:ring-[#C1121F]/25"
                 >
                   <option value="">{t('filter.bedrooms.any')}</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4+</option>
+                  <option value="1">{t('filter.bedrooms.opt1')}</option>
+                  <option value="2">{t('filter.bedrooms.opt2')}</option>
+                  <option value="3">{t('filter.bedrooms.opt3')}</option>
+                  <option value="4">{t('filter.bedrooms.opt4')}</option>
                 </select>
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px]">
-                  <span className="text-xs font-medium text-gray-600 whitespace-nowrap">{t('filter.price')}</span>
+              </div>
+
+              <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2 lg:max-w-md">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                  {activeTab === 'rent' ? t('listing.monthly_rent_label') : t('filter.price_range')}
+                </span>
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
                   <input
                     type="text"
                     placeholder={t('filter.min_yen')}
                     value={priceMin}
                     onChange={(e) => setPriceMin(e.target.value)}
-                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                    className="min-w-[6rem] flex-1 rounded-lg border border-gray-100 bg-gray-50/80 px-2 py-2 text-sm text-gray-800 outline-none focus:border-[#C1121F] focus:ring-1 focus:ring-[#C1121F]/30"
                   />
+                  <span className="text-gray-300">—</span>
                   <input
                     type="text"
                     placeholder={t('filter.max_yen')}
                     value={priceMax}
                     onChange={(e) => setPriceMax(e.target.value)}
-                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                    className="min-w-[6rem] flex-1 rounded-lg border border-gray-100 bg-gray-50/80 px-2 py-2 text-sm text-gray-800 outline-none focus:border-[#C1121F] focus:ring-1 focus:ring-[#C1121F]/30"
                   />
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px]">
-                  <span className="text-xs font-medium text-gray-600 whitespace-nowrap">{t('filter.size')}</span>
+              </div>
+
+              <div className="flex min-w-0 flex-col gap-1.5 sm:col-span-2 lg:max-w-md">
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{t('filter.size')}</span>
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm">
                   <input
                     type="number"
                     placeholder={t('filter.min_sqm')}
                     value={sizeMin}
                     onChange={(e) => setSizeMin(e.target.value)}
-                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                    className="min-w-[5rem] flex-1 rounded-lg border border-gray-100 bg-gray-50/80 px-2 py-2 text-sm text-gray-800 outline-none focus:border-[#C1121F] focus:ring-1 focus:ring-[#C1121F]/30"
                   />
+                  <span className="text-gray-300">—</span>
                   <input
                     type="number"
                     placeholder={t('filter.max_sqm')}
                     value={sizeMax}
                     onChange={(e) => setSizeMax(e.target.value)}
-                    className="w-20 px-2 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent"
+                    className="min-w-[5rem] flex-1 rounded-lg border border-gray-100 bg-gray-50/80 px-2 py-2 text-sm text-gray-800 outline-none focus:border-[#C1121F] focus:ring-1 focus:ring-[#C1121F]/30"
                   />
                 </div>
-                <div className="relative" ref={moreFiltersRef}>
+              </div>
+
+              <div className="flex flex-col gap-2 sm:col-span-2 lg:ml-auto lg:flex-row lg:items-end">
+                <div className="relative w-full lg:w-auto" ref={moreFiltersRef}>
                   <button
                     type="button"
                     onClick={() => setMoreFiltersOpen(!moreFiltersOpen)}
-                    className={`flex items-center gap-2 px-3 py-2 h-[40px] min-w-[120px] bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:border-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-[#C1121F] focus:border-transparent ${
-                      moreFiltersOpen ? 'bg-gray-100 border-gray-300' : ''
+                    className={`flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium shadow-sm transition focus:outline-none focus:ring-2 focus:ring-[#C1121F]/30 lg:min-w-[140px] ${
+                      moreFiltersOpen
+                        ? 'border-[#C1121F] bg-[#C1121F]/5 text-[#C1121F]'
+                        : 'border-gray-200 bg-white text-gray-800 hover:border-gray-300'
                     }`}
                   >
-                    <SlidersHorizontal className="w-3.5 h-3.5 flex-shrink-0" />
+                    <SlidersHorizontal className="h-4 w-4 flex-shrink-0" />
                     {t('filter.more_filters')}
                   </button>
                   {moreFiltersOpen && (
-                    <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
-                      <div className="flex items-center justify-between mb-3">
+                    <div className="absolute left-0 right-0 z-[60] mt-2 max-h-[min(70vh,22rem)] w-full overflow-y-auto overscroll-contain rounded-xl border border-gray-200 bg-white p-4 shadow-xl sm:left-auto sm:right-auto sm:w-80 lg:max-h-[min(80vh,28rem)]">
+                      <div className="mb-3 flex shrink-0 items-center justify-between">
                         <h3 className="text-sm font-semibold text-gray-900">{t('filter.more_filters')}</h3>
                         <button type="button" onClick={() => setMoreFiltersOpen(false)} className="text-gray-400 hover:text-gray-600">
-                          <X className="w-4 h-4" />
+                          <X className="h-4 w-4" />
                         </button>
                       </div>
                       <div className="space-y-3">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" checked={petFriendly} onChange={(e) => setPetFriendly(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
+                        <label className="flex cursor-pointer items-center gap-2">
+                          <input type="checkbox" checked={petFriendly} onChange={(e) => setPetFriendly(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F]" />
                           <span className="text-sm font-medium text-gray-700">{t('category.pet_friendly')}</span>
                         </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" checked={foreignFriendly} onChange={(e) => setForeignFriendly(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
+                        <label className="flex cursor-pointer items-center gap-2">
+                          <input type="checkbox" checked={foreignFriendly} onChange={(e) => setForeignFriendly(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F]" />
                           <span className="text-sm font-medium text-gray-700">{t('category.foreign_friendly')}</span>
                         </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" checked={elevator} onChange={(e) => setElevator(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
+                        <label className="flex cursor-pointer items-center gap-2">
+                          <input type="checkbox" checked={elevator} onChange={(e) => setElevator(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F]" />
                           <span className="text-sm font-medium text-gray-700">{t('property.feature.elevator')}</span>
                         </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" checked={balcony} onChange={(e) => setBalcony(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
+                        <label className="flex cursor-pointer items-center gap-2">
+                          <input type="checkbox" checked={balcony} onChange={(e) => setBalcony(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F]" />
                           <span className="text-sm font-medium text-gray-700">{t('property.feature.balcony')}</span>
                         </label>
                       </div>
-                      <div className="pt-3 border-t border-gray-200 mt-3">
-                        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">{t('filter.categories')}</h4>
+                      <div className="mt-3 border-t border-gray-200 pt-3">
+                        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">{t('filter.categories')}</h4>
                         <div className="space-y-3">
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={luxury} onChange={(e) => setLuxury(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
+                          <label className="flex cursor-pointer items-center gap-2">
+                            <input type="checkbox" checked={luxury} onChange={(e) => setLuxury(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F]" />
                             <span className="text-sm font-medium text-gray-700">{t('category.luxury')}</span>
                           </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={furnished} onChange={(e) => setFurnished(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
+                          <label className="flex cursor-pointer items-center gap-2">
+                            <input type="checkbox" checked={furnished} onChange={(e) => setFurnished(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F]" />
                             <span className="text-sm font-medium text-gray-700">{t('category.furnished')}</span>
                           </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={highRiseResidence} onChange={(e) => setHighRiseResidence(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
+                          <label className="flex cursor-pointer items-center gap-2">
+                            <input type="checkbox" checked={highRiseResidence} onChange={(e) => setHighRiseResidence(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F]" />
                             <span className="text-sm font-medium text-gray-700">{t('category.high_rise')}</span>
                           </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={noKeyMoney} onChange={(e) => setNoKeyMoney(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
+                          <label className="flex cursor-pointer items-center gap-2">
+                            <input type="checkbox" checked={noKeyMoney} onChange={(e) => setNoKeyMoney(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F]" />
                             <span className="text-sm font-medium text-gray-700">{t('category.no_key_money')}</span>
                           </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={forStudents} onChange={(e) => setForStudents(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
+                          <label className="flex cursor-pointer items-center gap-2">
+                            <input type="checkbox" checked={forStudents} onChange={(e) => setForStudents(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F]" />
                             <span className="text-sm font-medium text-gray-700">{t('category.students')}</span>
                           </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={designers} onChange={(e) => setDesigners(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
+                          <label className="flex cursor-pointer items-center gap-2">
+                            <input type="checkbox" checked={designers} onChange={(e) => setDesigners(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F]" />
                             <span className="text-sm font-medium text-gray-700">{t('category.designers')}</span>
                           </label>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" checked={forFamilies} onChange={(e) => setForFamilies(e.target.checked)} className="w-4 h-4 text-[#C1121F] border-gray-300 rounded focus:ring-[#C1121F]" />
+                          <label className="flex cursor-pointer items-center gap-2">
+                            <input type="checkbox" checked={forFamilies} onChange={(e) => setForFamilies(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-[#C1121F] focus:ring-[#C1121F]" />
                             <span className="text-sm font-medium text-gray-700">{t('category.families')}</span>
                           </label>
                         </div>
@@ -452,8 +458,17 @@ export function FavoritesPage({ onNavigate, onSelectProperty }: FavoritesPagePro
                     </div>
                   )}
                 </div>
+
+                <button
+                  type="button"
+                  className="flex min-h-[44px] w-full shrink-0 items-center justify-center gap-2 rounded-full bg-gray-900 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 lg:w-auto"
+                >
+                  <Bookmark className="h-3.5 w-3.5" />
+                  {t('filter.save')}
+                </button>
               </div>
             </div>
+          </div>
         </div>
 
         {/* Results */}

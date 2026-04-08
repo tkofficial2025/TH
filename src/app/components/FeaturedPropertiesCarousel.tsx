@@ -103,8 +103,8 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
   };
 
   return (
-    <section className="py-10 md:py-20 bg-white overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section className="py-10 md:py-20 bg-white overflow-hidden w-full min-w-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-w-0">
         {/* Section Header */}
         <div className="flex items-end justify-between mb-6 md:mb-12">
           <motion.div

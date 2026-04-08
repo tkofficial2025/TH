@@ -366,10 +366,10 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
   }, [isResizing]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 w-full min-w-0 overflow-x-hidden">
       {/* Sticky Filter Bar */}
-      <div className="sticky top-20 z-40 bg-white border-b border-gray-200 shadow-sm" style={{ marginTop: '80px' }}>
-        <div className="max-w-[1600px] mx-auto px-6">
+      <div className="sticky top-20 z-40 w-full min-w-0 max-w-full overflow-x-hidden bg-white border-b border-gray-200 shadow-sm" style={{ marginTop: '80px' }}>
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 min-w-0">
           {/* Filter Bar Toggle Button */}
           <div className="flex items-center justify-between py-3 border-b border-gray-200">
             <h2 className="text-sm font-semibold text-gray-900">{t('filter.title')}</h2>
@@ -411,8 +411,8 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
           
           {/* Filter Options - 展開時のみ表示・項目は統一デザイン */}
           {filterBarOpen && (
-            <div className="py-4">
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="py-4 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap min-w-0">
                 {/* Search */}
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[40px]">
                   <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -665,10 +665,10 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
       {showMap ? (
         <>
           {/* PC: サイドバー(リスト) + 地図 */}
-          <div className="hidden md:flex relative z-0" style={{ height: 'calc(100vh - 160px)', marginTop: '0' }}>
+          <div className="hidden md:flex relative z-0 w-full min-w-0 overflow-x-hidden" style={{ height: 'calc(100vh - 160px)', marginTop: '0' }}>
           {/* Left Sidebar - Property Listings */}
           <div 
-            className="bg-white border-r border-gray-200 shadow-sm overflow-y-auto overflow-x-hidden relative z-10" 
+            className="bg-white border-r border-gray-200 shadow-sm overflow-y-auto overflow-x-hidden relative z-10 min-w-0" 
             style={{ 
               width: `${sidebarWidth}px`,
               height: 'calc(100vh - 160px)',
@@ -832,7 +832,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
         </div>
 
           {/* Right Side - Map (Full Screen) */}
-          <div className="flex-1 relative z-0">
+          <div className="flex-1 relative z-0 min-w-0 overflow-hidden">
             <PropertiesMapView
               properties={sortedProperties}
               onPropertyClick={onSelectProperty}
@@ -848,7 +848,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
           </div>
           </div>
           {/* モバイル: 地図のみフル表示 */}
-          <div className="md:hidden relative z-0 w-full" style={{ height: 'calc(100vh - 160px)' }}>
+          <div className="md:hidden relative z-0 w-full min-w-0 overflow-hidden" style={{ height: 'calc(100vh - 160px)' }}>
             <PropertiesMapView
               properties={sortedProperties}
               onPropertyClick={onSelectProperty}
@@ -866,7 +866,7 @@ export function PropertyListingPage({ selectedWard, onSelectProperty, initialSea
       ) : (
         <>
           {/* Grid Layout when Map is Hidden */}
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full min-w-0">
           {/* Header and Sort */}
           <div className="mb-6 flex items-center justify-between">
             <div>

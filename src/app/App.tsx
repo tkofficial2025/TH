@@ -259,7 +259,7 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen bg-white w-full">
+    <div className="min-h-screen bg-white w-full min-w-0 overflow-x-hidden">
       {/* Navigation */}
       <Header onNavigate={handleNavigate} currentPage={currentPage} />
 

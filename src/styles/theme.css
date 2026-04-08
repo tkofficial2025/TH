@@ -128,20 +128,29 @@
 
   body {
     @apply bg-background text-foreground;
+    overflow-x: clip;
+    width: 100%;
+    min-width: 0;
   }
 
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
+    width: 100%;
+    min-width: 0;
+    font-size: var(--font-size);
+  }
+
+  #root {
+    min-width: 0;
+    overflow-x: clip;
+    width: 100%;
   }
 
   /**
   * Default typography styles for HTML elements (h1-h4, p, label, button, input).
   * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
   */
-
-  html {
-    font-size: var(--font-size);
-  }
 
   h1 {
     font-size: var(--text-2xl);

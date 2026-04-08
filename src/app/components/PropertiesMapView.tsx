@@ -462,9 +462,11 @@ export function PropertiesMapView({
           transform: scale(1.05);
           box-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
-        /* Leaflet地図のz-indexを制御 */
+        /* Leaflet地図のz-indexを制御・親幅を超えて横に広がらないようにする */
         .leaflet-container {
           z-index: 0 !important;
+          max-width: 100% !important;
+          overflow: hidden;
         }
         .leaflet-top,
         .leaflet-bottom {

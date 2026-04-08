@@ -362,12 +362,12 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 w-full min-w-0 overflow-x-hidden">
       <Header onNavigate={onNavigate} currentPage="home" />
       
       {/* Sticky Filter Bar */}
-      <div className="sticky top-20 z-40 bg-white border-b border-gray-200 shadow-sm" style={{ marginTop: '80px' }}>
-        <div className="max-w-[1600px] mx-auto px-6">
+      <div className="sticky top-20 z-40 w-full min-w-0 max-w-full overflow-x-hidden bg-white border-b border-gray-200 shadow-sm" style={{ marginTop: '80px' }}>
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 min-w-0">
           {/* Filter Bar Toggle Button */}
           <div className="flex items-center justify-between py-3 border-b border-gray-200">
             <h2 className="text-sm font-semibold text-gray-900">{t('filter.title')}</h2>
@@ -409,8 +409,8 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
           
           {/* Filter Options - 展開時のみ表示・項目は統一デザイン */}
           {filterBarOpen && (
-            <div className="py-4">
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="py-4 min-w-0">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap min-w-0">
                 {/* Listing Type (Rent/Buy) */}
                 <select
                   value={listingTypeFilter}
@@ -669,10 +669,10 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
       </div>
 
       {/* Main Content - Sidebar + Map */}
-      <div className="flex relative" style={{ height: 'calc(100vh - 80px)' }}>
+      <div className="flex relative w-full min-w-0 overflow-x-hidden" style={{ height: 'calc(100vh - 80px)' }}>
         {/* Left Sidebar - Property Listings（モバイルで showMap 時は非表示＝地図のみ表示） */}
         <div
-          className={`bg-white border-r border-gray-200 overflow-y-auto relative ${showMap ? 'hidden md:block' : ''}`}
+          className={`bg-white border-r border-gray-200 overflow-y-auto overflow-x-hidden relative min-w-0 ${showMap ? 'hidden md:block' : ''}`}
           style={showMap ? { width: `${sidebarWidth}px`, minWidth: '320px', maxWidth: '800px' } : { width: '100%', minWidth: 0 }}
         >
           {/* Resize Handle */}
@@ -899,7 +899,7 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
 
         {/* Map View */}
         {showMap && (
-          <div className="flex-1 relative">
+          <div className="flex-1 relative min-w-0 overflow-hidden">
             <PropertiesMapView
               properties={sortedProperties}
               onPropertyClick={(propertyId) => {

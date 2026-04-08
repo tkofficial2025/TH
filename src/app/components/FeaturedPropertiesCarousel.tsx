@@ -165,7 +165,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
           {/* Scrollable Cards Container */}
           <motion.div
             ref={scrollContainerRef}
-            className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory pb-4 pl-px"
+            className="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory pb-4 pl-px"
             onScroll={handleScroll}
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -177,7 +177,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
             }}
           >
             {loading && (
-              <div className="flex-shrink-0 w-[340px] md:w-[380px] flex items-center justify-center py-12 text-gray-500">
+              <div className="flex-shrink-0 w-[300px] md:w-[380px] flex items-center justify-center py-12 text-gray-500">
                 {t('section.featured.loading')}
               </div>
             )}
@@ -193,7 +193,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
                 tabIndex={0}
                 onClick={() => onSelectProperty?.(property.id, property.type === 'Rent' ? 'rent' : 'buy')}
                 onKeyDown={(e) => e.key === 'Enter' && onSelectProperty?.(property.id, property.type === 'Rent' ? 'rent' : 'buy')}
-                className="flex-shrink-0 w-[340px] md:w-[380px] snap-start group/card cursor-pointer"
+                className="flex-shrink-0 w-[300px] md:w-[380px] snap-start group/card cursor-pointer"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -211,7 +211,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
                     />
                     {/* Type Badge */}
                     <div
-                      className={`absolute top-4 left-4 px-3 py-1.5 rounded-lg text-sm font-semibold ${
+                      className={`absolute top-3 left-3 md:top-4 md:left-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-md md:rounded-lg text-xs md:text-sm font-semibold ${
                         property.type === 'Buy'
                           ? 'bg-[#C1121F] text-white'
                           : 'bg-white text-gray-900'
@@ -222,14 +222,14 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
                   </div>
 
                   {/* Property Details */}
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-1 group-hover/card:text-[#C1121F] transition-colors">
+                  <div className="p-4 md:p-6">
+                    <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-1 group-hover/card:text-[#C1121F] transition-colors leading-snug">
                       {language === 'zh' ? (translationMap.get(property.id)?.title_zh ?? property.title) : property.title}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-4">{language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.location) : property.location}</p>
+                    <p className="text-xs md:text-sm text-gray-500 mb-3 md:mb-4">{language === 'zh' ? (translationMap.get(property.id)?.address_zh ?? property.location) : property.location}</p>
 
                     {/* Property Stats */}
-                    <div className="flex items-center gap-3 text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100">
+                    <div className="flex items-center gap-2 md:gap-3 text-xs md:text-sm text-gray-600 mb-3 md:mb-4 pb-3 md:pb-4 border-b border-gray-100">
                       <span>{property.beds} {t('property.bed')}</span>
                       <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                       <span>{property.baths} {t('property.bath')}</span>
@@ -238,8 +238,8 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
                     </div>
 
                     {/* Price */}
-                    <div className="flex items-baseline justify-between mb-4 pb-4 border-b border-gray-100">
-                      <span className="text-2xl font-bold text-gray-900">
+                    <div className="flex items-baseline justify-between mb-3 md:mb-4 pb-3 md:pb-4 border-b border-gray-100">
+                      <span className="text-xl md:text-2xl font-bold text-gray-900">
                         {formatPrice(property.priceYen, property.type === 'Rent' ? 'rent' : 'buy')}
                       </span>
                     </div>

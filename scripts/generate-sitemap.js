@@ -2,7 +2,7 @@
  * public/sitemap.xml と public/robots.txt を生成する。
  * ビルド前に public/blog-posts.json が存在すること（generate-blog-posts の後に実行）。
  *
- * 本番の絶対 URL には VITE_SITE_URL（例: https://www.example.com）を .env に設定する。
+ * 本番の絶対 URL は VITE_SITE_URL で上書き可能。未設定時は https://tokyoexhousing.com を使う。
  */
 import fs from 'fs';
 import path from 'path';
@@ -162,12 +162,15 @@ function buildRobotsTxt(origin) {
   ].join('\n');
 }
 
+/** 環境変数未設定時の本番オリジン（このサイトの既定ドメイン） */
+const DEFAULT_SITE_ORIGIN = 'https://tokyoexhousing.com';
+
 function main() {
   let origin = (process.env.VITE_SITE_URL || process.env.SITE_URL || '').trim();
   if (!origin) {
-    origin = 'https://example.com';
+    origin = DEFAULT_SITE_ORIGIN;
     console.warn(
-      '⚠️ VITE_SITE_URL（または SITE_URL）が未設定のため、sitemap / robots は example.com で出力しています。.env に本番 URL を設定してください。'
+      `⚠️ VITE_SITE_URL 未設定のため、sitemap / robots は ${DEFAULT_SITE_ORIGIN} で出力しています。www など別 URL の場合は .env に VITE_SITE_URL を設定してください。`
     );
   }
 

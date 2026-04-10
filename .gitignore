@@ -10,6 +10,10 @@ coverage/
 build/
 dist/
 
+# ビルド／dev 起動時に scripts/generate-sitemap.js が生成（VITE_SITE_URL 依存のためコミットしない）
+public/sitemap.xml
+public/robots.txt
+
 # Misc
 .DS_Store
 .env

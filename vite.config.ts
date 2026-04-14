@@ -24,9 +24,20 @@ export default defineConfig(({ mode }) => {
       },
       dedupe: ['react', 'react-dom'],
     },
+    // force: true は起動のたびにハッシュが変わり、開きっぱなしのタブが古い URL を取りに行って 504 になりやすい
     optimizeDeps: {
-      include: ['react', 'react-dom', 'motion', 'leaflet', 'react-leaflet', 'sonner'],
-      force: true, // 504 Outdated Optimize Dep 対策。解消したら false に戻してよい
+      include: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
+        'react/jsx-dev-runtime',
+        'react-dom/client',
+        'motion',
+        'leaflet',
+        'react-leaflet',
+        'sonner',
+        '@sentry/react',
+      ],
     },
     server: supabaseUrl
       ? {

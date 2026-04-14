@@ -5,7 +5,7 @@ import { getBlogPosts } from '@/lib/blogPosts';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import type { NavigateOptions, Page } from '@/lib/routes';
 
-interface BlogPost {
+export interface BlogPost {
   id: number;
   title: {
     rendered: string;

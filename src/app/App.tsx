@@ -7,6 +7,7 @@ import { QuickPropertySearch } from '@/app/components/QuickPropertySearch';
 import { FeaturedPropertiesCarousel } from '@/app/components/FeaturedPropertiesCarousel';
 import { Header } from '@/app/components/Header';
 import { TokyoWardsSection } from '@/app/components/TokyoWardsSection';
+import { HomeBlogScrollSection } from '@/app/components/HomeBlogScrollSection';
 import { RentalCategoriesSection } from '@/app/components/RentalCategoriesSection';
 import { BuyPropertiesPage } from '@/app/pages/BuyPropertiesPage';
 import { RentPropertiesPage } from '@/app/pages/RentPropertiesPage';
@@ -370,6 +371,11 @@ function AppContent() {
 
       {/* Tokyo Wards Section */}
       <TokyoWardsSection onWardClick={handleWardClick} title={t('section.areas.title')} subtitle={t('section.areas.subtitle')} />
+
+      <HomeBlogScrollSection
+        onSelectPost={(postId) => handleNavigate('blog', { blogPostId: postId })}
+        onViewAll={() => handleNavigate('blog')}
+      />
 
       {/* Trust Indicators */}
       <section className="py-10 md:py-20 bg-gray-50 border-y border-gray-100">

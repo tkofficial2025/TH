@@ -6,6 +6,7 @@
   "scripts": {
     "build": "node scripts/generate-blog-posts.js && node scripts/generate-sitemap.js && vite build",
     "dev": "node scripts/generate-blog-posts.js && node scripts/generate-sitemap.js && vite",
+    "dev:fresh": "node scripts/clear-vite-cache.js && pnpm dev",
     "generate-blog": "node scripts/generate-blog-posts.js",
     "generate-sitemap": "node scripts/generate-blog-posts.js && node scripts/generate-sitemap.js",
     "fill-coordinates": "node scripts/fill-property-coordinates.js"

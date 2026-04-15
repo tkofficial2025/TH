@@ -8,7 +8,7 @@ keywords: ["Tokyo neighborhoods for expats", "best places to live in Tokyo for f
 featuredImage: "https://images.pexels.com/photos/32005194/pexels-photo-32005194.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
 photoCredit: "Photo by Gül Işık on Pexels"
 ---
-# Best Neighborhoods in Tokyo for English-Speaking Expats: A Complete Guide for 2024
+# Best Neighborhoods in Tokyo for English-Speaking Expats: A Complete Guide for 2026
 
 Moving to Tokyo as an English-speaking expat is exciting — but choosing the right neighborhood can make or break your experience. Unlike Western cities where you might rely on crime maps and school ratings, Tokyo neighborhood selection requires understanding factors like train line convenience, foreigner-friendly landlords, and proximity to international services.
 

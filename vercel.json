@@ -2,5 +2,31 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "redirects": [
+    {
+      "source": "/blog",
+      "has": [{ "type": "query", "key": "post", "value": "(?<postId>\\d+)" }],
+      "destination": "/blog/:postId",
+      "permanent": true
+    },
+    {
+      "source": "/zh/blog",
+      "has": [{ "type": "query", "key": "post", "value": "(?<postId>\\d+)" }],
+      "destination": "/zh/blog/:postId",
+      "permanent": true
+    },
+    {
+      "source": "/category",
+      "has": [{ "type": "query", "key": "category", "value": "(?<slug>.+)" }],
+      "destination": "/category/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/zh/category",
+      "has": [{ "type": "query", "key": "category", "value": "(?<slug>.+)" }],
+      "destination": "/zh/category/:slug",
+      "permanent": true
+    }
+  ],
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

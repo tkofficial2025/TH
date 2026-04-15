@@ -5,13 +5,14 @@ import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import type { User as AuthUser } from '@supabase/supabase-js';
+import type { Page } from '@/lib/routes';
 
 type NavPage = 'home' | 'buy' | 'rent' | 'consultation' | 'category' | 'blog' | 'about' | 'account' | 'favorites';
 
 interface HeaderProps {
   onNavigate?: (page: NavPage) => void;
   /** 今いるページ（指定するとメニューのアクティブ表示と連動） */
-  currentPage?: NavPage;
+  currentPage?: Page;
 }
 
 export function Header({ onNavigate, currentPage }: HeaderProps) {

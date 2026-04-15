@@ -29,6 +29,7 @@ import { fetchTranslationsForProperties, type PropertyTranslationResult } from '
 import { getListingAddressLineMatchingMap } from '@/lib/listingMapDisplay';
 import { matchesForStudentsCategory } from '@/lib/forStudentsCategory';
 import { matchesBedroomsFilter, matchesPropertyTypeFilter } from '@/lib/propertyTypeFilterMatch';
+import { parseCategorySlugFromPath } from '@/lib/routes';
 
 const SORT_LABEL_KEYS: Record<SortOption, string> = {
   'popularity': 'sort.popularity',
@@ -105,10 +106,11 @@ export function CategoryPropertiesPage({ onNavigate, categoryId, onSelectPropert
     }
   }, []);
 
-  // URLパラメータまたはpropsからカテゴリーを読み取って、該当フィルターをチェック
+  // URL パス（/category/slug）またはクエリ・props からカテゴリーを読み取って、該当フィルターをチェック
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const categoryIdFromUrl = params.get('category');
+    const categoryIdFromPath = parseCategorySlugFromPath(window.location.pathname);
+    const categoryIdFromUrl = categoryIdFromPath || params.get('category');
     const categoryIdToUse = categoryId || categoryIdFromUrl;
     
     if (categoryIdToUse && categoryIdToUse !== 'featured') {

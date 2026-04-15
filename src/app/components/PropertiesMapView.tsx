@@ -16,6 +16,7 @@ import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { StationLineLogo } from '@/app/components/StationLineLogo';
 import { fixLeafletDefaultIcon } from '@/lib/leafletDefaultIcon';
 import { getListingAddressLineMatchingMap } from '@/lib/listingMapDisplay';
+import { getPathForPropertyDetail } from '@/lib/routes';
 
 fixLeafletDefaultIcon();
 
@@ -228,7 +229,8 @@ function ClusterUpdater({
                   // モバイルではクリックで即遷移せず Popup で詳細表示。PCでは従来どおり新しいタブで開く
                   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
                   if (isMobile) return; // Popup が開くだけにする
-                  const url = `${window.location.origin}${window.location.pathname}?property=${property.id}&source=${property.type === 'rent' ? 'rent' : 'buy'}`;
+                  const src = property.type === 'Rent' ? 'rent' : 'buy';
+                  const url = `${window.location.origin}${getPathForPropertyDetail(src, property.id, language)}`;
                   window.open(url, '_blank');
                 },
               }}
@@ -259,7 +261,8 @@ function ClusterUpdater({
                       if (onPropertyClick) {
                         onPropertyClick(property.id);
                       } else {
-                        const url = `${window.location.origin}${window.location.pathname}?property=${property.id}&source=${property.type === 'rent' ? 'rent' : 'buy'}`;
+                        const src = property.type === 'Rent' ? 'rent' : 'buy';
+                        const url = `${window.location.origin}${getPathForPropertyDetail(src, property.id, language)}`;
                         window.open(url, '_blank');
                       }
                     }}

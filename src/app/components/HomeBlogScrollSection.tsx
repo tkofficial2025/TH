@@ -5,14 +5,10 @@ import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { getBlogPosts } from '@/lib/blogPosts';
 import type { BlogPost } from '@/app/pages/BlogPage';
 import { useLanguage } from '@/app/contexts/LanguageContext';
+import { getPathForBlogPost, getPathFromPage } from '@/lib/routes';
 
 const MAX_POSTS = 10;
 const FALLBACK_IMAGE = '/tokyo.jpg';
-
-export interface HomeBlogScrollSectionProps {
-  onSelectPost: (postId: number) => void;
-  onViewAll: () => void;
-}
 
 function stripHtml(html: string) {
   const tmp = document.createElement('div');
@@ -24,8 +20,9 @@ function featuredImage(post: BlogPost) {
   return post._embedded?.['wp:featuredmedia']?.[0]?.source_url || FALLBACK_IMAGE;
 }
 
-export function HomeBlogScrollSection({ onSelectPost, onViewAll }: HomeBlogScrollSectionProps) {
+export function HomeBlogScrollSection() {
   const { t, language } = useLanguage();
+  const pathLang = language === 'zh' ? 'zh' : undefined;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,9 +89,8 @@ export function HomeBlogScrollSection({ onSelectPost, onViewAll }: HomeBlogScrol
             </h2>
             <p className="text-xs text-gray-600 md:text-lg">{t('section.home_blog.subtitle')}</p>
           </motion.div>
-          <motion.button
-            type="button"
-            onClick={onViewAll}
+          <motion.a
+            href={getPathFromPage('blog', pathLang)}
             className="hidden items-center gap-2 text-gray-600 transition-colors hover:text-[#C1121F] md:flex"
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -103,7 +99,7 @@ export function HomeBlogScrollSection({ onSelectPost, onViewAll }: HomeBlogScrol
           >
             <span className="font-medium">{t('section.featured.view_all')}</span>
             <ArrowRight className="h-4 w-4" />
-          </motion.button>
+          </motion.a>
         </div>
 
         <div className="group/carousel relative -mx-2 px-2 md:mx-0 md:px-0">
@@ -162,12 +158,9 @@ export function HomeBlogScrollSection({ onSelectPost, onViewAll }: HomeBlogScrol
             )}
             {!loading &&
               posts.map((post, index) => (
-                <motion.article
+                <motion.a
                   key={post.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onSelectPost(post.id)}
-                  onKeyDown={(e) => e.key === 'Enter' && onSelectPost(post.id)}
+                  href={getPathForBlogPost(post.id, pathLang)}
                   className="group/card w-[280px] flex-shrink-0 cursor-pointer snap-start md:w-[320px]"
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -197,20 +190,19 @@ export function HomeBlogScrollSection({ onSelectPost, onViewAll }: HomeBlogScrol
                       </p>
                     </div>
                   </div>
-                </motion.article>
+                </motion.a>
               ))}
           </motion.div>
         </div>
 
         <div className="mt-6 flex justify-center md:hidden">
-          <button
-            type="button"
-            onClick={onViewAll}
+          <a
+            href={getPathFromPage('blog', pathLang)}
             className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-800 shadow-sm transition-colors hover:border-[#C1121F] hover:text-[#C1121F]"
           >
             {t('section.featured.view_all')}
             <ArrowRight className="h-4 w-4" />
-          </button>
+          </a>
         </div>
       </div>
 

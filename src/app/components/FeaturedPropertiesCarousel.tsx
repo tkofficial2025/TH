@@ -14,16 +14,16 @@ import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { useLanguage } from '@/app/contexts/LanguageContext';
 import { getStationDisplay } from '@/lib/stationNames';
 import { fetchTranslationsForProperties, type PropertyTranslationResult } from '@/lib/translate-property';
+import { getPathForCategory, getPathForPropertyDetail } from '@/lib/routes';
 
 export interface FeaturedPropertiesCarouselProps {
-  onSelectProperty?: (id: number, source: 'rent' | 'buy') => void;
-  onViewAllClick?: () => void;
   title?: string;
   subtitle?: string;
 }
 
-export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, title, subtitle }: FeaturedPropertiesCarouselProps = {}) {
+export function FeaturedPropertiesCarousel({ title, subtitle }: FeaturedPropertiesCarouselProps = {}) {
   const { t, language } = useLanguage();
+  const pathLang = language === 'zh' ? 'zh' : undefined;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -118,8 +118,7 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
           </motion.div>
 
           <motion.a
-            href="#"
-            onClick={onViewAllClick ? (e) => { e.preventDefault(); onViewAllClick(); } : undefined}
+            href={getPathForCategory('featured', pathLang)}
             className="hidden md:flex items-center gap-2 text-gray-600 hover:text-[#C1121F] transition-colors group cursor-pointer"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -186,13 +185,12 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
                 {t('section.featured.empty')}
               </div>
             )}
-            {!loading && properties.map((property, index) => (
-              <motion.div
+            {!loading && properties.map((property, index) => {
+              const source = property.type === 'Rent' ? 'rent' : 'buy';
+              return (
+              <motion.a
                 key={property.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => onSelectProperty?.(property.id, property.type === 'Rent' ? 'rent' : 'buy')}
-                onKeyDown={(e) => e.key === 'Enter' && onSelectProperty?.(property.id, property.type === 'Rent' ? 'rent' : 'buy')}
+                href={getPathForPropertyDetail(source, property.id, pathLang)}
                 className="flex-shrink-0 w-[300px] md:w-[380px] snap-start group/card cursor-pointer"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -261,15 +259,15 @@ export function FeaturedPropertiesCarousel({ onSelectProperty, onViewAllClick, t
                     )}
                   </div>
                 </div>
-              </motion.div>
-            ))}
+              </motion.a>
+            );
+            })}
           </motion.div>
         </div>
 
         {/* Mobile View All Link */}
         <motion.a
-          href="#"
-          onClick={onViewAllClick ? (e) => { e.preventDefault(); onViewAllClick(); } : undefined}
+          href={getPathForCategory('featured', pathLang)}
           className="flex md:hidden items-center justify-center gap-2 text-gray-600 hover:text-[#C1121F] transition-colors group mt-8 cursor-pointer"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Building2, Shield, Globe, CheckCircle2, Home, MapPin, Phone, Mail, Award, Instagram, MessageCircle } from 'lucide-react';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
@@ -25,16 +26,27 @@ import { SignUpPage } from '@/app/pages/SignUpPage';
 import { FavoritesPage } from '@/app/pages/FavoritesPage';
 import { ActivityPage } from '@/app/pages/ActivityPage';
 import { ProfilePage } from '@/app/pages/ProfilePage';
+import { HtmlSitemapPage } from '@/app/pages/HtmlSitemapPage';
+import { HomeCrawlableLinksSection } from '@/app/components/HomeCrawlableLinksSection';
+import { SeoHead } from '@/app/components/SeoHead';
 import type { HeroSearchParams } from '@/lib/searchFilters';
+import { buildCanonicalHref } from '@/lib/canonical';
 import {
   type Page,
   type NavigateOptions,
   getPageFromPath,
+  getPathForBlogPost,
+  getPathForCategory,
+  getPathForPropertyDetail,
   getPathFromPage,
   getPathname,
+  parseBlogPostIdFromPath,
+  parseCategorySlugFromPath,
+  parsePropertyDetailFromLocation,
   pushState,
   replaceState,
 } from '@/lib/routes';
+import { CATEGORY_SEO_LABEL_KEY, CATEGORY_SEO_SLUGS } from '@/lib/seoCategoryNav';
 import { useLanguage } from './contexts/LanguageContext';
 
 export default function App() {
@@ -43,6 +55,7 @@ export default function App() {
 
 function AppContent() {
   const { language, setLanguage, t } = useLanguage();
+  const pathLang = language === 'zh' ? 'zh' : undefined;
   const [currentPage, setCurrentPage] = useState<Page>(() => getPageFromPath(getPathname()));
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedWard, setSelectedWard] = useState<string | null>(null);
@@ -51,35 +64,78 @@ function AppContent() {
   const [detailSource, setDetailSource] = useState<'rent' | 'buy'>('rent');
   const [selectedBlogPostId, setSelectedBlogPostId] = useState<number | null>(null);
 
-  // 初回ロード・ブラウザバック/フォワード: URL から状態を復元
+  const canonicalHref = useMemo(
+    () =>
+      buildCanonicalHref({
+        language,
+        currentPage,
+        selectedPropertyId,
+        detailSource,
+        selectedBlogPostId,
+        selectedCategory,
+      }),
+    [
+      language,
+      currentPage,
+      selectedPropertyId,
+      detailSource,
+      selectedBlogPostId,
+      selectedCategory,
+    ]
+  );
+
+  const withSeo = (node: ReactNode) => (
+    <>
+      <SeoHead canonicalHref={canonicalHref} />
+      {node}
+    </>
+  );
+
+  // 初回ロード・ブラウザバック/フォワード: URL から状態を復元（レガシー ?post= / ?category= はパスへ正規化）
   useEffect(() => {
     const syncFromUrl = () => {
       const path = getPathname();
-      const params = new URLSearchParams(window.location.search);
+      let params = new URLSearchParams(window.location.search);
       const page = getPageFromPath(path);
       setCurrentPage(page);
-      
-      // Update language based on URL if it changed via browser navigation
+
       const urlLang = path.startsWith('/zh/') || path === '/zh' ? 'zh' : 'en';
       if (urlLang !== language) {
         setLanguage(urlLang);
       }
-      
-      const propId = params.get('property');
-      const source = params.get('source') as 'rent' | 'buy' | null;
-      if (propId && !isNaN(Number(propId))) {
-        setSelectedPropertyId(Number(propId));
-        if (source === 'rent' || source === 'buy') setDetailSource(source);
+
+      const { propertyId, source: propSource } = parsePropertyDetailFromLocation(path, params);
+      if (propertyId != null && propSource) {
+        setSelectedPropertyId(propertyId);
+        setDetailSource(propSource);
       } else {
         setSelectedPropertyId(null);
       }
-      const cat = params.get('category');
-      setSelectedCategory(cat ?? null);
-      const postParam = params.get('post');
+
+      const langOpt = urlLang === 'zh' ? 'zh' : undefined;
+
+      if (page === 'category') {
+        let cat = parseCategorySlugFromPath(path);
+        if (!cat) cat = params.get('category');
+        if (params.has('category') && cat) {
+          replaceState(getPathForCategory(cat, langOpt));
+          params = new URLSearchParams();
+        }
+        setSelectedCategory(cat ?? null);
+      } else {
+        setSelectedCategory(null);
+      }
+
       if (page === 'blog') {
-        setSelectedBlogPostId(
-          postParam && !isNaN(Number(postParam)) ? Number(postParam) : null
-        );
+        let postId = parseBlogPostIdFromPath(path);
+        const postParam = params.get('post');
+        if (postId == null && postParam && !Number.isNaN(Number(postParam))) {
+          postId = Number(postParam);
+        }
+        if (params.has('post') && postId != null) {
+          replaceState(getPathForBlogPost(postId, langOpt));
+        }
+        setSelectedBlogPostId(postId ?? null);
       } else {
         setSelectedBlogPostId(null);
       }
@@ -99,24 +155,31 @@ function AppContent() {
     setSelectedBlogPostId(options?.blogPostId ?? null);
     setSelectedCategory(options?.categoryId ?? null);
     setCurrentPage(page);
-    const path = getPathFromPage(page, language);
-    let search = '';
-    if (page === 'category' && options?.categoryId) {
-      search = `?category=${encodeURIComponent(options.categoryId)}`;
-    } else if (page === 'blog' && options?.blogPostId != null) {
-      search = `?post=${options.blogPostId}`;
-    } else if (page === 'consultation' && options?.consultationFromBlog) {
-      const p = new URLSearchParams();
-      p.set('from', 'blog');
-      if (options.consultationPostId != null) {
-        p.set('post', String(options.consultationPostId));
+    const langOpt = language === 'zh' ? 'zh' : undefined;
+    let path: string;
+    let search: string | undefined;
+    if (page === 'blog' && options?.blogPostId != null) {
+      path = getPathForBlogPost(options.blogPostId, langOpt);
+      search = undefined;
+    } else if (page === 'category') {
+      path = getPathForCategory(options?.categoryId, langOpt);
+      search = undefined;
+    } else {
+      path = getPathFromPage(page, language);
+      search = undefined;
+      if (page === 'consultation' && options?.consultationFromBlog) {
+        const p = new URLSearchParams();
+        p.set('from', 'blog');
+        if (options.consultationPostId != null) {
+          p.set('post', String(options.consultationPostId));
+        }
+        if (options.consultationSlug) {
+          p.set('slug', options.consultationSlug);
+        }
+        search = `?${p.toString()}`;
       }
-      if (options.consultationSlug) {
-        p.set('slug', options.consultationSlug);
-      }
-      search = `?${p.toString()}`;
     }
-    pushState(path, search || undefined);
+    pushState(path, search);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -139,8 +202,7 @@ function AppContent() {
   const handleSelectProperty = (id: number, source: 'rent' | 'buy') => {
     setSelectedPropertyId(id);
     setDetailSource(source);
-    const path = getPathFromPage(source, language);
-    pushState(path, `?property=${id}&source=${source}`);
+    pushState(getPathForPropertyDetail(source, id, language));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -156,7 +218,7 @@ function AppContent() {
 
   // 物件詳細を表示中
   if (selectedPropertyId != null) {
-    return (
+    return withSeo(
       <PropertyDetailPage
         propertyId={selectedPropertyId}
         source={detailSource}
@@ -167,7 +229,7 @@ function AppContent() {
   }
 
   if (currentPage === 'buy') {
-    return (
+    return withSeo(
       <BuyPropertiesPage
         onNavigate={handleNavigate}
         selectedWard={selectedWard}
@@ -178,7 +240,7 @@ function AppContent() {
   }
 
   if (currentPage === 'rent') {
-    return (
+    return withSeo(
       <RentPropertiesPage
         onNavigate={handleNavigate}
         selectedWard={selectedWard}
@@ -189,11 +251,11 @@ function AppContent() {
   }
 
   if (currentPage === 'consultation') {
-    return <ConsultationPage onNavigate={handleNavigate} />;
+    return withSeo(<ConsultationPage onNavigate={handleNavigate} />);
   }
 
   if (currentPage === 'category') {
-    return (
+    return withSeo(
       <CategoryPropertiesPage
         onNavigate={handleNavigate}
         categoryId={selectedCategory || undefined}
@@ -204,7 +266,7 @@ function AppContent() {
 
   if (currentPage === 'blog') {
     if (selectedBlogPostId != null) {
-      return (
+      return withSeo(
         <BlogPostDetailPage
           postId={selectedBlogPostId}
           onNavigate={handleNavigate}
@@ -212,54 +274,55 @@ function AppContent() {
         />
       );
     }
-    return (
+    return withSeo(
       <BlogPage
         onNavigate={handleNavigate}
-        onSelectPost={(postId) => {
-          setSelectedBlogPostId(postId);
-          pushState(getPathFromPage('blog', language), `?post=${postId}`);
-        }}
+        onSelectPost={(postId) => handleNavigate('blog', { blogPostId: postId })}
       />
     );
   }
 
+  if (currentPage === 'htmlSitemap') {
+    return withSeo(<HtmlSitemapPage onNavigate={handleNavigate} />);
+  }
+
   if (currentPage === 'about') {
-    return <AboutPage onNavigate={handleNavigate} />;
+    return withSeo(<AboutPage onNavigate={handleNavigate} />);
   }
 
   if (currentPage === 'cookie') {
-    return <CookiePolicyPage onNavigate={handleNavigate} />;
+    return withSeo(<CookiePolicyPage onNavigate={handleNavigate} />);
   }
 
   if (currentPage === 'terms') {
-    return <TermsOfServicePage onNavigate={handleNavigate} />;
+    return withSeo(<TermsOfServicePage onNavigate={handleNavigate} />);
   }
 
   if (currentPage === 'privacy') {
-    return <PrivacyPolicyPage onNavigate={handleNavigate} />;
+    return withSeo(<PrivacyPolicyPage onNavigate={handleNavigate} />);
   }
 
   if (currentPage === 'account') {
-    return <MyAccountPage onNavigate={handleNavigate} />;
+    return withSeo(<MyAccountPage onNavigate={handleNavigate} />);
   }
 
   if (currentPage === 'signup') {
-    return <SignUpPage onNavigate={handleNavigate} />;
+    return withSeo(<SignUpPage onNavigate={handleNavigate} />);
   }
 
   if (currentPage === 'favorites') {
-    return <FavoritesPage onNavigate={handleNavigate} onSelectProperty={handleSelectProperty} />;
+    return withSeo(<FavoritesPage onNavigate={handleNavigate} onSelectProperty={handleSelectProperty} />);
   }
 
   if (currentPage === 'activity') {
-    return <ActivityPage onNavigate={handleNavigate} onSelectProperty={handleSelectProperty} />;
+    return withSeo(<ActivityPage onNavigate={handleNavigate} onSelectProperty={handleSelectProperty} />);
   }
 
   if (currentPage === 'profile') {
-    return <ProfilePage onNavigate={handleNavigate} />;
+    return withSeo(<ProfilePage onNavigate={handleNavigate} />);
   }
 
-  return (
+  return withSeo(
     <div className="min-h-screen bg-white w-full min-w-0 overflow-x-hidden">
       {/* Navigation */}
       <Header onNavigate={handleNavigate} currentPage={currentPage} />
@@ -362,7 +425,7 @@ function AppContent() {
       </section>
 
       {/* Featured Properties Carousel */}
-      <FeaturedPropertiesCarousel onSelectProperty={handleSelectProperty} onViewAllClick={() => handleNavigate('category', { categoryId: 'featured' })} title={t('section.featured.title')} subtitle={t('section.featured.subtitle')} />
+      <FeaturedPropertiesCarousel title={t('section.featured.title')} subtitle={t('section.featured.subtitle')} />
 
       {/* Rental Categories Section */}
       <RentalCategoriesSection onCategoryClick={(categoryId) => {
@@ -372,10 +435,7 @@ function AppContent() {
       {/* Tokyo Wards Section */}
       <TokyoWardsSection onWardClick={handleWardClick} title={t('section.areas.title')} subtitle={t('section.areas.subtitle')} />
 
-      <HomeBlogScrollSection
-        onSelectPost={(postId) => handleNavigate('blog', { blogPostId: postId })}
-        onViewAll={() => handleNavigate('blog')}
-      />
+      <HomeBlogScrollSection />
 
       {/* Trust Indicators */}
       <section className="py-10 md:py-20 bg-gray-50 border-y border-gray-100">
@@ -737,6 +797,8 @@ function AppContent() {
         </div>
       </section>
 
+      <HomeCrawlableLinksSection />
+
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-8 md:py-16">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -936,22 +998,22 @@ function AppContent() {
               </h4>
               <ul className="space-y-1.5 md:space-y-3 text-xs md:text-sm">
                 <li>
-                  <button
-                    onClick={() => handleNavigate('buy')}
+                  <a
+                    href={getPathFromPage('buy', pathLang)}
                     className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
                   >
-                    <div className="w-1.5 h-1.5 bg-[#C1121F] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#C1121F] opacity-0 transition-opacity group-hover:opacity-100" />
                     <span>{t('footer.buy_property')}</span>
-                  </button>
+                  </a>
                 </li>
                 <li>
-                  <button
-                    onClick={() => handleNavigate('rent')}
+                  <a
+                    href={getPathFromPage('rent', pathLang)}
                     className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
                   >
-                    <div className="w-1.5 h-1.5 bg-[#C1121F] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#C1121F] opacity-0 transition-opacity group-hover:opacity-100" />
                     <span>{t('footer.rent_live')}</span>
-                  </button>
+                  </a>
                 </li>
               </ul>
             </div>
@@ -963,41 +1025,76 @@ function AppContent() {
               </h4>
               <ul className="space-y-1.5 md:space-y-3 text-xs md:text-sm">
                 <li>
-                  <button
-                    onClick={() => handleNavigate('about')}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group w-full text-left"
+                  <a
+                    href={getPathFromPage('about', pathLang)}
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group"
                   >
-                    <div className="w-1.5 h-1.5 bg-[#C1121F] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#C1121F] opacity-0 transition-opacity group-hover:opacity-100" />
                     <span>{t('about.title')}</span>
-                  </button>
+                  </a>
                 </li>
                 <li>
-                  <a href="#" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
-                    <div className="w-1.5 h-1.5 bg-[#C1121F] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <a href="#contact-social" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#C1121F] opacity-0 transition-opacity group-hover:opacity-100" />
                     <span>{t('footer.contact')}</span>
                   </a>
                 </li>
                 <li>
-                  <button
-                    type="button"
-                    onClick={() => handleNavigate('blog')}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group w-full text-left bg-transparent border-none cursor-pointer p-0"
-                  >
-                    <div className="w-1.5 h-1.5 bg-[#C1121F] rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <a href={getPathFromPage('blog', pathLang)} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#C1121F] opacity-0 transition-opacity group-hover:opacity-100" />
                     <span>{t('nav.blog')}</span>
-                  </button>
+                  </a>
+                </li>
+                <li>
+                  <a href={getPathFromPage('consultation', pathLang)} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors group">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#C1121F] opacity-0 transition-opacity group-hover:opacity-100" />
+                    <span>{t('nav.consultation')}</span>
+                  </a>
                 </li>
               </ul>
             </div>
+          </div>
+
+          <div className="mb-8 border-t border-gray-800 pt-8 md:mb-12 md:pt-10">
+            <h4 className="mb-3 flex items-center gap-2 text-xs font-semibold md:mb-4 md:text-sm">
+              <Globe className="h-3.5 w-3.5 text-[#C1121F] md:h-5 md:w-5" />
+              {t('footer.categories_nav')}
+            </h4>
+            <ul className="flex flex-wrap gap-x-3 gap-y-2 text-xs md:text-sm">
+              {CATEGORY_SEO_SLUGS.map((slug) => (
+                <li key={slug}>
+                  <a
+                    href={getPathForCategory(slug, pathLang)}
+                    className="text-gray-400 underline-offset-2 transition-colors hover:text-white hover:underline"
+                  >
+                    {t(CATEGORY_SEO_LABEL_KEY[slug] ?? slug)}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-xs md:text-sm">
+              <a
+                href={getPathFromPage('htmlSitemap', pathLang)}
+                className="font-medium text-[#C1121F] underline-offset-2 transition-colors hover:text-white hover:underline"
+              >
+                {t('footer.html_sitemap')}
+              </a>
+            </p>
           </div>
 
           <div className="border-t border-gray-800 pt-6 md:pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
               <p className="text-gray-400 text-sm text-center md:text-left">{t('footer.copyright')}</p>
               <div className="flex flex-wrap justify-center gap-3 md:gap-6 text-sm">
-                <button type="button" onClick={() => handleNavigate('privacy')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer">{t('footer.privacy_policy')}</button>
-                <button type="button" onClick={() => handleNavigate('terms')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer">{t('footer.terms_of_service')}</button>
-                <button type="button" onClick={() => handleNavigate('cookie')} className="text-gray-400 hover:text-white transition-colors bg-transparent border-none cursor-pointer">{t('footer.cookie_policy')}</button>
+                <a href={getPathFromPage('privacy', pathLang)} className="text-gray-400 transition-colors hover:text-white">
+                  {t('footer.privacy_policy')}
+                </a>
+                <a href={getPathFromPage('terms', pathLang)} className="text-gray-400 transition-colors hover:text-white">
+                  {t('footer.terms_of_service')}
+                </a>
+                <a href={getPathFromPage('cookie', pathLang)} className="text-gray-400 transition-colors hover:text-white">
+                  {t('footer.cookie_policy')}
+                </a>
               </div>
             </div>
           </div>

@@ -1,0 +1,28 @@
+# Netlify: 旧クエリ URL からクリーン URL へ 301（SPA 用の /* → index.html はダッシュボード等で設定済みの場合があります）
+[[redirects]]
+  from = "/blog"
+  query = { post = ":id" }
+  to = "/blog/:id"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/zh/blog"
+  query = { post = ":id" }
+  to = "/zh/blog/:id"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/category"
+  query = { category = ":slug" }
+  to = "/category/:slug"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/zh/category"
+  query = { category = ":slug" }
+  to = "/zh/category/:slug"
+  status = 301
+  force = true
